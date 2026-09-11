@@ -3,7 +3,7 @@
   "cleanUrls": true,
   "rewrites": [
     { "source": "/", "destination": "/index.html" },
-    { "source": "/kasir", "destination": "/aplikasi_kasir_warkop_mobile.html" },
-    { "source": "/bos", "destination": "/dashboard_owner_detail_mobile.html" }
+    { "source": "/kasir", "destination": "/kasir.html" },
+    { "source": "/bos", "destination": "/bos.html" }
   ]
 }

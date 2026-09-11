@@ -157,7 +157,7 @@ class WarkopAuth {
 
     if (requiredRole === 'bos' && user.role !== 'bos') {
       alert('⛔ Akses Ditolak: Halaman Laporan Finansial hanya dapat diakses oleh Bos / Pemilik Warkop.');
-      window.location.href = 'aplikasi_kasir_warkop_mobile.html';
+      window.location.href = '/kasir';
       return false;
     }
 

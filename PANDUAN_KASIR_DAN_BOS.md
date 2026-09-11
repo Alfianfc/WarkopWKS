@@ -75,7 +75,7 @@ Project ini sudah dilengkapi konfigurasi `vercel.json`:
    [Login Kasir]                 [Login Bos]
          │                             │
          ▼                             ▼
-[aplikasi_kasir_warkop_mobile.html]  [dashboard_owner_detail_mobile.html]
+[kasir (/kasir)]  [laporan bos (/bos)]
   - POS & Katalog Menu                 - Omzet & Laba Bersih LIVE
   - Bayar Tunai / QRIS                 - Grafik Penjualan Per Jam
   - Catat Belanja Modal                - Live Feed Transaksi Masuk 🔔

@@ -9,8 +9,8 @@ Dokumen ini disiapkan untuk mempermudah **Hermes** dalam melanjutkan pengembanga
 ```
 Coffe/
 ├── index.html                           # Portal Login (Kasir vs Bos)
-├── aplikasi_kasir_warkop_mobile.html    # Frontend POS Kasir
-├── dashboard_owner_detail_mobile.html   # Frontend Dashboard Owner / Bos LIVE
+├── kasir.html                           # Frontend POS Kasir (/kasir)
+├── bos.html                             # Frontend Dashboard Owner LIVE (/bos)
 ├── auth.js                              # Client-side Auth & Role Guard
 ├── pos-sync.js                          # Client-side Sync Engine (Socket.io + Fallback)
 ├── server.js                            # Scaffold Server Express + Socket.io
