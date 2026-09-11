@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+  <title>Portal Masuk - POS Kasir & Laporan Owner Warkop</title>
+  <style>
+    @layer base {
+      html, body { width: 100vw; margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+      .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+    }
+    ::-webkit-scrollbar { display: none; }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface": "#fff8f5",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#fcf2eb",
+            "surface-container": "#f6ece6",
+            "surface-container-high": "#f0e6e0",
+            "surface-container-highest": "#eae1da",
+            "on-surface": "#1f1b17",
+            "on-surface-variant": "#59413a",
+            "primary": "#a83301",
+            "primary-container": "#ca4a1c",
+            "on-primary": "#ffffff",
+            "secondary": "#6d5a52",
+            "secondary-container": "#f4dacf",
+            "on-secondary-container": "#725f56",
+            "error": "#ba1a1a",
+            "outline": "#8d7168"
+          },
+          fontFamily: {
+            sans: ["Plus Jakarta Sans", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="auth.js"></script>
+</head>
+
+<body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col justify-between antialiased selection:bg-primary selection:text-white relative overflow-x-hidden">
+  <!-- Subtle decorative ambient glows -->
+  <div class="absolute -top-32 -left-32 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+  <!-- Header Branding -->
+  <header class="w-full pt-8 pb-4 px-6 flex flex-col items-center text-center z-10">
+    <div class="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/25 mb-3.5 transform hover:rotate-6 transition-transform">
+      <span class="material-symbols-outlined text-[32px]">coffee</span>
+    </div>
+    <h1 class="text-2xl font-extrabold text-on-surface tracking-tight">Warkop Nusantara</h1>
+    <p class="text-xs text-on-surface-variant font-medium mt-0.5">Sistem Kasir POS &amp; Pemantauan Real-Time Owner</p>
+  </header>
+
+  <!-- Login Card Container -->
+  <main class="w-full max-w-md mx-auto px-5 py-4 z-10 flex-1 flex flex-col justify-center">
+    <div class="bg-surface-container-low/80 backdrop-blur-xl border border-surface-container-high rounded-3xl p-6 sm:p-7 shadow-xl shadow-stone-900/5 flex flex-col gap-5">
+      
+      <!-- Role Tab Selector -->
+      <div class="flex p-1 bg-surface-container rounded-2xl border border-surface-container-high">
+        <button type="button" onclick="selectRole('kasir')" id="tab-role-kasir" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-primary text-white shadow-sm">
+          <span class="material-symbols-outlined text-[17px]">point_of_sale</span>
+          <span>Masuk Kasir</span>
+        </button>
+        <button type="button" onclick="selectRole('bos')" id="tab-role-bos" class="flex-1 py-2.5 rounded-xl text-xs font-semibold text-on-surface-variant hover:text-on-surface transition-all flex items-center justify-center gap-1.5">
+          <span class="material-symbols-outlined text-[17px]">monitoring</span>
+          <span>Masuk Bos (Owner)</span>
+        </button>
+      </div>
+
+      <!-- Welcome Role Text -->
+      <div class="text-center">
+        <h2 class="text-base font-bold text-on-surface" id="role-heading">Login Kasir Warkop</h2>
+        <p class="text-xs text-on-surface-variant mt-0.5" id="role-subheading">Kelola pesanan, pembayaran, dan belanja modal</p>
+      </div>
+
+      <!-- Login Form -->
+      <form onsubmit="handleLogin(event)" class="flex flex-col gap-3.5">
+        <!-- Error Alert Container -->
+        <div id="login-error-alert" class="hidden bg-red-50 border border-red-200 text-error px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 animate-in fade-in duration-200">
+          <span class="material-symbols-outlined text-[18px]">error</span>
+          <span id="error-message-text">Username atau password salah!</span>
+        </div>
+
+        <!-- Input Username -->
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-bold text-on-surface-variant">Username</label>
+          <div class="relative flex items-center">
+            <span class="material-symbols-outlined absolute left-3.5 text-on-surface-variant text-[18px]">person</span>
+            <input type="text" id="input-username" required autocomplete="username" placeholder="Masukkan username" class="w-full h-12 bg-surface-container-lowest border border-surface-container-high rounded-xl pl-10 pr-3.5 text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+          </div>
+        </div>
+
+        <!-- Input Password -->
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-bold text-on-surface-variant">Password</label>
+          <div class="relative flex items-center">
+            <span class="material-symbols-outlined absolute left-3.5 text-on-surface-variant text-[18px]">lock</span>
+            <input type="password" id="input-password" required autocomplete="current-password" placeholder="Masukkan password" class="w-full h-12 bg-surface-container-lowest border border-surface-container-high rounded-xl pl-10 pr-11 text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+            <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 text-on-surface-variant hover:text-on-surface focus:outline-none" title="Tampilkan/Sembunyikan Password">
+              <span class="material-symbols-outlined text-[18px]" id="eye-icon">visibility</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="submit-login-btn" class="mt-2 w-full h-12 bg-primary hover:bg-primary-container text-white rounded-xl text-sm font-bold active:scale-[0.98] transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+          <span>Masuk ke Sistem</span>
+          <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+        </button>
+      </form>
+
+      <!-- Quick Fill Demo Credentials -->
+      <div class="pt-3 border-t border-surface-container flex flex-col gap-2">
+        <span class="text-[11px] font-semibold text-on-surface-variant text-center">Akun Default (Klik untuk isi instan):</span>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" onclick="fillQuickCredentials('kasir')" class="p-2 bg-surface-container hover:bg-surface-container-high rounded-xl text-left border border-surface-container-high active:scale-95 transition-all flex flex-col">
+            <span class="text-[11px] font-bold text-on-surface flex items-center gap-1">
+              <span class="material-symbols-outlined text-[13px] text-primary">badge</span> Kasir
+            </span>
+            <span class="text-[10px] text-on-surface-variant">user: <strong>kasir</strong> / pass: <strong>kasir123</strong></span>
+          </button>
+          <button type="button" onclick="fillQuickCredentials('bos')" class="p-2 bg-surface-container hover:bg-surface-container-high rounded-xl text-left border border-surface-container-high active:scale-95 transition-all flex flex-col">
+            <span class="text-[11px] font-bold text-on-surface flex items-center gap-1">
+              <span class="material-symbols-outlined text-[13px] text-amber-700">admin_panel_settings</span> Bos / Owner
+            </span>
+            <span class="text-[10px] text-on-surface-variant">user: <strong>bos</strong> / pass: <strong>bos123</strong></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full py-4 text-center text-[11px] text-on-surface-variant font-medium z-10 pb-safe">
+    © 2026 Warkop Nusantara • Sistem Kasir Real-Time &amp; Aman
+  </footer>
+
+  <!-- SCRIPT -->
+  <script>
+    let activeRole = 'kasir';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Periksa apakah user sudah login sebelumnya
+      const currentUser = warkopAuth.getCurrentUser();
+      if (currentUser) {
+        // Arahkan otomatis ke halaman sesuai peran
+        if (currentUser.role === 'bos') {
+          window.location.href = 'dashboard_owner_detail_mobile.html';
+        } else {
+          window.location.href = 'aplikasi_kasir_warkop_mobile.html';
+        }
+      } else {
+        // Set default field
+        fillQuickCredentials('kasir');
+      }
+    });
+
+    function selectRole(role) {
+      activeRole = role;
+      const tabKasir = document.getElementById('tab-role-kasir');
+      const tabBos = document.getElementById('tab-role-bos');
+      const heading = document.getElementById('role-heading');
+      const subheading = document.getElementById('role-subheading');
+
+      if (role === 'kasir') {
+        tabKasir.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-primary text-white shadow-sm';
+        tabBos.className = 'flex-1 py-2.5 rounded-xl text-xs font-semibold text-on-surface-variant hover:text-on-surface transition-all flex items-center justify-center gap-1.5';
+        heading.innerText = 'Login Kasir Warkop';
+        subheading.innerText = 'Kelola pesanan, pembayaran, dan belanja modal';
+        fillQuickCredentials('kasir');
+      } else {
+        tabBos.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-primary text-white shadow-sm';
+        tabKasir.className = 'flex-1 py-2.5 rounded-xl text-xs font-semibold text-on-surface-variant hover:text-on-surface transition-all flex items-center justify-center gap-1.5';
+        heading.innerText = 'Login Bos / Pemilik Warkop';
+        subheading.innerText = 'Pantau omzet, laba bersih, dan live feed transaksi';
+        fillQuickCredentials('bos');
+      }
+    }
+
+    function fillQuickCredentials(role) {
+      const accounts = warkopAuth.getAccounts();
+      const acc = accounts[role];
+      if (acc) {
+        document.getElementById('input-username').value = acc.username;
+        document.getElementById('input-password').value = acc.password;
+      }
+      hideError();
+    }
+
+    function togglePasswordVisibility() {
+      const passInput = document.getElementById('input-password');
+      const eyeIcon = document.getElementById('eye-icon');
+      if (passInput.type === 'password') {
+        passInput.type = 'text';
+        eyeIcon.innerText = 'visibility_off';
+      } else {
+        passInput.type = 'password';
+        eyeIcon.innerText = 'visibility';
+      }
+    }
+
+    function showError(msg) {
+      const alertBox = document.getElementById('login-error-alert');
+      const text = document.getElementById('error-message-text');
+      text.innerText = msg;
+      alertBox.classList.remove('hidden');
+    }
+
+    function hideError() {
+      document.getElementById('login-error-alert').classList.add('hidden');
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      hideError();
+
+      const username = document.getElementById('input-username').value;
+      const password = document.getElementById('input-password').value;
+
+      const result = await warkopAuth.login(username, password);
+
+      if (result.success) {
+        const user = result.user;
+        if (user.role === 'bos') {
+          window.location.href = 'dashboard_owner_detail_mobile.html';
+        } else {
+          window.location.href = 'aplikasi_kasir_warkop_mobile.html';
+        }
+      } else {
+        showError(result.message);
+      }
+    }
+  </script>
+</body>
+</html>

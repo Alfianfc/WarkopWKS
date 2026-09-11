@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+  <title>Dashboard Owner Warkop - Real-time</title>
+  <style>
+    @layer base {
+      html, body { width: 100vw; margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+      .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+    }
+    ::-webkit-scrollbar { display: none; }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface": "#fff8f5",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#fcf2eb",
+            "surface-container": "#f6ece6",
+            "surface-container-high": "#f0e6e0",
+            "surface-container-highest": "#eae1da",
+            "on-surface": "#1f1b17",
+            "on-surface-variant": "#59413a",
+            "primary": "#a83301",
+            "primary-container": "#ca4a1c",
+            "on-primary": "#ffffff",
+            "secondary": "#6d5a52",
+            "secondary-container": "#f4dacf",
+            "on-secondary-container": "#725f56",
+            "error": "#ba1a1a",
+            "outline": "#8d7168"
+          },
+          fontFamily: {
+            sans: ["Plus Jakarta Sans", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Firebase SDKs (Optional Cloud Real-time) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <!-- Socket.io for Real-time Server (Optional) -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Supabase SDK & Config -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+
+  <!-- Auth & Role Guard -->
+  <script src="auth.js"></script>
+
+  <!-- Warkop Realtime Data Engine -->
+  <script src="pos-sync.js"></script>
+</head>
+
+<body class="bg-surface font-sans text-on-surface flex flex-col antialiased selection:bg-primary selection:text-white">
+  <!-- Header -->
+  <header class="fixed top-0 inset-x-0 z-40 bg-surface/90 backdrop-blur-xl border-b border-surface-container pt-safe">
+    <div class="h-16 px-4 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
+          <span class="material-symbols-outlined text-[24px]">coffee</span>
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight text-on-surface flex items-center gap-1.5">
+            Laporan Owner Bos
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+            </span>
+          </h1>
+          <p class="text-[11px] text-on-surface-variant font-medium flex items-center gap-1">
+            <span class="material-symbols-outlined text-[12px] text-amber-700">admin_panel_settings</span>
+            <span id="active-boss-label">Owner Warkop • Hak Akses Penuh</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <!-- Audio Notification Toggle -->
+        <button onclick="toggleAudioChime()" id="audio-toggle-btn" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary active:scale-95 transition-all" title="Notifikasi Suara Pesanan Baru">
+          <span class="material-symbols-outlined text-[18px]" id="audio-icon">volume_up</span>
+        </button>
+        <!-- Account / Password Settings Button -->
+        <button onclick="openAccountModal()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary active:scale-95 transition-all" title="Kelola Password Akun Kasir & Bos">
+          <span class="material-symbols-outlined text-[18px]">key</span>
+        </button>
+        <!-- Cloud Sync Status Button -->
+        <button onclick="openCloudModal()" id="cloud-status-btn" class="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 active:scale-95 transition-transform" title="Status Sinkronisasi Real-time">
+          <span class="material-symbols-outlined text-[14px]">sync</span>
+          <span id="cloud-status-text">Live Sync</span>
+        </button>
+        <!-- Logout Button -->
+        <button onclick="confirmLogout()" class="w-8 h-8 rounded-full bg-surface-container hover:bg-error/10 text-on-surface-variant hover:text-error flex items-center justify-center active:scale-95 transition-all" title="Keluar / Logout">
+          <span class="material-symbols-outlined text-[18px]">logout</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Dashboard View -->
+  <main class="flex flex-col relative w-full px-4 pt-20 pb-28 min-h-screen">
+    
+    <!-- Greeting & Quick Status Header -->
+    <div class="flex items-center justify-between py-2">
+      <div class="flex flex-col">
+        <span class="text-xs font-semibold text-on-surface-variant">Laporan Periode</span>
+        <h2 class="text-lg font-extrabold text-on-surface tracking-tight" id="dashboard-date-display">Hari Ini</h2>
+      </div>
+      <div class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full shadow-xs">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+        </span>
+        <span class="text-xs font-bold">KASIR ONLINE</span>
+      </div>
+    </div>
+
+    <!-- Executive Financial Summary Cards (Bento Grid) -->
+    <div class="grid grid-cols-2 gap-2.5 mt-2">
+      <!-- 1. Omzet Bruto (Penjualan) -->
+      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-xs relative overflow-hidden">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs text-on-surface-variant font-bold">Omzet Bruto</span>
+          <span class="flex items-center text-[10px] text-emerald-700 font-extrabold bg-emerald-500/10 px-1.5 py-0.5 rounded-full">
+            <span class="material-symbols-outlined text-[13px]">trending_up</span>+Live
+          </span>
+        </div>
+        <span class="text-xl sm:text-2xl font-black text-on-surface tracking-tight" id="dash-gross-revenue">Rp 0</span>
+        <span class="text-[11px] text-on-surface-variant font-medium mt-1 flex items-center gap-1" id="dash-tx-count">
+          <span class="material-symbols-outlined text-[13px]">receipt</span> 0 Transaksi Selesai
+        </span>
+      </div>
+
+      <!-- 2. Laba Bersih (Setelah dipotong belanja modal) -->
+      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-xs relative overflow-hidden">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs text-on-surface-variant font-bold">Kas Bersih</span>
+          <span class="flex items-center text-[10px] text-emerald-700 font-extrabold bg-emerald-500/10 px-1.5 py-0.5 rounded-full" id="dash-margin-badge">
+            100%
+          </span>
+        </div>
+        <span class="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight" id="dash-net-profit">Rp 0</span>
+        <span class="text-[11px] text-on-surface-variant font-medium mt-1 flex items-center gap-1">
+          <span class="material-symbols-outlined text-[13px]">account_balance_wallet</span> Kas Siap Ambil
+        </span>
+      </div>
+
+      <!-- 3. Belanja Operasional (Pengeluaran Modal Kasir) -->
+      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-xs">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs text-on-surface-variant font-bold">Belanja Modal</span>
+          <span class="material-symbols-outlined text-amber-700 text-[18px]">receipt_long</span>
+        </div>
+        <span class="text-xl sm:text-2xl font-black text-amber-800 tracking-tight" id="dash-total-expenses">Rp 0</span>
+        <span class="text-[11px] text-on-surface-variant font-medium mt-1 flex items-center gap-1" id="dash-expense-count">
+          Bahan baku, es, gas
+        </span>
+      </div>
+
+      <!-- 4. Porsi Terjual -->
+      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-xs">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs text-on-surface-variant font-bold">Total Porsi</span>
+          <span class="material-symbols-outlined text-primary text-[18px]">local_cafe</span>
+        </div>
+        <span class="text-xl sm:text-2xl font-black text-on-surface tracking-tight" id="dash-total-items">0 Porsi</span>
+        <span class="text-[11px] text-on-surface-variant font-medium mt-1 flex items-center gap-1" id="dash-avg-item">
+          Rata-rata menu warkop
+        </span>
+      </div>
+    </div>
+
+    <!-- Omzet Trend & Peak Hours Section (Dynamic Chart) -->
+    <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-xs">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex flex-col">
+          <h3 class="text-sm font-bold text-on-surface">Tren Omzet Per Jam</h3>
+          <span class="text-[11px] text-on-surface-variant" id="dash-peak-hours-label">Memuat data transaksi...</span>
+        </div>
+        <div class="w-8 h-8 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant">
+          <span class="material-symbols-outlined text-[18px]">query_builder</span>
+        </div>
+      </div>
+
+      <!-- Visual Dynamic CSS Bar Chart -->
+      <div class="flex items-end justify-between gap-1.5 h-32 pt-4 pb-2 px-2 bg-surface-container-lowest rounded-xl border border-surface-container" id="hourly-chart-container">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="flex items-center justify-between mt-2 pt-2 border-t border-surface-container text-xs">
+        <div class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-primary text-[18px]">bolt</span>
+          <span class="text-on-surface font-semibold">Jam Teramai: <strong class="text-primary font-bold" id="peak-hours-text">Malam (20:00 - 22:00)</strong></span>
+        </div>
+        <span class="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">Waktu Sibuk</span>
+      </div>
+    </div>
+
+    <!-- Komposisi Penjualan Kategori (Dinamis dari pesanan) -->
+    <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-xs">
+      <h3 class="text-sm font-bold text-on-surface mb-0.5">Komposisi Penjualan Kategori</h3>
+      <p class="text-[11px] text-on-surface-variant mb-3">Distribusi produk paling laris dipesan pengunjung</p>
+
+      <!-- Progress Stack Bar -->
+      <div class="flex w-full h-3 rounded-full overflow-hidden bg-surface-container gap-0.5 mb-3" id="category-stacked-bar">
+        <div class="bg-primary h-full transition-all" style="width: 50%;" title="Kopi & Minuman"></div>
+        <div class="bg-amber-700 h-full transition-all" style="width: 30%;" title="Makanan Berat"></div>
+        <div class="bg-secondary h-full transition-all" style="width: 20%;" title="Camilan"></div>
+      </div>
+
+      <!-- Category Legends -->
+      <div class="grid grid-cols-2 gap-2" id="category-legend-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Live Feed Transaksi & Pengeluaran Kasir -->
+    <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-xs">
+      <div class="flex items-center justify-between pb-3 border-b border-surface-container">
+        <div class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-primary text-[20px]">rss_feed</span>
+          <h3 class="text-sm font-bold text-on-surface">Live Feed Kasir</h3>
+        </div>
+        <span class="text-[11px] text-primary bg-primary/10 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+          Real-time
+        </span>
+      </div>
+
+      <!-- Feed Switcher (Penjualan vs Pengeluaran Modal) -->
+      <div class="flex gap-2 my-2.5">
+        <button onclick="switchFeedTab('sales')" id="feed-tab-sales" class="flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all">
+          Penjualan Masuk
+        </button>
+        <button onclick="switchFeedTab('expenses')" id="feed-tab-expenses" class="flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all">
+          Belanja Kasir
+        </button>
+      </div>
+
+      <!-- Live Sales Feed Container -->
+      <div class="flex flex-col gap-2" id="live-sales-feed">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Live Expenses Feed Container -->
+      <div class="hidden flex flex-col gap-2" id="live-expenses-feed">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Action Buttons (WhatsApp & Unduh Excel) -->
+    <div class="flex flex-col gap-2.5 mt-4">
+      <button onclick="sendWhatsAppSummary()" class="w-full h-13 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-700/20 active:scale-[0.98] transition-transform">
+        <span class="material-symbols-outlined text-[22px]">send</span>
+        <span class="text-xs font-bold tracking-wide">Kirim Rekap Hari Ini ke WhatsApp Bos</span>
+      </button>
+
+      <button onclick="warkopSync.exportToCSV()" class="w-full h-12 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-2xl flex items-center justify-center gap-2 border border-surface-container-high active:scale-[0.98] transition-transform">
+        <span class="material-symbols-outlined text-[20px] text-primary">download</span>
+        <span class="text-xs font-semibold">Unduh Laporan Lengkap (.CSV / Excel)</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 inset-x-0 z-40 pb-safe bg-surface/95 backdrop-blur-xl border-t border-surface-container shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
+    <div class="flex justify-around items-center h-16 px-2">
+      <a href="aplikasi_kasir_warkop_mobile.html" class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-on-surface-variant hover:text-primary transition-all">
+        <span class="material-symbols-outlined text-[22px]">point_of_sale</span>
+        <span class="text-[11px]">Kasir POS</span>
+      </a>
+      <a href="aplikasi_kasir_warkop_mobile.html#history" class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-on-surface-variant hover:text-primary transition-all">
+        <span class="material-symbols-outlined text-[22px]">receipt_long</span>
+        <span class="text-[11px]">Struk</span>
+      </a>
+      <button class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-primary font-bold transition-all">
+        <span class="material-symbols-outlined text-[22px]">analytics</span>
+        <span class="text-[11px]">Laporan Bos</span>
+      </button>
+      <button onclick="openCloudModal()" class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-on-surface-variant hover:text-primary transition-all">
+        <span class="material-symbols-outlined text-[22px]">cloud_sync</span>
+        <span class="text-[11px]">Cloud</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Modal Detail Struk Transaksi Live Feed -->
+  <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4" id="tx-detail-modal">
+    <div class="bg-surface w-full max-w-sm rounded-2xl p-5 flex flex-col gap-3 shadow-2xl animate-in zoom-in-95 duration-150">
+      <div class="flex justify-between items-center pb-2 border-b border-surface-container">
+        <div>
+          <h4 class="text-sm font-bold text-on-surface" id="modal-tx-id">TRX-0000</h4>
+          <p class="text-[11px] text-on-surface-variant" id="modal-tx-meta">Meja 01 • Kasir 1</p>
+        </div>
+        <button onclick="closeTxDetailModal()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-1.5 divide-y divide-surface-container py-1" id="modal-tx-items">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="flex justify-between items-center pt-2 border-t border-surface-container">
+        <span class="text-xs font-bold text-on-surface">Total Transaksi</span>
+        <span class="text-base font-extrabold text-primary" id="modal-tx-total">Rp 0</span>
+      </div>
+
+      <button onclick="closeTxDetailModal()" class="mt-2 w-full h-10 bg-primary text-white rounded-xl text-xs font-bold active:scale-95">
+        Tutup
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal Pengaturan Cloud Real-time (Firebase) -->
+  <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="cloud-modal">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl animate-in fade-in slide-in-from-bottom duration-200">
+      <div class="flex justify-between items-center pb-2 border-b border-surface-container">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-[22px]">cloud_sync</span>
+          <div>
+            <h3 class="text-base font-bold text-on-surface">Koneksi Cloud Real-time</h3>
+            <p class="text-[11px] text-on-surface-variant">Sinkronkan dashboard bos dengan kasir dari mana saja</p>
+          </div>
+        </div>
+        <button onclick="closeCloudModal()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="bg-surface-container-low p-3.5 rounded-xl border border-surface-container text-xs text-on-surface-variant leading-relaxed">
+        <p class="font-bold text-on-surface mb-1 flex items-center gap-1">
+          <span class="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span>
+          Status: Live Sync Aktif
+        </p>
+        Secara lokal pada browser ini, sinkronisasi antar-tab kasir dan bos sudah berjalan 100% instan lewat BroadcastChannel &amp; LocalStorage.
+        <p class="mt-2 text-[11px]">
+          Untuk memantau warkop dari HP saat berada di rumah atau luar kota, masukkan <strong>Firebase Config</strong> di bawah.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-semibold text-on-surface-variant">Firebase Config (Format JSON)</label>
+        <textarea id="firebase-config-input" rows="4" placeholder='{"apiKey": "...", "projectId": "...", "appId": "..."}' class="w-full bg-surface-container-low border border-surface-container rounded-xl p-3 text-xs font-mono text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"></textarea>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="saveFirebaseCloudConfig()" class="flex-1 h-11 bg-primary text-white rounded-xl text-xs font-bold active:scale-95 transition-transform shadow-md">
+          Simpan &amp; Hubungkan
+        </button>
+        <button onclick="clearCloudConfig()" class="px-3 h-11 bg-surface-container text-error rounded-xl text-xs font-semibold active:scale-95">
+          Reset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Kelola Akun & Password (Khusus Bos / Owner) -->
+  <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="account-modal">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto animate-in fade-in slide-in-from-bottom duration-200">
+      <div class="flex justify-between items-center pb-2 border-b border-surface-container">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-[22px]">admin_panel_settings</span>
+          <div>
+            <h3 class="text-base font-bold text-on-surface">Kelola Akun &amp; Password</h3>
+            <p class="text-[11px] text-on-surface-variant">Ubah username dan password Kasir atau Bos</p>
+          </div>
+        </div>
+        <button onclick="closeAccountModal()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <!-- Ubah Akun Kasir Box -->
+      <div class="bg-surface-container-low p-3.5 rounded-2xl border border-surface-container flex flex-col gap-2.5">
+        <span class="text-xs font-bold text-primary flex items-center gap-1">
+          <span class="material-symbols-outlined text-[16px]">point_of_sale</span>
+          Akun Kasir Warkop
+        </span>
+        <div class="flex flex-col gap-1">
+          <label class="text-[11px] font-semibold text-on-surface-variant">Username Kasir</label>
+          <input type="text" id="acc-kasir-user" class="w-full h-10 bg-surface-container-lowest border border-surface-container-high rounded-xl px-3 text-xs font-semibold text-on-surface">
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-[11px] font-semibold text-on-surface-variant">Password Baru Kasir</label>
+          <input type="text" id="acc-kasir-pass" class="w-full h-10 bg-surface-container-lowest border border-surface-container-high rounded-xl px-3 text-xs font-semibold text-on-surface" placeholder="Minimal 4 karakter">
+        </div>
+        <button onclick="saveAccountCredentials('kasir')" class="w-full h-9 bg-surface-container hover:bg-surface-container-high text-on-surface border border-surface-container-high rounded-xl text-xs font-bold active:scale-95 transition-all">
+          Simpan Akun Kasir
+        </button>
+      </div>
+
+      <!-- Ubah Akun Bos Box -->
+      <div class="bg-surface-container-low p-3.5 rounded-2xl border border-surface-container flex flex-col gap-2.5">
+        <span class="text-xs font-bold text-amber-800 flex items-center gap-1">
+          <span class="material-symbols-outlined text-[16px]">lock</span>
+          Akun Bos (Owner)
+        </span>
+        <div class="flex flex-col gap-1">
+          <label class="text-[11px] font-semibold text-on-surface-variant">Username Bos</label>
+          <input type="text" id="acc-bos-user" class="w-full h-10 bg-surface-container-lowest border border-surface-container-high rounded-xl px-3 text-xs font-semibold text-on-surface">
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-[11px] font-semibold text-on-surface-variant">Password Baru Bos</label>
+          <input type="text" id="acc-bos-pass" class="w-full h-10 bg-surface-container-lowest border border-surface-container-high rounded-xl px-3 text-xs font-semibold text-on-surface" placeholder="Minimal 4 karakter">
+        </div>
+        <button onclick="saveAccountCredentials('bos')" class="w-full h-9 bg-amber-700 hover:bg-amber-800 text-white rounded-xl text-xs font-bold active:scale-95 transition-all">
+          Simpan Akun Bos
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC SCRIPT -->
+  <script>
+    let isAudioEnabled = true;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Proteksi Ketat: Hanya Bos / Owner yang diizinkan
+      if (!warkopAuth.requireAuth('bos')) return;
+
+      const user = warkopAuth.getCurrentUser();
+      if (user) {
+        document.getElementById('active-boss-label').innerText = `${user.name} (${user.username}) • LIVE`;
+      }
+
+      document.getElementById('dashboard-date-display').innerText = warkopSync.formatDateIndo(new Date());
+
+      // Render awal
+      refreshDashboard();
+
+      // Dengarkan event sinkronisasi real-time
+      warkopSync.on('dataChanged', () => {
+        refreshDashboard();
+      });
+
+      warkopSync.on('transactionAdded', (tx) => {
+        if (isAudioEnabled) {
+          warkopSync.playNotificationSound();
+        }
+        showToastNotification(`Transaksi Baru: ${tx.table} (${warkopSync.formatRupiah(tx.total)})`);
+      });
+
+      updateCloudButtonState();
+    });
+
+    function confirmLogout() {
+      if (confirm('Apakah Anda yakin ingin keluar / logout dari akun Owner?')) {
+        warkopAuth.logout('index.html');
+      }
+    }
+
+    function openAccountModal() {
+      const accounts = warkopAuth.getAccounts();
+      if (accounts.kasir) {
+        document.getElementById('acc-kasir-user').value = accounts.kasir.username;
+        document.getElementById('acc-kasir-pass').value = accounts.kasir.password;
+      }
+      if (accounts.bos) {
+        document.getElementById('acc-bos-user').value = accounts.bos.username;
+        document.getElementById('acc-bos-pass').value = accounts.bos.password;
+      }
+      document.getElementById('account-modal').classList.remove('hidden');
+      document.getElementById('account-modal').classList.add('flex');
+    }
+
+    function closeAccountModal() {
+      document.getElementById('account-modal').classList.remove('flex');
+      document.getElementById('account-modal').classList.add('hidden');
+    }
+
+    async function saveAccountCredentials(role) {
+      const u = document.getElementById(`acc-${role}-user`).value.trim();
+      const p = document.getElementById(`acc-${role}-pass`).value.trim();
+      const res = await warkopAuth.updateCredentials(role, u, p);
+      if (res.success) {
+        alert(`Berhasil! Username dan Password untuk akun ${role.toUpperCase()} telah diperbarui.`);
+        closeAccountModal();
+      } else {
+        alert(res.message);
+      }
+    }
+
+    function toggleAudioChime() {
+      isAudioEnabled = !isAudioEnabled;
+      const icon = document.getElementById('audio-icon');
+      const btn = document.getElementById('audio-toggle-btn');
+      if (isAudioEnabled) {
+        icon.innerText = 'volume_up';
+        btn.classList.remove('opacity-50');
+      } else {
+        icon.innerText = 'volume_off';
+        btn.classList.add('opacity-50');
+      }
+    }
+
+    function showToastNotification(text) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-on-surface text-surface px-4 py-2.5 rounded-full text-xs font-bold shadow-xl border border-white/20 flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200';
+      toast.innerHTML = `<span class="material-symbols-outlined text-primary text-[18px]">notifications_active</span><span>${text}</span>`;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('animate-out', 'fade-out', 'slide-out-to-top');
+        setTimeout(() => toast.remove(), 200);
+      }, 3500);
+    }
+
+    function updateCloudButtonState() {
+      const btn = document.getElementById('cloud-status-btn');
+      const text = document.getElementById('cloud-status-text');
+      if (warkopSync.isFirebaseReady) {
+        text.innerText = 'Cloud LIVE';
+        btn.className = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 active:scale-95 transition-transform';
+      } else {
+        text.innerText = 'Local Sync';
+        btn.className = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 active:scale-95 transition-transform';
+      }
+    }
+
+    function refreshDashboard() {
+      const summary = warkopSync.getSummary('today');
+
+      // Update Bento Metrics
+      document.getElementById('dash-gross-revenue').innerText = warkopSync.formatRupiah(summary.totalRevenue);
+      document.getElementById('dash-tx-count').innerHTML = `<span class="material-symbols-outlined text-[13px]">receipt</span> ${summary.totalOrders} Transaksi Selesai`;
+
+      document.getElementById('dash-net-profit').innerText = warkopSync.formatRupiah(summary.netProfit);
+      document.getElementById('dash-margin-badge').innerText = `${summary.profitMargin}% Margin`;
+
+      document.getElementById('dash-total-expenses').innerText = warkopSync.formatRupiah(summary.totalExpenses);
+      document.getElementById('dash-expense-count').innerText = `${summary.filteredExpenses.length} kali belanja modal`;
+
+      document.getElementById('dash-total-items').innerText = `${summary.totalItemsSold} Porsi`;
+      const avgPrice = summary.totalItemsSold > 0 ? Math.round(summary.totalRevenue / summary.totalItemsSold) : 0;
+      document.getElementById('dash-avg-item').innerText = `Rata-rata ${warkopSync.formatRupiah(avgPrice)}/item`;
+
+      // Update Visual Hourly Chart
+      renderHourlyChart(summary.filteredTx);
+
+      // Update Kategori Penjualan
+      renderCategoryComposition(summary);
+
+      // Update Live Feeds
+      renderLiveSalesFeed(summary.filteredTx);
+      renderLiveExpensesFeed(summary.filteredExpenses);
+    }
+
+    // --- HOURLY CHART DINAMIS ---
+    function renderHourlyChart(transactions) {
+      const container = document.getElementById('hourly-chart-container');
+      container.innerHTML = '';
+
+      const hourBuckets = {
+        '08:00': 0,
+        '10:00': 0,
+        '12:00': 0,
+        '14:00': 0,
+        '16:00': 0,
+        '18:00': 0,
+        '20:00': 0,
+        '22:00': 0
+      };
+
+      // Kelompokkan transaksi ke bucket jam terdekat
+      transactions.forEach(tx => {
+        const d = tx.timestamp ? new Date(tx.timestamp) : new Date();
+        const hour = d.getHours();
+        let key = '22:00';
+        if (hour < 9) key = '08:00';
+        else if (hour < 11) key = '10:00';
+        else if (hour < 13) key = '12:00';
+        else if (hour < 15) key = '14:00';
+        else if (hour < 17) key = '16:00';
+        else if (hour < 19) key = '18:00';
+        else if (hour < 21) key = '20:00';
+
+        hourBuckets[key] += (Number(tx.total) || 0);
+      });
+
+      const maxVal = Math.max(...Object.values(hourBuckets), 100000);
+
+      let peakHourKey = '20:00';
+      let peakHourVal = -1;
+
+      Object.entries(hourBuckets).forEach(([hourLabel, revenue]) => {
+        if (revenue > peakHourVal) {
+          peakHourVal = revenue;
+          peakHourKey = hourLabel;
+        }
+
+        const heightPercent = Math.max(12, Math.round((revenue / maxVal) * 100));
+        const isPeak = revenue > 0 && revenue === peakHourVal;
+
+        const barEl = document.createElement('div');
+        barEl.className = 'flex flex-col items-center gap-1 flex-1 h-full justify-end group';
+        barEl.innerHTML = `
+          <span class="text-[9px] font-bold text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">${revenue > 0 ? (revenue / 1000) + 'k' : '-'}</span>
+          <div class="w-full ${revenue > 0 ? 'bg-primary' : 'bg-surface-container'} rounded-t transition-all" style="height: ${heightPercent}%;"></div>
+          <span class="text-[10px] ${isPeak && revenue > 0 ? 'text-primary font-bold' : 'text-on-surface-variant'}">${hourLabel}</span>
+        `;
+        container.appendChild(barEl);
+      });
+
+      document.getElementById('dash-peak-hours-label').innerText = `Puncak transaksi terpantau sekitar jam ${peakHourKey} WIB`;
+      document.getElementById('peak-hours-text').innerText = `${peakHourKey} WIB (${warkopSync.formatRupiah(peakHourVal)})`;
+    }
+
+    // --- KOMPOSISI KATEGORI ---
+    function renderCategoryComposition(summary) {
+      const catTotals = summary.categoryTotals;
+      const totalRev = summary.totalRevenue || 1;
+
+      const coffeePct = Math.round(((catTotals.coffee || 0) / totalRev) * 100);
+      const foodPct = Math.round(((catTotals.food || 0) / totalRev) * 100);
+      const snackPct = Math.round(((catTotals.snack || 0) / totalRev) * 100);
+      const otherPct = Math.max(0, 100 - coffeePct - foodPct - snackPct);
+
+      const stackBar = document.getElementById('category-stacked-bar');
+      stackBar.innerHTML = `
+        <div class="bg-primary h-full transition-all" style="width: ${Math.max(5, coffeePct)}%;" title="Kopi & Minuman: ${coffeePct}%"></div>
+        <div class="bg-amber-700 h-full transition-all" style="width: ${Math.max(5, foodPct)}%;" title="Makanan: ${foodPct}%"></div>
+        <div class="bg-secondary h-full transition-all" style="width: ${Math.max(5, snackPct)}%;" title="Camilan: ${snackPct}%"></div>
+        <div class="bg-stone-400 h-full transition-all" style="width: ${otherPct}%;" title="Lainnya: ${otherPct}%"></div>
+      `;
+
+      const legend = document.getElementById('category-legend-container');
+      legend.innerHTML = `
+        <div class="flex items-center gap-2 bg-surface-container-lowest p-2 rounded-xl border border-surface-container">
+          <div class="w-3 h-3 rounded-full bg-primary shrink-0"></div>
+          <div class="flex flex-col">
+            <span class="text-xs font-bold text-on-surface">Kopi &amp; Minuman</span>
+            <span class="text-[11px] text-on-surface-variant font-semibold">${coffeePct}% (${warkopSync.formatRupiah(catTotals.coffee)})</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 bg-surface-container-lowest p-2 rounded-xl border border-surface-container">
+          <div class="w-3 h-3 rounded-full bg-amber-700 shrink-0"></div>
+          <div class="flex flex-col">
+            <span class="text-xs font-bold text-on-surface">Makanan Berat</span>
+            <span class="text-[11px] text-on-surface-variant font-semibold">${foodPct}% (${warkopSync.formatRupiah(catTotals.food)})</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 bg-surface-container-lowest p-2 rounded-xl border border-surface-container">
+          <div class="w-3 h-3 rounded-full bg-secondary shrink-0"></div>
+          <div class="flex flex-col">
+            <span class="text-xs font-bold text-on-surface">Camilan &amp; Snack</span>
+            <span class="text-[11px] text-on-surface-variant font-semibold">${snackPct}% (${warkopSync.formatRupiah(catTotals.snack)})</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 bg-surface-container-lowest p-2 rounded-xl border border-surface-container">
+          <div class="w-3 h-3 rounded-full bg-stone-400 shrink-0"></div>
+          <div class="flex flex-col">
+            <span class="text-xs font-bold text-on-surface">Lain-lain</span>
+            <span class="text-[11px] text-on-surface-variant font-semibold">${otherPct}%</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- LIVE FEED SWITCHER & RENDERING ---
+    function switchFeedTab(tab) {
+      const tabSales = document.getElementById('feed-tab-sales');
+      const tabExpenses = document.getElementById('feed-tab-expenses');
+      const salesFeed = document.getElementById('live-sales-feed');
+      const expensesFeed = document.getElementById('live-expenses-feed');
+
+      if (tab === 'sales') {
+        tabSales.className = 'flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all';
+        tabExpenses.className = 'flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
+        salesFeed.classList.remove('hidden');
+        expensesFeed.classList.add('hidden');
+      } else {
+        tabExpenses.className = 'flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all';
+        tabSales.className = 'flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
+        expensesFeed.classList.remove('hidden');
+        salesFeed.classList.add('hidden');
+      }
+    }
+
+    function renderLiveSalesFeed(transactions) {
+      const feed = document.getElementById('live-sales-feed');
+      if (transactions.length === 0) {
+        feed.innerHTML = `
+          <div class="bg-surface-container-lowest p-6 rounded-xl text-center text-xs text-on-surface-variant border border-surface-container">
+            Menunggu pesanan pertama masuk dari kasir...
+          </div>`;
+        return;
+      }
+
+      feed.innerHTML = '';
+      transactions.slice(0, 10).forEach(tx => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'flex items-center justify-between bg-surface-container-lowest p-3 rounded-xl border border-surface-container hover:border-primary/30 transition-all cursor-pointer shadow-xs active:scale-[0.99]';
+        
+        const itemsSummary = (tx.items || []).map(i => `${i.name} (${i.qty}x)`).join(', ');
+        const isQris = tx.paymentMethod && tx.paymentMethod.toUpperCase().includes('QRIS');
+
+        itemEl.innerHTML = `
+          <div class="flex items-center gap-2.5 flex-1 pr-2">
+            <div class="w-9 h-9 rounded-full ${isQris ? 'bg-sky-500/10 text-sky-700' : 'bg-primary/10 text-primary'} flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[18px]">${isQris ? 'qr_code_2' : 'payments'}</span>
+            </div>
+            <div class="flex flex-col truncate">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold text-on-surface truncate">${tx.table}</span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant font-medium">${tx.paymentMethod}</span>
+              </div>
+              <span class="text-[11px] text-on-surface-variant truncate">${itemsSummary || 'Menu Kasir'}</span>
+              <span class="text-[10px] text-on-surface-variant/70">${tx.cashier} • ${warkopSync.formatTime(tx.timestamp)}</span>
+            </div>
+          </div>
+          <span class="text-xs font-extrabold text-primary shrink-0">${warkopSync.formatRupiah(tx.total)}</span>
+        `;
+
+        itemEl.onclick = () => showTxDetailModal(tx);
+        feed.appendChild(itemEl);
+      });
+    }
+
+    function renderLiveExpensesFeed(expenses) {
+      const feed = document.getElementById('live-expenses-feed');
+      if (expenses.length === 0) {
+        feed.innerHTML = `
+          <div class="bg-surface-container-lowest p-6 rounded-xl text-center text-xs text-on-surface-variant border border-surface-container">
+            Belum ada catatan belanja modal oleh kasir.
+          </div>`;
+        return;
+      }
+
+      feed.innerHTML = '';
+      expenses.slice(0, 10).forEach(exp => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'flex items-center justify-between bg-surface-container-lowest p-3 rounded-xl border border-surface-container shadow-xs';
+        itemEl.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-full bg-amber-500/10 text-amber-800 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[18px]">receipt</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-xs font-bold text-on-surface">${exp.note}</span>
+              <span class="text-[10px] text-on-surface-variant">${exp.category} • ${exp.cashier} • ${warkopSync.formatTime(exp.timestamp)}</span>
+            </div>
+          </div>
+          <span class="text-xs font-bold text-error">-${warkopSync.formatRupiah(exp.amount)}</span>
+        `;
+        feed.appendChild(itemEl);
+      });
+    }
+
+    // --- MODAL DETAIL TRANSAKSI ---
+    function showTxDetailModal(tx) {
+      document.getElementById('modal-tx-id').innerText = tx.id;
+      document.getElementById('modal-tx-meta').innerText = `${tx.table} • ${tx.cashier} • ${tx.paymentMethod} • ${warkopSync.formatTime(tx.timestamp)}`;
+      
+      const itemsContainer = document.getElementById('modal-tx-items');
+      itemsContainer.innerHTML = '';
+      (tx.items || []).forEach(it => {
+        itemsContainer.innerHTML += `
+          <div class="flex justify-between text-xs py-1">
+            <span class="text-on-surface">${it.name} × ${it.qty}</span>
+            <span class="font-bold text-on-surface">${warkopSync.formatRupiah(it.subtotal || it.price * it.qty)}</span>
+          </div>
+        `;
+      });
+
+      document.getElementById('modal-tx-total').innerText = warkopSync.formatRupiah(tx.total);
+      document.getElementById('tx-detail-modal').classList.remove('hidden');
+      document.getElementById('tx-detail-modal').classList.add('flex');
+    }
+
+    function closeTxDetailModal() {
+      document.getElementById('tx-detail-modal').classList.remove('flex');
+      document.getElementById('tx-detail-modal').classList.add('hidden');
+    }
+
+    // --- KIRIM REKAP WHATSAPP ---
+    function sendWhatsAppSummary() {
+      const encodedMsg = warkopSync.generateWhatsAppSummary();
+      const waUrl = `https://api.whatsapp.com/send?text=${encodedMsg}`;
+      window.open(waUrl, '_blank');
+    }
+
+    // --- MODAL FIREBASE CLOUD CONFIG ---
+    function openCloudModal() {
+      const cfg = warkopSync.getFirebaseConfig();
+      if (cfg) {
+        document.getElementById('firebase-config-input').value = JSON.stringify(cfg, null, 2);
+      }
+      document.getElementById('cloud-modal').classList.remove('hidden');
+      document.getElementById('cloud-modal').classList.add('flex');
+    }
+
+    function closeCloudModal() {
+      document.getElementById('cloud-modal').classList.remove('flex');
+      document.getElementById('cloud-modal').classList.add('hidden');
+    }
+
+    function saveFirebaseCloudConfig() {
+      const raw = document.getElementById('firebase-config-input').value.trim();
+      try {
+        const parsed = JSON.parse(raw);
+        warkopSync.saveFirebaseConfig(parsed);
+        alert('Konfigurasi Cloud Firebase tersimpan! Menghubungkan secara real-time...');
+        closeCloudModal();
+        updateCloudButtonState();
+      } catch (e) {
+        alert('Format JSON tidak valid. Pastikan format konfigurasi benar.');
+      }
+    }
+
+    function clearCloudConfig() {
+      if (confirm('Reset ke mode sinkronisasi lokal instan?')) {
+        warkopSync.clearFirebaseConfig();
+        document.getElementById('firebase-config-input').value = '';
+        closeCloudModal();
+        updateCloudButtonState();
+      }
+    }
+  </script>
+</body>
+</html>

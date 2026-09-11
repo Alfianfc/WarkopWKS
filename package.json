@@ -1,0 +1,18 @@
+{
+  "name": "warkop-pos-realtime",
+  "version": "1.0.0",
+  "description": "Sistem Kasir Warkop Lengkap & Dashboard Owner Real-Time dengan Autentikasi Login",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "tunnel": "npx localtunnel --port 3000"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  },
+  "keywords": ["pos", "kasir", "warkop", "realtime", "socketio", "dashboard"],
+  "author": "",
+  "license": "ISC"
+}

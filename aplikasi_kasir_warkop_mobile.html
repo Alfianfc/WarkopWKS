@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+  <title>POS Kasir Warkop - Real-time</title>
+  <style>
+    @layer base {
+      html, body { width: 100vw; margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+      .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+    }
+    ::-webkit-scrollbar { display: none; }
+    @media print {
+      body * { visibility: hidden; }
+      #thermal-receipt-modal, #thermal-receipt-modal * { visibility: visible; }
+      #thermal-receipt-modal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white !important;
+        color: black !important;
+      }
+      .no-print { display: none !important; }
+    }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface": "#fff8f5",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#fcf2eb",
+            "surface-container": "#f6ece6",
+            "surface-container-high": "#f0e6e0",
+            "surface-container-highest": "#eae1da",
+            "on-surface": "#1f1b17",
+            "on-surface-variant": "#59413a",
+            "primary": "#a83301",
+            "primary-container": "#ca4a1c",
+            "on-primary": "#ffffff",
+            "secondary": "#6d5a52",
+            "secondary-container": "#f4dacf",
+            "on-secondary-container": "#725f56",
+            "error": "#ba1a1a",
+            "outline": "#8d7168"
+          },
+          fontFamily: {
+            sans: ["Plus Jakarta Sans", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Firebase SDKs (Optional Cloud Real-time) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  
+  <!-- Socket.io for Real-time Server (Optional) -->
+  <script src="/socket.io/socket.io.js"></script>
+  
+  <!-- Supabase SDK & Config -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+
+  <!-- Auth & Role Guard -->
+  <script src="auth.js"></script>
+
+  <!-- Warkop Realtime Data Engine -->
+  <script src="pos-sync.js"></script>
+</head>
+
+<body class="bg-surface font-sans text-on-surface flex flex-col antialiased selection:bg-primary selection:text-white">
+  <!-- Header -->
+  <header class="fixed top-0 inset-x-0 z-40 bg-surface/90 backdrop-blur-xl border-b border-surface-container pt-safe">
+    <div class="h-16 px-4 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
+          <span class="material-symbols-outlined text-[24px]">coffee</span>
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight text-on-surface flex items-center gap-1.5">
+            POS Kasir Warkop
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+            </span>
+          </h1>
+          <p class="text-[11px] text-on-surface-variant font-medium flex items-center gap-1" id="shift-cashier-label">
+            Kasir Warkop • Shift Aktif
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Cloud Sync Status Button -->
+        <button onclick="openCloudModal()" id="cloud-status-btn" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 active:scale-95 transition-transform" title="Status Sinkronisasi Real-time">
+          <span class="material-symbols-outlined text-[16px]">sync</span>
+          <span id="cloud-status-text">Live Sync</span>
+        </button>
+        <!-- Logout Button -->
+        <button onclick="confirmLogout()" class="w-9 h-9 rounded-full bg-surface-container hover:bg-error/10 text-on-surface-variant hover:text-error flex items-center justify-center shadow-sm active:scale-95 transition-all" title="Keluar / Logout">
+          <span class="material-symbols-outlined text-[19px]">logout</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex flex-col relative w-full px-4 pt-20 pb-28 min-h-screen">
+    
+    <!-- Shift Stats Banner (Real-time Financial Summary) -->
+    <div class="grid grid-cols-3 gap-2.5 mb-4">
+      <div class="bg-surface-container-low p-3 rounded-2xl border border-surface-container flex flex-col justify-between">
+        <span class="text-[11px] font-medium text-on-surface-variant flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px] text-emerald-600">arrow_downward</span> Pemasukan
+        </span>
+        <span class="text-sm sm:text-base font-bold text-primary mt-1" id="stat-revenue">Rp 0</span>
+      </div>
+      
+      <div class="bg-surface-container-low p-3 rounded-2xl border border-surface-container flex flex-col justify-between">
+        <span class="text-[11px] font-medium text-on-surface-variant flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px] text-error">arrow_upward</span> Pengeluaran
+        </span>
+        <span class="text-sm sm:text-base font-bold text-on-surface mt-1" id="stat-expenses">Rp 0</span>
+      </div>
+
+      <div class="bg-surface-container-low p-3 rounded-2xl border border-surface-container flex flex-col justify-between">
+        <span class="text-[11px] font-medium text-on-surface-variant flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px] text-emerald-700">account_balance_wallet</span> Kas Bersih
+        </span>
+        <span class="text-sm sm:text-base font-bold text-emerald-700 mt-1" id="stat-netprofit">Rp 0</span>
+      </div>
+    </div>
+
+    <!-- Quick Action Bar: Catat Pengeluaran Modal & Tambah Menu -->
+    <div class="flex items-center gap-2 mb-4">
+      <button onclick="openExpenseModal()" class="flex-1 h-11 bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-300/60 rounded-xl flex items-center justify-center gap-2 text-xs font-bold active:scale-[0.98] transition-all">
+        <span class="material-symbols-outlined text-[18px] text-amber-700">receipt_long</span>
+        <span>Catat Pengeluaran Modal</span>
+      </button>
+      <button onclick="openAddModal()" class="h-11 px-3 bg-surface-container-low hover:bg-surface-container border border-surface-container text-on-surface rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold active:scale-[0.98] transition-all">
+        <span class="material-symbols-outlined text-[18px] text-primary">add_circle</span>
+        <span>Menu</span>
+      </button>
+    </div>
+
+    <!-- SECTION 1: POS VIEW (CATALOG & CART) -->
+    <div id="view-pos" class="flex flex-col gap-4">
+      <!-- Category Filter Chips -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-none">
+        <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-primary text-white shadow-sm transition-all" onclick="filterMenu('all', this)">Semua Menu</button>
+        <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="filterMenu('coffee', this)">Kopi &amp; Minuman</button>
+        <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="filterMenu('food', this)">Makanan Berat</button>
+        <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="filterMenu('snack', this)">Camilan &amp; Snack</button>
+      </div>
+
+      <!-- Menu Grid Container -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="menu-grid">
+        <!-- Rendered dynamically via renderMenuGrid() -->
+      </div>
+
+      <!-- Active Bill Section (Cart) -->
+      <div class="bg-surface-container-low rounded-2xl p-4 border border-surface-container flex flex-col gap-3.5 shadow-sm mt-2">
+        <div class="flex justify-between items-center pb-2 border-b border-surface-container">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-[20px]">shopping_cart</span>
+            <h3 class="text-sm font-bold text-on-surface">Pesanan Aktif</h3>
+            <span class="text-[11px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full" id="cart-item-count">0 item</span>
+          </div>
+          <button class="text-xs text-error font-semibold hover:underline" onclick="clearCart()">Kosongkan</button>
+        </div>
+
+        <!-- Pilihan Nomor Meja / Takeaway -->
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-on-surface-variant font-medium whitespace-nowrap">Pesanan:</span>
+          <select id="order-table" class="flex-1 h-9 bg-surface-container rounded-lg px-2.5 text-xs text-on-surface font-semibold focus:outline-none focus:ring-1 focus:ring-primary border-none">
+            <option value="Meja 01">Meja 01</option>
+            <option value="Meja 02">Meja 02</option>
+            <option value="Meja 03">Meja 03</option>
+            <option value="Meja 04">Meja 04</option>
+            <option value="Meja 05">Meja 05</option>
+            <option value="Meja 06">Meja 06</option>
+            <option value="Meja Lesehan A">Meja Lesehan A</option>
+            <option value="Meja Lesehan B">Meja Lesehan B</option>
+            <option value="Bungkus / Takeaway">Bungkus / Takeaway</option>
+          </select>
+        </div>
+
+        <!-- Cart Items Container -->
+        <div class="flex flex-col gap-2 divide-y divide-surface-container" id="cart-items">
+          <div class="py-8 flex flex-col items-center justify-center text-center text-on-surface-variant" id="empty-cart">
+            <span class="material-symbols-outlined text-[36px] text-outline/50 mb-2">coffee_maker</span>
+            <span class="text-xs font-semibold">Belum ada pesanan</span>
+            <span class="text-[11px] text-on-surface-variant/80">Ketuk menu di atas untuk menambah pesanan</span>
+          </div>
+        </div>
+
+        <!-- Bill Summary Calculation -->
+        <div class="hidden flex flex-col gap-2 pt-3 border-t border-surface-container" id="bill-summary">
+          <div class="flex justify-between text-xs text-on-surface-variant">
+            <span>Subtotal</span>
+            <span id="subtotal-text" class="font-medium">Rp 0</span>
+          </div>
+          <div class="flex justify-between text-xs text-on-surface-variant">
+            <span>Pajak &amp; Service (10%)</span>
+            <span id="tax-text" class="font-medium">Rp 0</span>
+          </div>
+          <div class="flex justify-between text-base font-bold text-on-surface pt-1 border-t border-dashed border-surface-container">
+            <span>Total Tagihan</span>
+            <span class="text-primary font-extrabold text-lg" id="total-text">Rp 0</span>
+          </div>
+
+          <button onclick="openCheckoutModal()" class="mt-2 w-full h-12 bg-primary text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-[0.98] transition-transform shadow-lg shadow-primary/20">
+            <span class="material-symbols-outlined text-[20px]">payments</span>
+            <span>Lanjut Pembayaran</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: PENGELUARAN VIEW -->
+    <div id="view-expenses" class="hidden flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-on-surface">Catatan Belanja &amp; Modal</h2>
+          <p class="text-xs text-on-surface-variant">Pengeluaran kas warkop otomatis terpantau Bos</p>
+        </div>
+        <button onclick="openExpenseModal()" class="h-9 px-3 bg-amber-600 text-white rounded-xl flex items-center gap-1 text-xs font-bold active:scale-95 shadow-sm">
+          <span class="material-symbols-outlined text-[16px]">add</span>
+          <span>Catat Baru</span>
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-2" id="expenses-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- SECTION 3: RIWAYAT VIEW -->
+    <div id="view-history" class="hidden flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-on-surface">Riwayat Transaksi Hari Ini</h2>
+          <p class="text-xs text-on-surface-variant">Semua struk penjualan yang sudah dibayar</p>
+        </div>
+        <button onclick="warkopSync.exportToCSV()" class="h-9 px-3 bg-surface-container text-on-surface border border-surface-container-high rounded-xl flex items-center gap-1 text-xs font-semibold active:scale-95">
+          <span class="material-symbols-outlined text-[16px]">download</span>
+          <span>Unduh Excel</span>
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-2" id="history-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 inset-x-0 z-40 pb-safe bg-surface/95 backdrop-blur-xl border-t border-surface-container shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
+    <div class="flex justify-around items-center h-16 px-2">
+      <button onclick="switchTab('pos')" id="tab-pos" class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-primary font-bold transition-all">
+        <span class="material-symbols-outlined text-[22px]">point_of_sale</span>
+        <span class="text-[11px]">Kasir POS</span>
+      </button>
+      <button onclick="switchTab('expenses')" id="tab-expenses" class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-on-surface-variant hover:text-on-surface transition-all">
+        <span class="material-symbols-outlined text-[22px]">receipt_long</span>
+        <span class="text-[11px]">Pengeluaran</span>
+      </button>
+      <button onclick="switchTab('history')" id="tab-history" class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-on-surface-variant hover:text-on-surface transition-all">
+        <span class="material-symbols-outlined text-[22px]">history</span>
+        <span class="text-[11px]">Riwayat</span>
+      </button>
+      <a href="dashboard_owner_detail_mobile.html" class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-on-surface-variant hover:text-primary transition-all">
+        <span class="material-symbols-outlined text-[22px]">monitoring</span>
+        <span class="text-[11px]">Layar Bos</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- 1. Modal Pembayaran (Checkout) -->
+  <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="checkout-modal">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto animate-in fade-in slide-in-from-bottom duration-200">
+      <div class="flex justify-between items-center pb-2 border-b border-surface-container">
+        <div>
+          <h3 class="text-base font-bold text-on-surface">Proses Pembayaran</h3>
+          <p class="text-xs text-on-surface-variant" id="checkout-table-info">Meja 01</p>
+        </div>
+        <button onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <!-- Total Tagihan Display -->
+      <div class="bg-surface-container-low p-4 rounded-xl flex flex-col items-center justify-center border border-surface-container">
+        <span class="text-xs text-on-surface-variant font-medium">Total Yang Harus Dibayar</span>
+        <span class="text-2xl font-extrabold text-primary mt-0.5" id="checkout-total-display">Rp 0</span>
+      </div>
+
+      <!-- Metode Pembayaran Tabs -->
+      <div class="flex gap-2">
+        <button onclick="setPaymentMethod('Tunai')" id="pay-method-cash" class="flex-1 py-2.5 px-3 rounded-xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs flex items-center justify-center gap-1.5 transition-all">
+          <span class="material-symbols-outlined text-[18px]">payments</span>
+          <span>Tunai (Cash)</span>
+        </button>
+        <button onclick="setPaymentMethod('QRIS')" id="pay-method-qris" class="flex-1 py-2.5 px-3 rounded-xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs flex items-center justify-center gap-1.5 transition-all">
+          <span class="material-symbols-outlined text-[18px]">qr_code_scanner</span>
+          <span>QRIS Digital</span>
+        </button>
+      </div>
+
+      <!-- Cash Payment Box -->
+      <div id="cash-payment-box" class="flex flex-col gap-3">
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">Nominal Uang Diterima (Rp)</label>
+          <input type="number" id="cash-received-input" oninput="calculateChange()" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-xl px-3.5 text-base font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary" placeholder="0">
+        </div>
+
+        <!-- Quick Amount Pills -->
+        <div class="grid grid-cols-4 gap-1.5" id="quick-cash-pills">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Change Box -->
+        <div class="bg-surface-container p-3 rounded-xl flex justify-between items-center">
+          <span class="text-xs font-semibold text-on-surface-variant">Kembalian:</span>
+          <span class="text-base font-extrabold text-emerald-700" id="change-display">Rp 0</span>
+        </div>
+      </div>
+
+      <!-- QRIS Payment Box -->
+      <div id="qris-payment-box" class="hidden flex-col items-center justify-center p-3 bg-white rounded-xl border border-surface-container text-center gap-2">
+        <div class="p-2 border-2 border-dashed border-gray-300 rounded-lg">
+          <!-- QR Code SVG Placeholder -->
+          <svg class="w-36 h-36 mx-auto" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="100" height="100" fill="white"/>
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M10 10H40V40H10V10ZM15 15H35V35H15V15ZM20 20H30V30H20V20ZM60 10H90V40H60V10ZM65 15H85V35H65V15ZM70 20H80V30H70V20ZM10 60H40V90H10V60ZM15 65H35V85H15V65ZM20 70H30V80H20V70ZM60 60H70V70H60V60ZM80 60H90V70H80V60ZM70 70H80V80H70V70ZM60 80H70V90H60V80ZM80 80H90V90H80V80ZM45 10H55V25H45V10ZM45 35H55V55H45V35ZM10 45H25V55H10V45ZM35 45H65V55H35V45ZM75 45H90V55H75V45ZM45 65H55V90H45V65Z" fill="#1A1A1A"/>
+          </svg>
+        </div>
+        <span class="text-xs font-bold text-gray-800">QRIS WARKOP BERKAH</span>
+        <span class="text-[11px] text-gray-500">Mendukung BCA, Mandiri, GoPay, OVO, Dana, ShopeePay</span>
+      </div>
+
+      <button onclick="confirmPayment()" class="w-full h-12 bg-primary text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-[0.98] transition-transform shadow-lg shadow-primary/20 mt-1">
+        <span class="material-symbols-outlined text-[20px]">check_circle</span>
+        <span>Selesaikan &amp; Kirim Real-Time</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. Modal Cetak Struk (Thermal Receipt) -->
+  <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4" id="thermal-receipt-modal">
+    <div class="bg-white text-black w-full max-w-sm rounded-2xl p-5 flex flex-col gap-3 shadow-2xl animate-in zoom-in-95 duration-150 font-mono text-xs">
+      <div class="text-center pb-2 border-b border-dashed border-gray-400">
+        <h4 class="font-bold text-base uppercase tracking-wider font-sans">WARKOP NUSANTARA</h4>
+        <p class="text-[10px] text-gray-600 font-sans">Jl. Kopi Harapan No. 8 • Telp: 0812-9999-8888</p>
+        <p class="text-[10px] text-gray-500 font-sans mt-0.5" id="receipt-date-time">-</p>
+      </div>
+
+      <div class="flex justify-between text-[11px] text-gray-700">
+        <span id="receipt-id">TRX-000</span>
+        <span id="receipt-table">Meja 01</span>
+      </div>
+      <div class="flex justify-between text-[11px] text-gray-700">
+        <span id="receipt-cashier">Kasir: Kasir 1</span>
+        <span id="receipt-paymethod">Metode: Tunai</span>
+      </div>
+
+      <div class="border-t border-b border-dashed border-gray-400 py-2 flex flex-col gap-1.5" id="receipt-items-list">
+        <!-- Receipt items rendered dynamically -->
+      </div>
+
+      <div class="flex flex-col gap-1 pt-1">
+        <div class="flex justify-between">
+          <span>Subtotal</span>
+          <span id="receipt-subtotal">Rp 0</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Pajak (10%)</span>
+          <span id="receipt-tax">Rp 0</span>
+        </div>
+        <div class="flex justify-between font-bold text-sm pt-1 border-t border-gray-300">
+          <span>TOTAL</span>
+          <span id="receipt-total">Rp 0</span>
+        </div>
+        <div class="flex justify-between text-gray-600">
+          <span>Bayar</span>
+          <span id="receipt-paid">Rp 0</span>
+        </div>
+        <div class="flex justify-between text-gray-600">
+          <span>Kembalian</span>
+          <span id="receipt-change">Rp 0</span>
+        </div>
+      </div>
+
+      <div class="text-center pt-2 border-t border-dashed border-gray-400 text-[10px] text-gray-500 font-sans">
+        <p>Terima Kasih Atas Kunjungan Anda!</p>
+        <p>Follow IG: @warkop.nusantara</p>
+      </div>
+
+      <div class="flex gap-2 pt-2 no-print font-sans">
+        <button onclick="window.print()" class="flex-1 h-10 bg-gray-800 hover:bg-black text-white rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold active:scale-95 transition-transform">
+          <span class="material-symbols-outlined text-[16px]">print</span>
+          <span>Cetak Struk</span>
+        </button>
+        <button onclick="closeReceiptModal()" class="flex-1 h-10 bg-primary text-white rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold active:scale-95 transition-transform">
+          <span class="material-symbols-outlined text-[16px]">done</span>
+          <span>Pesanan Baru</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Modal Catat Pengeluaran Kasir (Modal Belanja Bahan/Es/Gas) -->
+  <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="expense-modal">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl animate-in fade-in slide-in-from-bottom duration-200">
+      <div class="flex justify-between items-center pb-2 border-b border-surface-container">
+        <div>
+          <h3 class="text-base font-bold text-on-surface flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-amber-700 text-[20px]">receipt_long</span>
+            <span>Catat Pengeluaran Modal</span>
+          </h3>
+          <p class="text-xs text-on-surface-variant">Belanja bahan baku, es batu, gas, atau operasional</p>
+        </div>
+        <button onclick="closeExpenseModal()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">Kategori Pengeluaran</label>
+          <select id="expense-category" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface font-semibold focus:outline-none focus:ring-1 focus:ring-primary">
+            <option value="Bahan Baku">Bahan Baku (Kopi, Susu, Mie, Telur, Roti)</option>
+            <option value="Es & Air Minum">Es Batu Kristal &amp; Air Galon</option>
+            <option value="Gas & Listrik">Gas LPG 3kg / Token Listrik</option>
+            <option value="Kebersihan & Plastik">Plastik Takeaway, Sedotan, Sabun</option>
+            <option value="Lain-lain">Lain-lain / Operasional Warung</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">Keterangan Pengeluaran</label>
+          <input type="text" id="expense-note" placeholder="Contoh: Beli es batu 2 bal + gas lpg" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">Nominal Biaya (Rp)</label>
+          <input type="number" id="expense-amount" placeholder="25000" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-sm font-bold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+        </div>
+      </div>
+
+      <button onclick="saveExpense()" class="w-full h-12 bg-amber-700 text-white rounded-xl flex items-center justify-center gap-2 text-xs font-bold active:scale-[0.98] transition-transform shadow-md mt-1">
+        <span class="material-symbols-outlined text-[18px]">save</span>
+        <span>Simpan &amp; Kurangi Kas Bersih</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. Modal Tambah Menu Baru -->
+  <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="add-menu-modal">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl animate-in fade-in slide-in-from-bottom duration-200">
+      <div class="flex justify-between items-center pb-2 border-b border-surface-container">
+        <h3 class="text-base font-bold text-on-surface">Tambah Menu Kasir Baru</h3>
+        <button onclick="closeAddModal()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">Nama Menu</label>
+          <input type="text" id="new-item-name" placeholder="Contoh: Kopi Gula Aren Special" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">Kategori</label>
+          <select id="new-item-cat" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+            <option value="coffee">Kopi &amp; Minuman</option>
+            <option value="food">Makanan Berat</option>
+            <option value="snack">Camilan &amp; Snack</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">Harga Jual (Rp)</label>
+          <input type="number" id="new-item-price" placeholder="15000" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+        </div>
+      </div>
+
+      <button onclick="addNewMenu()" class="w-full h-11 bg-primary text-white rounded-xl text-xs font-bold active:scale-[0.98] transition-transform shadow-md mt-1">
+        Simpan Menu
+      </button>
+    </div>
+  </div>
+
+  <!-- 5. Modal Pengaturan Cloud Real-time (Firebase) -->
+  <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="cloud-modal">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl animate-in fade-in slide-in-from-bottom duration-200">
+      <div class="flex justify-between items-center pb-2 border-b border-surface-container">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-[22px]">cloud_sync</span>
+          <div>
+            <h3 class="text-base font-bold text-on-surface">Sinkronisasi Real-Time</h3>
+            <p class="text-[11px] text-on-surface-variant">Hubungkan kasir dengan HP Bos dari mana saja</p>
+          </div>
+        </div>
+        <button onclick="closeCloudModal()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="bg-surface-container-low p-3.5 rounded-xl border border-surface-container text-xs text-on-surface-variant leading-relaxed">
+        <p class="font-bold text-on-surface mb-1 flex items-center gap-1">
+          <span class="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span>
+          Mode Sinkronisasi Instan Aktif!
+        </p>
+        Saat ini aplikasi sudah tersinkronisasi otomatis antar-tab dan antar-jendela di perangkat ini lewat <strong>BroadcastChannel &amp; LocalStorage</strong>.
+        <p class="mt-2 text-[11px]">
+          Ingin bos memantau <strong>dari luar kota lewat HP tanpa satu WiFi</strong>? Anda cukup memasukkan Firebase Config gratis di bawah ini.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-xs font-semibold text-on-surface-variant">Firebase Config (Format JSON atau Snippet)</label>
+        <textarea id="firebase-config-input" rows="4" placeholder='{"apiKey": "...", "projectId": "...", "appId": "..."}' class="w-full bg-surface-container-low border border-surface-container rounded-xl p-3 text-xs font-mono text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"></textarea>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="saveFirebaseCloudConfig()" class="flex-1 h-11 bg-primary text-white rounded-xl text-xs font-bold active:scale-95 transition-transform shadow-md">
+          Simpan Konfigurasi Cloud
+        </button>
+        <button onclick="clearCloudConfig()" class="px-3 h-11 bg-surface-container text-error rounded-xl text-xs font-semibold active:scale-95">
+          Reset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC SCRIPT -->
+  <script>
+    let cart = [];
+    let selectedPaymentMethod = 'Tunai';
+    let currentReceiptData = null;
+
+    // Inisialisasi saat halaman dimuat
+    document.addEventListener('DOMContentLoaded', () => {
+      // Proteksi Login: Pastikan sudah login sebagai kasir atau bos
+      if (!warkopAuth.requireAuth('kasir')) return;
+
+      const user = warkopAuth.getCurrentUser();
+      if (user) {
+        document.getElementById('shift-cashier-label').innerText = `${user.name} • Shift Aktif`;
+      }
+
+      renderMenuGrid();
+      renderCart();
+      updateFinancialStats();
+      renderExpensesList();
+      renderHistoryList();
+
+      // Dengarkan perubahan real-time dari engine
+      warkopSync.on('dataChanged', () => {
+        updateFinancialStats();
+        renderExpensesList();
+        renderHistoryList();
+      });
+
+      // Update status button cloud
+      updateCloudButtonState();
+    });
+
+    function confirmLogout() {
+      if (confirm('Apakah Anda yakin ingin keluar / logout dari akun kasir?')) {
+        warkopAuth.logout('index.html');
+      }
+    }
+
+    function updateCloudButtonState() {
+      const btn = document.getElementById('cloud-status-btn');
+      const text = document.getElementById('cloud-status-text');
+      if (warkopSync.isFirebaseReady) {
+        text.innerText = 'Cloud LIVE';
+        btn.className = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 active:scale-95 transition-transform';
+      } else {
+        text.innerText = 'Local Sync';
+        btn.className = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 active:scale-95 transition-transform';
+      }
+    }
+
+    // --- TAB SWITCHING ---
+    function switchTab(tabId) {
+      document.getElementById('view-pos').classList.add('hidden');
+      document.getElementById('view-expenses').classList.add('hidden');
+      document.getElementById('view-history').classList.add('hidden');
+
+      ['pos', 'expenses', 'history'].forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        if (el) {
+          el.classList.remove('text-primary', 'font-bold');
+          el.classList.add('text-on-surface-variant');
+        }
+      });
+
+      const activeTabEl = document.getElementById('tab-' + tabId);
+      if (activeTabEl) {
+        activeTabEl.classList.remove('text-on-surface-variant');
+        activeTabEl.classList.add('text-primary', 'font-bold');
+      }
+
+      if (tabId === 'pos') document.getElementById('view-pos').classList.remove('hidden');
+      if (tabId === 'expenses') {
+        document.getElementById('view-expenses').classList.remove('hidden');
+        renderExpensesList();
+      }
+      if (tabId === 'history') {
+        document.getElementById('view-history').classList.remove('hidden');
+        renderHistoryList();
+      }
+    }
+
+    // --- STATISTIK SHIFT FINANCIAL ---
+    function updateFinancialStats() {
+      const summary = warkopSync.getSummary('today');
+      document.getElementById('stat-revenue').innerText = warkopSync.formatRupiah(summary.totalRevenue);
+      document.getElementById('stat-expenses').innerText = warkopSync.formatRupiah(summary.totalExpenses);
+      document.getElementById('stat-netprofit').innerText = warkopSync.formatRupiah(summary.netProfit);
+    }
+
+    // --- RENDER MENU GRID ---
+    function renderMenuGrid(filterCategory = 'all') {
+      const menu = warkopSync.getMenu();
+      const grid = document.getElementById('menu-grid');
+      grid.innerHTML = '';
+
+      const filtered = filterCategory === 'all' ? menu : menu.filter(m => m.category === filterCategory);
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-2 sm:col-span-3 py-10 text-center text-xs text-on-surface-variant">Tidak ada menu dalam kategori ini.</div>`;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'bg-surface-container-low rounded-2xl p-2.5 flex flex-col justify-between gap-2 border border-surface-container hover:border-primary/30 transition-all shadow-sm group relative';
+        card.innerHTML = `
+          <button onclick="deleteMenuItem('${item.id}')" class="absolute top-2 right-2 w-7 h-7 bg-surface/90 backdrop-blur-sm rounded-full flex items-center justify-center text-error opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-sm" title="Hapus menu">
+            <span class="material-symbols-outlined text-[15px]">delete</span>
+          </button>
+          <div class="w-full h-24 rounded-xl bg-cover bg-center overflow-hidden" style="background-image: url('${item.image}')"></div>
+          <div class="flex flex-col">
+            <span class="text-xs font-bold text-on-surface truncate">${item.name}</span>
+            <span class="text-xs font-semibold text-primary">${warkopSync.formatRupiah(item.price)}</span>
+          </div>
+          <button onclick="addToCart('${item.name}', ${item.price}, '${item.category}')" class="w-full h-9 bg-primary text-white rounded-xl flex items-center justify-center gap-1 text-xs font-bold active:scale-95 transition-transform shadow-sm">
+            <span class="material-symbols-outlined text-[16px]">add</span>
+            <span>Pesan</span>
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function filterMenu(category, btnElement) {
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('bg-primary', 'text-white', 'shadow-sm');
+        btn.classList.add('bg-surface-container-low', 'text-on-surface-variant');
+      });
+      btnElement.classList.remove('bg-surface-container-low', 'text-on-surface-variant');
+      btnElement.classList.add('bg-primary', 'text-white', 'shadow-sm');
+      renderMenuGrid(category);
+    }
+
+    // --- KERANJANG BELANJA (CART) ---
+    function addToCart(name, price, category = 'coffee') {
+      const existing = cart.find(i => i.name === name);
+      if (existing) {
+        existing.qty += 1;
+        existing.subtotal = existing.qty * existing.price;
+      } else {
+        cart.push({ name, price, qty: 1, subtotal: price, category });
+      }
+      renderCart();
+    }
+
+    function updateCartQty(name, delta) {
+      const item = cart.find(i => i.name === name);
+      if (item) {
+        item.qty += delta;
+        if (item.qty <= 0) {
+          cart = cart.filter(i => i.name !== name);
+        } else {
+          item.subtotal = item.qty * item.price;
+        }
+      }
+      renderCart();
+    }
+
+    function clearCart() {
+      cart = [];
+      renderCart();
+    }
+
+    function renderCart() {
+      const container = document.getElementById('cart-items');
+      const summary = document.getElementById('bill-summary');
+      const countLabel = document.getElementById('cart-item-count');
+
+      const totalItems = cart.reduce((sum, i) => sum + i.qty, 0);
+      countLabel.innerText = `${totalItems} item`;
+
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="py-8 flex flex-col items-center justify-center text-center text-on-surface-variant" id="empty-cart">
+            <span class="material-symbols-outlined text-[36px] text-outline/50 mb-2">coffee_maker</span>
+            <span class="text-xs font-semibold">Belum ada pesanan</span>
+            <span class="text-[11px] text-on-surface-variant/80">Ketuk menu di atas untuk menambah pesanan</span>
+          </div>`;
+        summary.classList.add('hidden');
+        return;
+      }
+
+      summary.classList.remove('hidden');
+      let html = '';
+      let subtotal = 0;
+
+      cart.forEach(item => {
+        subtotal += item.price * item.qty;
+        html += `
+          <div class="flex items-center justify-between py-2.5">
+            <div class="flex flex-col flex-1 pr-2">
+              <span class="text-xs font-bold text-on-surface">${item.name}</span>
+              <span class="text-[11px] text-on-surface-variant font-medium">${warkopSync.formatRupiah(item.price)} × ${item.qty} = <strong>${warkopSync.formatRupiah(item.subtotal)}</strong></span>
+            </div>
+            <div class="flex items-center gap-1.5 bg-surface-container rounded-xl p-1">
+              <button onclick="updateCartQty('${item.name}', -1)" class="w-6 h-6 bg-surface rounded-lg flex items-center justify-center text-on-surface active:scale-90 transition-transform">
+                <span class="material-symbols-outlined text-[13px]">remove</span>
+              </button>
+              <span class="text-xs font-bold w-5 text-center">${item.qty}</span>
+              <button onclick="updateCartQty('${item.name}', 1)" class="w-6 h-6 bg-surface rounded-lg flex items-center justify-center text-on-surface active:scale-90 transition-transform">
+                <span class="material-symbols-outlined text-[13px]">add</span>
+              </button>
+            </div>
+          </div>`;
+      });
+
+      container.innerHTML = html;
+
+      const tax = Math.round(subtotal * 0.1);
+      const total = subtotal + tax;
+
+      document.getElementById('subtotal-text').innerText = warkopSync.formatRupiah(subtotal);
+      document.getElementById('tax-text').innerText = warkopSync.formatRupiah(tax);
+      document.getElementById('total-text').innerText = warkopSync.formatRupiah(total);
+    }
+
+    // --- CHECKOUT & PEMBAYARAN ---
+    function openCheckoutModal() {
+      if (cart.length === 0) return;
+      const subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+      const tax = Math.round(subtotal * 0.1);
+      const total = subtotal + tax;
+      const table = document.getElementById('order-table').value;
+
+      document.getElementById('checkout-table-info').innerText = `${table} • ${cart.reduce((s, i) => s + i.qty, 0)} Porsi`;
+      document.getElementById('checkout-total-display').innerText = warkopSync.formatRupiah(total);
+
+      // Setup quick cash buttons
+      const pillsContainer = document.getElementById('quick-cash-pills');
+      pillsContainer.innerHTML = '';
+      const quickAmounts = [total, Math.ceil(total / 10000) * 10000, 50000, 100000];
+      const uniqueAmounts = [...new Set(quickAmounts)].filter(a => a >= total);
+
+      uniqueAmounts.forEach(amt => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'py-1.5 px-2 bg-surface-container hover:bg-surface-container-high rounded-lg text-[11px] font-bold text-on-surface';
+        btn.innerText = amt === total ? 'Uang Pas' : (amt / 1000) + 'k';
+        btn.onclick = () => {
+          document.getElementById('cash-received-input').value = amt;
+          calculateChange();
+        };
+        pillsContainer.appendChild(btn);
+      });
+
+      document.getElementById('cash-received-input').value = total;
+      calculateChange();
+
+      setPaymentMethod('Tunai');
+      document.getElementById('checkout-modal').classList.remove('hidden');
+      document.getElementById('checkout-modal').classList.add('flex');
+    }
+
+    function closeCheckoutModal() {
+      document.getElementById('checkout-modal').classList.remove('flex');
+      document.getElementById('checkout-modal').classList.add('hidden');
+    }
+
+    function setPaymentMethod(method) {
+      selectedPaymentMethod = method;
+      const btnCash = document.getElementById('pay-method-cash');
+      const btnQris = document.getElementById('pay-method-qris');
+      const cashBox = document.getElementById('cash-payment-box');
+      const qrisBox = document.getElementById('qris-payment-box');
+
+      if (method === 'Tunai') {
+        btnCash.className = 'flex-1 py-2.5 px-3 rounded-xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs flex items-center justify-center gap-1.5 transition-all';
+        btnQris.className = 'flex-1 py-2.5 px-3 rounded-xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs flex items-center justify-center gap-1.5 transition-all';
+        cashBox.classList.remove('hidden');
+        qrisBox.classList.add('hidden');
+        qrisBox.classList.remove('flex');
+      } else {
+        btnQris.className = 'flex-1 py-2.5 px-3 rounded-xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs flex items-center justify-center gap-1.5 transition-all';
+        btnCash.className = 'flex-1 py-2.5 px-3 rounded-xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs flex items-center justify-center gap-1.5 transition-all';
+        cashBox.classList.add('hidden');
+        qrisBox.classList.remove('hidden');
+        qrisBox.classList.add('flex');
+      }
+    }
+
+    function calculateChange() {
+      const subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+      const tax = Math.round(subtotal * 0.1);
+      const total = subtotal + tax;
+      const inputVal = Number(document.getElementById('cash-received-input').value) || 0;
+      const change = Math.max(0, inputVal - total);
+      document.getElementById('change-display').innerText = warkopSync.formatRupiah(change);
+    }
+
+    async function confirmPayment() {
+      const subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+      const tax = Math.round(subtotal * 0.1);
+      const total = subtotal + tax;
+      const table = document.getElementById('order-table').value;
+      const cashReceived = selectedPaymentMethod === 'Tunai' 
+        ? (Number(document.getElementById('cash-received-input').value) || total)
+        : total;
+
+      if (selectedPaymentMethod === 'Tunai' && cashReceived < total) {
+        alert('Nominal uang yang diterima kurang dari total tagihan!');
+        return;
+      }
+
+      const txPayload = {
+        cashier: 'Kasir 1',
+        table: table,
+        paymentMethod: selectedPaymentMethod,
+        items: [...cart],
+        subtotal: subtotal,
+        tax: tax,
+        total: total,
+        paid: cashReceived,
+        change: Math.max(0, cashReceived - total)
+      };
+
+      // Simpan dan broadcast real-time
+      const savedTx = await warkopSync.addTransaction(txPayload);
+
+      closeCheckoutModal();
+      clearCart();
+      showReceiptModal(savedTx);
+      updateFinancialStats();
+    }
+
+    // --- STRUK DIGITAL & CETAK ---
+    function showReceiptModal(tx) {
+      currentReceiptData = tx;
+      document.getElementById('receipt-id').innerText = tx.id;
+      document.getElementById('receipt-table').innerText = tx.table;
+      document.getElementById('receipt-cashier').innerText = `Kasir: ${tx.cashier}`;
+      document.getElementById('receipt-paymethod').innerText = `Metode: ${tx.paymentMethod}`;
+      document.getElementById('receipt-date-time').innerText = `${warkopSync.formatDateIndo(new Date(tx.timestamp))} • ${warkopSync.formatTime(tx.timestamp)}`;
+
+      const itemsContainer = document.getElementById('receipt-items-list');
+      itemsContainer.innerHTML = '';
+      tx.items.forEach(it => {
+        itemsContainer.innerHTML += `
+          <div class="flex justify-between">
+            <span>${it.name} x${it.qty}</span>
+            <span>${warkopSync.formatRupiah(it.subtotal || it.price * it.qty)}</span>
+          </div>
+        `;
+      });
+
+      document.getElementById('receipt-subtotal').innerText = warkopSync.formatRupiah(tx.subtotal);
+      document.getElementById('receipt-tax').innerText = warkopSync.formatRupiah(tx.tax);
+      document.getElementById('receipt-total').innerText = warkopSync.formatRupiah(tx.total);
+      document.getElementById('receipt-paid').innerText = warkopSync.formatRupiah(tx.paid);
+      document.getElementById('receipt-change').innerText = warkopSync.formatRupiah(tx.change);
+
+      document.getElementById('thermal-receipt-modal').classList.remove('hidden');
+      document.getElementById('thermal-receipt-modal').classList.add('flex');
+    }
+
+    function closeReceiptModal() {
+      document.getElementById('thermal-receipt-modal').classList.remove('flex');
+      document.getElementById('thermal-receipt-modal').classList.add('hidden');
+    }
+
+    // --- CATAT PENGELUARAN MODAL / OPERASIONAL ---
+    function openExpenseModal() {
+      document.getElementById('expense-modal').classList.remove('hidden');
+      document.getElementById('expense-modal').classList.add('flex');
+    }
+
+    function closeExpenseModal() {
+      document.getElementById('expense-modal').classList.remove('flex');
+      document.getElementById('expense-modal').classList.add('hidden');
+    }
+
+    async function saveExpense() {
+      const category = document.getElementById('expense-category').value;
+      const note = document.getElementById('expense-note').value.trim();
+      const amount = Number(document.getElementById('expense-amount').value);
+
+      if (!note || !amount || amount <= 0) {
+        alert('Mohon isi keterangan dan nominal pengeluaran dengan benar.');
+        return;
+      }
+
+      await warkopSync.addExpense({
+        category,
+        note,
+        amount,
+        cashier: 'Kasir 1'
+      });
+
+      document.getElementById('expense-note').value = '';
+      document.getElementById('expense-amount').value = '';
+      closeExpenseModal();
+      updateFinancialStats();
+      renderExpensesList();
+    }
+
+    function renderExpensesList() {
+      const container = document.getElementById('expenses-list');
+      if (!container) return;
+      const expenses = warkopSync.getExpenses();
+
+      if (expenses.length === 0) {
+        container.innerHTML = `
+          <div class="bg-surface-container-low p-6 rounded-2xl text-center text-xs text-on-surface-variant">
+            Belum ada catatan pengeluaran hari ini.
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      expenses.forEach(exp => {
+        const item = document.createElement('div');
+        item.className = 'bg-surface-container-low p-3 rounded-xl border border-surface-container flex items-center justify-between shadow-sm';
+        item.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-amber-500/10 text-amber-800 flex items-center justify-center font-bold">
+              <span class="material-symbols-outlined text-[18px]">receipt</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-xs font-bold text-on-surface">${exp.note}</span>
+              <span class="text-[11px] text-on-surface-variant">${exp.category} • ${warkopSync.formatTime(exp.timestamp)}</span>
+            </div>
+          </div>
+          <span class="text-xs font-bold text-error">-${warkopSync.formatRupiah(exp.amount)}</span>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    // --- RIWAYAT TRANSAKSI KASIR ---
+    function renderHistoryList() {
+      const container = document.getElementById('history-list');
+      if (!container) return;
+      const txList = warkopSync.getTransactions();
+
+      if (txList.length === 0) {
+        container.innerHTML = `
+          <div class="bg-surface-container-low p-6 rounded-2xl text-center text-xs text-on-surface-variant">
+            Belum ada transaksi tersimpan.
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      txList.forEach(tx => {
+        const item = document.createElement('div');
+        item.className = 'bg-surface-container-low p-3 rounded-xl border border-surface-container flex items-center justify-between shadow-sm';
+        const itemCount = (tx.items || []).reduce((s, i) => s + i.qty, 0);
+        item.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-700 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+            </div>
+            <div class="flex flex-col">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold text-on-surface">${tx.table}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-semibold">${tx.paymentMethod}</span>
+              </div>
+              <span class="text-[11px] text-on-surface-variant">${itemCount} item • ${warkopSync.formatTime(tx.timestamp)}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-primary">${warkopSync.formatRupiah(tx.total)}</span>
+            <button onclick='showReceiptModal(${JSON.stringify(tx).replace(/'/g, "&apos;")})' class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary" title="Cetak Struk">
+              <span class="material-symbols-outlined text-[16px]">print</span>
+            </button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    // --- TAMBAH & HAPUS MENU BARU ---
+    function openAddModal() {
+      document.getElementById('add-menu-modal').classList.remove('hidden');
+      document.getElementById('add-menu-modal').classList.add('flex');
+    }
+
+    function closeAddModal() {
+      document.getElementById('add-menu-modal').classList.remove('flex');
+      document.getElementById('add-menu-modal').classList.add('hidden');
+    }
+
+    function addNewMenu() {
+      const name = document.getElementById('new-item-name').value.trim();
+      const category = document.getElementById('new-item-cat').value;
+      const price = parseInt(document.getElementById('new-item-price').value);
+
+      if (!name || !price || price <= 0) {
+        alert('Mohon isi nama dan harga menu dengan benar.');
+        return;
+      }
+
+      warkopSync.addMenuItem({
+        name,
+        category,
+        price,
+        image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=300&q=80'
+      });
+
+      document.getElementById('new-item-name').value = '';
+      document.getElementById('new-item-price').value = '';
+      closeAddModal();
+      renderMenuGrid();
+    }
+
+    function deleteMenuItem(id) {
+      if (confirm('Hapus menu ini dari katalog kasir?')) {
+        warkopSync.deleteMenuItem(id);
+        renderMenuGrid();
+      }
+    }
+
+    // --- CLOUD FIREBASE CONFIG MODAL ---
+    function openCloudModal() {
+      const cfg = warkopSync.getFirebaseConfig();
+      if (cfg) {
+        document.getElementById('firebase-config-input').value = JSON.stringify(cfg, null, 2);
+      }
+      document.getElementById('cloud-modal').classList.remove('hidden');
+      document.getElementById('cloud-modal').classList.add('flex');
+    }
+
+    function closeCloudModal() {
+      document.getElementById('cloud-modal').classList.remove('flex');
+      document.getElementById('cloud-modal').classList.add('hidden');
+    }
+
+    function saveFirebaseCloudConfig() {
+      const raw = document.getElementById('firebase-config-input').value.trim();
+      try {
+        const parsed = JSON.parse(raw);
+        warkopSync.saveFirebaseConfig(parsed);
+        alert('Konfigurasi Cloud Firebase tersimpan! Menghubungkan secara real-time...');
+        closeCloudModal();
+        updateCloudButtonState();
+      } catch (e) {
+        alert('Format JSON tidak valid. Pastikan format konfigurasi benar.');
+      }
+    }
+
+    function clearCloudConfig() {
+      if (confirm('Reset ke mode sinkronisasi lokal instan?')) {
+        warkopSync.clearFirebaseConfig();
+        document.getElementById('firebase-config-input').value = '';
+        closeCloudModal();
+        updateCloudButtonState();
+      }
+    }
+  </script>
+</body>
+</html>
