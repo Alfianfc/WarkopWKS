@@ -6,10 +6,10 @@ class WarkopSyncEngine {
   constructor() {
     this.channelName = 'warkop_realtime_channel';
     this.storageKeys = {
-      transactions: 'warkop_transactions_v1',
-      expenses: 'warkop_expenses_v1',
-      menu: 'warkop_menu_v1',
-      settings: 'warkop_settings_v1'
+      transactions: 'warkop_transactions_v2',
+      expenses: 'warkop_expenses_v2',
+      menu: 'warkop_menu_v2',
+      settings: 'warkop_settings_v2'
     };
 
     this.listeners = {
@@ -43,7 +43,7 @@ class WarkopSyncEngine {
           } else if (type === 'NEW_EXPENSE') {
             this.notifyListeners('expenseAdded', payload);
             this.notifyListeners('dataChanged', this.getAllData());
-          } else if (type === 'DATA_UPDATED') {
+          } else if (type === 'MENU_UPDATED' || type === 'DATA_UPDATED') {
             this.notifyListeners('dataChanged', this.getAllData());
           }
         };
@@ -112,7 +112,7 @@ class WarkopSyncEngine {
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'menu' }, async () => {
           const { data } = await window.supabaseClient.from('menu').select('*');
-          if (data) {
+          if (data && Array.isArray(data)) {
             localStorage.setItem(this.storageKeys.menu, JSON.stringify(data));
             this.notifyListeners('dataChanged', this.getAllData());
           }
@@ -121,7 +121,7 @@ class WarkopSyncEngine {
 
       console.log('Supabase Realtime Sync active!');
     } catch (e) {
-      console.warn('Supabase init failed, running local mode:', e);
+      console.warn('Supabase init notice:', e);
     }
   }
 
@@ -178,21 +178,65 @@ class WarkopSyncEngine {
       osc.start();
       osc.stop(ctx.currentTime + 0.35);
     } catch (e) {
-      // Audio autoplay policy notice
+      // Audio autoplay policy
     }
   }
 
   initDefaultData() {
-    if (!localStorage.getItem(this.storageKeys.menu)) {
-      const initialMenu = [
-        { id: 'menu-1', name: 'Kopi Susu Warkop', price: 18000, category: 'coffee', image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=300&q=80' },
-        { id: 'menu-2', name: 'Indomie Telur Kornet', price: 15000, category: 'food', image: 'https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=300&q=80' },
-        { id: 'menu-3', name: 'Pisang Goreng Keju', price: 12000, category: 'snack', image: 'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?auto=format&fit=crop&w=300&q=80' },
-        { id: 'menu-4', name: 'Es Teh Manis', price: 5000, category: 'coffee', image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=300&q=80' },
-        { id: 'menu-5', name: 'Kopi Hitam Tubruk', price: 8000, category: 'coffee', image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=300&q=80' },
-        { id: 'menu-6', name: 'Roti Bakar Cokelat Keju', price: 14000, category: 'snack', image: 'https://images.unsplash.com/photo-1584776296944-ab6fb57b0bdd?auto=format&fit=crop&w=300&q=80' }
+    const existing = localStorage.getItem(this.storageKeys.menu);
+    let menuList = [];
+    try {
+      menuList = existing ? JSON.parse(existing) : [];
+    } catch (e) {
+      menuList = [];
+    }
+
+    if (!existing || !Array.isArray(menuList) || menuList.length < 30) {
+      const defaultMenu = [
+        // Minuman Dingin
+        { id: 'menu-d-1', name: 'Es Teh', price: 5000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-d-2', name: 'Es White Coffee', price: 6000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-d-3', name: 'Es GulaAren', price: 6000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-d-4', name: 'Es GoodDay All Varian', price: 8000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-d-5', name: 'Es Dancow All Varian', price: 8000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-d-6', name: 'Es Chocolatos All varian', price: 7000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-d-7', name: 'Es Milo', price: 7000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1582293041079-7814c2f12063?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-d-8', name: 'Es Nutrisari', price: 5000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-d-9', name: 'Joshua', price: 8000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-d-10', name: 'Kukubima + Susu', price: 8000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-d-11', name: 'Kukubima', price: 6000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-d-12', name: 'Extra jos', price: 6000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1536935338788-846bb9981813?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-d-13', name: 'Air mineral Vit', price: 3000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=400&q=80', is_default: true },
+
+        // Minuman Panas / Hangat
+        { id: 'menu-h-1', name: 'Teh panas', price: 4000, category: 'hot_drink', image: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-h-2', name: 'Susu jahe', price: 5000, category: 'hot_drink', image: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-h-3', name: 'Kopi jahe', price: 5000, category: 'hot_drink', image: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-h-4', name: 'Kopisusu', price: 7000, category: 'hot_drink', image: 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-h-5', name: 'Kopi tubruk', price: 5000, category: 'hot_drink', image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-h-6', name: 'Kopi Spesial mix', price: 6000, category: 'hot_drink', image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-h-7', name: 'Whitecoffee', price: 5000, category: 'hot_drink', image: 'https://images.unsplash.com/photo-1507133750040-4a8f57021571?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-h-8', name: 'Kopi GulaAren', price: 5000, category: 'hot_drink', image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-h-9', name: 'Goodday All varian', price: 7000, category: 'hot_drink', image: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-h-10', name: 'Milo', price: 6000, category: 'hot_drink', image: 'https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-h-11', name: 'Chocolatos All varian', price: 6000, category: 'hot_drink', image: 'https://images.unsplash.com/photo-1517578239113-b03992dcdd25?auto=format&fit=crop&w=400&q=80', is_default: true },
+
+        // Makanan
+        { id: 'menu-m-1', name: 'Indomie All varian', price: 6000, category: 'food', image: 'https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-m-2', name: 'Indomie + telur', price: 9000, category: 'food', image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=400&q=80', is_default: true },
+
+        // Makanan Ringan
+        { id: 'menu-s-1', name: 'Tahu Sumedang', price: 3000, category: 'snack', image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-s-2', name: 'Risol', price: 3000, category: 'snack', image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-s-3', name: 'Martabak', price: 4000, category: 'snack', image: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-s-4', name: 'Tahu isi', price: 3000, category: 'snack', image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-s-5', name: 'Pisang goreng', price: 3000, category: 'snack', image: 'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-s-6', name: 'Sate Telur puyuh', price: 3000, category: 'snack', image: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-s-7', name: 'Gerry', price: 1500, category: 'snack', image: 'https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-s-8', name: 'Malkis', price: 1500, category: 'snack', image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-s-9', name: 'Sukro', price: 1500, category: 'snack', image: 'https://images.unsplash.com/photo-1599599810769-bcde5a160d32?auto=format&fit=crop&w=400&q=80', is_default: true }
       ];
-      localStorage.setItem(this.storageKeys.menu, JSON.stringify(initialMenu));
+      localStorage.setItem(this.storageKeys.menu, JSON.stringify(defaultMenu));
     }
   }
 
@@ -227,7 +271,7 @@ class WarkopSyncEngine {
     const tx = {
       id: 'TRX-' + Date.now().toString(36).toUpperCase(),
       timestamp: new Date().toISOString(),
-      cashier: txData.cashier || 'Kasir 1',
+      cashier: txData.cashier || 'Kasir',
       table: txData.table || 'Takeaway',
       paymentMethod: txData.paymentMethod || 'Tunai',
       items: txData.items || [],
@@ -278,7 +322,7 @@ class WarkopSyncEngine {
     const exp = {
       id: 'EXP-' + Date.now().toString(36).toUpperCase(),
       timestamp: new Date().toISOString(),
-      cashier: expData.cashier || 'Kasir 1',
+      cashier: expData.cashier || 'Kasir',
       category: expData.category || 'Bahan Baku',
       note: expData.note || 'Pengeluaran operasional',
       amount: Number(expData.amount) || 0
@@ -309,6 +353,7 @@ class WarkopSyncEngine {
     return exp;
   }
 
+  // --- Menu Management Engine ---
   getMenu() {
     try {
       const data = localStorage.getItem(this.storageKeys.menu);
@@ -318,9 +363,90 @@ class WarkopSyncEngine {
     }
   }
 
-  async saveMenu(menuList) {
-    localStorage.setItem(this.storageKeys.menu, JSON.stringify(menuList));
+  async addMenuItem(item) {
+    const defaultImg = 'https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&w=400&q=80';
+    const newItem = {
+      id: 'menu-custom-' + Date.now().toString(36),
+      name: item.name.trim(),
+      price: Number(item.price) || 0,
+      category: item.category || 'cold_drink',
+      image: item.image && item.image.trim() ? item.image.trim() : defaultImg,
+      is_default: false
+    };
+
+    const list = this.getMenu();
+    list.push(newItem);
+    localStorage.setItem(this.storageKeys.menu, JSON.stringify(list));
+
+    if (this.channel) {
+      this.channel.postMessage({ type: 'MENU_UPDATED', payload: newItem });
+    }
+
+    if (window.supabaseClient) {
+      try {
+        await window.supabaseClient.from('menu').insert([newItem]);
+      } catch (err) {
+        console.warn('Supabase add menu item error:', err);
+      }
+    }
+
     this.notifyListeners('dataChanged', this.getAllData());
+    return newItem;
+  }
+
+  async updateMenuItemImage(id, newImageUrl) {
+    const list = this.getMenu();
+    const target = list.find(m => m.id === id);
+    if (!target) return { success: false, message: 'Menu tidak ditemukan.' };
+
+    target.image = newImageUrl;
+    localStorage.setItem(this.storageKeys.menu, JSON.stringify(list));
+
+    if (this.channel) {
+      this.channel.postMessage({ type: 'MENU_UPDATED', payload: target });
+    }
+
+    if (window.supabaseClient) {
+      try {
+        await window.supabaseClient.from('menu').update({ image: newImageUrl }).eq('id', id);
+      } catch (err) {
+        console.warn('Supabase update menu image error:', err);
+      }
+    }
+
+    this.notifyListeners('dataChanged', this.getAllData());
+    return { success: true };
+  }
+
+  async deleteMenuItem(id) {
+    const list = this.getMenu();
+    const item = list.find(m => m.id === id);
+
+    if (!item) {
+      return { success: false, message: 'Menu tidak ditemukan.' };
+    }
+
+    if (item.is_default) {
+      return { success: false, message: 'Menu default bawaan warkop tidak dapat dihapus.' };
+    }
+
+    const updated = list.filter(m => m.id !== id);
+    localStorage.setItem(this.storageKeys.menu, JSON.stringify(updated));
+
+    if (this.channel) {
+      this.channel.postMessage({ type: 'MENU_UPDATED', payload: { id, deleted: true } });
+    }
+
+    if (window.supabaseClient) {
+      try {
+        await window.supabaseClient.from('menu').delete().eq('id', id);
+      } catch (err) {
+        console.warn('Supabase delete menu error:', err);
+      }
+    }
+
+    this.notifyListeners('dataChanged', this.getAllData());
+    return { success: true };
   }
 
   getAllData() {
@@ -353,14 +479,21 @@ class WarkopSyncEngine {
 
     let totalRevenue = 0;
     let totalItemsSold = 0;
-    const categoryTotals = { coffee: 0, food: 0, snack: 0, other: 0 };
+    const categoryTotals = {
+      cold_drink: 0,
+      hot_drink: 0,
+      food: 0,
+      snack: 0,
+      coffee: 0,
+      other: 0
+    };
 
     filteredTx.forEach((tx) => {
       totalRevenue += (Number(tx.total) || 0);
       if (Array.isArray(tx.items)) {
         tx.items.forEach((it) => {
           totalItemsSold += (Number(it.qty) || 1);
-          const cat = it.category || 'coffee';
+          const cat = it.category || 'cold_drink';
           if (categoryTotals[cat] !== undefined) {
             categoryTotals[cat] += (Number(it.subtotal) || (it.price * it.qty));
           } else {

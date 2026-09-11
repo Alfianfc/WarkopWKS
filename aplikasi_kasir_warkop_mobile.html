@@ -158,9 +158,10 @@
       <!-- Category Filter Chips -->
       <div class="flex items-center gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-none">
         <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-primary text-white shadow-sm transition-all" onclick="filterMenu('all', this)">Semua Menu</button>
-        <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="filterMenu('coffee', this)">Kopi &amp; Minuman</button>
-        <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="filterMenu('food', this)">Makanan Berat</button>
-        <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="filterMenu('snack', this)">Camilan &amp; Snack</button>
+        <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="filterMenu('cold_drink', this)">Minuman Dingin</button>
+        <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="filterMenu('hot_drink', this)">Minuman Panas</button>
+        <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="filterMenu('food', this)">Makanan</button>
+        <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="filterMenu('snack', this)">Makanan Ringan</button>
       </div>
 
       <!-- Menu Grid Container -->
@@ -480,24 +481,68 @@
       <div class="flex flex-col gap-3">
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Nama Menu</label>
-          <input type="text" id="new-item-name" placeholder="Contoh: Kopi Gula Aren Special" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+          <input type="text" id="new-item-name" placeholder="Contoh: Es Kopi Jos" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
         </div>
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Kategori</label>
           <select id="new-item-cat" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
-            <option value="coffee">Kopi &amp; Minuman</option>
-            <option value="food">Makanan Berat</option>
-            <option value="snack">Camilan &amp; Snack</option>
+            <option value="cold_drink">Minuman Dingin</option>
+            <option value="hot_drink">Minuman Panas / Hangat</option>
+            <option value="food">Makanan</option>
+            <option value="snack">Makanan Ringan</option>
           </select>
         </div>
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Harga Jual (Rp)</label>
-          <input type="number" id="new-item-price" placeholder="15000" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+          <input type="number" id="new-item-price" placeholder="8000" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">URL Foto (Opsional)</label>
+          <input type="text" id="new-item-image" placeholder="https://... (opsional)" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">Atau Upload Gambar Langsung</label>
+          <input type="file" id="new-item-file" accept="image/*" class="w-full text-xs text-on-surface-variant file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-surface-container file:text-on-surface hover:file:bg-surface-container-high cursor-pointer">
         </div>
       </div>
 
       <button onclick="addNewMenu()" class="w-full h-11 bg-primary text-white rounded-xl text-xs font-bold active:scale-[0.98] transition-transform shadow-md mt-1">
-        Simpan Menu
+        Simpan Menu Baru
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal Ganti Foto Menu Manual -->
+  <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="edit-image-modal">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl animate-in fade-in slide-in-from-bottom duration-200">
+      <div class="flex justify-between items-center pb-2 border-b border-surface-container">
+        <div>
+          <h3 class="text-base font-bold text-on-surface">Ganti Foto Menu</h3>
+          <p class="text-[11px] text-on-surface-variant" id="edit-image-item-name">Nama Menu</p>
+        </div>
+        <button onclick="closeChangeImageModal()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <input type="hidden" id="edit-image-item-id">
+
+      <!-- Preview Gambar -->
+      <div class="w-full h-36 rounded-2xl bg-surface-container bg-cover bg-center overflow-hidden border border-surface-container shadow-inner" id="edit-image-preview"></div>
+
+      <div class="flex flex-col gap-3">
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">Masukkan URL Gambar Baru</label>
+          <input type="text" id="edit-image-url-input" placeholder="https://..." oninput="previewEditImage(this.value)" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">Atau Pilih File Gambar dari HP/Laptop</label>
+          <input type="file" id="edit-image-file-input" accept="image/*" onchange="handleEditFileChange(event)" class="w-full text-xs text-on-surface-variant file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-surface-container file:text-on-surface hover:file:bg-surface-container-high cursor-pointer">
+        </div>
+      </div>
+
+      <button onclick="saveItemImage()" class="w-full h-11 bg-primary text-white rounded-xl text-xs font-bold active:scale-[0.98] transition-transform shadow-md mt-1">
+        Simpan Perubahan Foto
       </button>
     </div>
   </div>
@@ -635,8 +680,11 @@
       document.getElementById('stat-netprofit').innerText = warkopSync.formatRupiah(summary.netProfit);
     }
 
+    let currentFilterCategory = 'all';
+
     // --- RENDER MENU GRID ---
-    function renderMenuGrid(filterCategory = 'all') {
+    function renderMenuGrid(filterCategory = currentFilterCategory) {
+      currentFilterCategory = filterCategory;
       const menu = warkopSync.getMenu();
       const grid = document.getElementById('menu-grid');
       grid.innerHTML = '';
@@ -651,16 +699,27 @@
       filtered.forEach(item => {
         const card = document.createElement('div');
         card.className = 'bg-surface-container-low rounded-2xl p-2.5 flex flex-col justify-between gap-2 border border-surface-container hover:border-primary/30 transition-all shadow-sm group relative';
+        
+        const deleteBtnHtml = !item.is_default
+          ? `<button onclick="deleteMenuItem('${item.id}')" class="absolute top-2 right-2 w-7 h-7 bg-surface/90 backdrop-blur-sm rounded-full flex items-center justify-center text-error opacity-80 group-hover:opacity-100 transition-opacity z-10 shadow-sm" title="Hapus menu tambahan">
+              <span class="material-symbols-outlined text-[15px]">delete</span>
+             </button>`
+          : '';
+
+        const safeName = item.name.replace(/'/g, "\\'");
+        const safeImg = (item.image || '').replace(/'/g, "\\'");
+
         card.innerHTML = `
-          <button onclick="deleteMenuItem('${item.id}')" class="absolute top-2 right-2 w-7 h-7 bg-surface/90 backdrop-blur-sm rounded-full flex items-center justify-center text-error opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-sm" title="Hapus menu">
-            <span class="material-symbols-outlined text-[15px]">delete</span>
+          ${deleteBtnHtml}
+          <button onclick="openChangeImageModal('${item.id}', '${safeName}', '${safeImg}')" class="absolute top-2 left-2 w-7 h-7 bg-surface/90 backdrop-blur-sm rounded-full flex items-center justify-center text-on-surface opacity-80 group-hover:opacity-100 hover:text-primary transition-all z-10 shadow-sm" title="Ganti Foto">
+            <span class="material-symbols-outlined text-[15px]">photo_camera</span>
           </button>
-          <div class="w-full h-24 rounded-xl bg-cover bg-center overflow-hidden" style="background-image: url('${item.image}')"></div>
+          <div class="w-full h-24 rounded-xl bg-cover bg-center overflow-hidden cursor-pointer" style="background-image: url('${item.image}')" onclick="openChangeImageModal('${item.id}', '${safeName}', '${safeImg}')"></div>
           <div class="flex flex-col">
-            <span class="text-xs font-bold text-on-surface truncate">${item.name}</span>
+            <span class="text-xs font-bold text-on-surface truncate" title="${item.name}">${item.name}</span>
             <span class="text-xs font-semibold text-primary">${warkopSync.formatRupiah(item.price)}</span>
           </div>
-          <button onclick="addToCart('${item.name}', ${item.price}, '${item.category}')" class="w-full h-9 bg-primary text-white rounded-xl flex items-center justify-center gap-1 text-xs font-bold active:scale-95 transition-transform shadow-sm">
+          <button onclick="addToCart('${safeName}', ${item.price}, '${item.category}')" class="w-full h-9 bg-primary text-white rounded-xl flex items-center justify-center gap-1 text-xs font-bold active:scale-95 transition-transform shadow-sm">
             <span class="material-symbols-outlined text-[16px]">add</span>
             <span>Pesan</span>
           </button>
@@ -670,6 +729,7 @@
     }
 
     function filterMenu(category, btnElement) {
+      currentFilterCategory = category;
       document.querySelectorAll('.category-btn').forEach(btn => {
         btn.classList.remove('bg-primary', 'text-white', 'shadow-sm');
         btn.classList.add('bg-surface-container-low', 'text-on-surface-variant');
@@ -1016,7 +1076,7 @@
       });
     }
 
-    // --- TAMBAH & HAPUS MENU BARU ---
+    // --- TAMBAH, EDIT FOTO & HAPUS MENU ---
     function openAddModal() {
       document.getElementById('add-menu-modal').classList.remove('hidden');
       document.getElementById('add-menu-modal').classList.add('flex');
@@ -1027,34 +1087,111 @@
       document.getElementById('add-menu-modal').classList.add('hidden');
     }
 
-    function addNewMenu() {
+    async function addNewMenu() {
       const name = document.getElementById('new-item-name').value.trim();
       const category = document.getElementById('new-item-cat').value;
       const price = parseInt(document.getElementById('new-item-price').value);
+      const urlImg = document.getElementById('new-item-image').value.trim();
+      const fileInput = document.getElementById('new-item-file');
 
       if (!name || !price || price <= 0) {
         alert('Mohon isi nama dan harga menu dengan benar.');
         return;
       }
 
-      warkopSync.addMenuItem({
+      let finalImage = urlImg;
+      if (!finalImage && fileInput.files && fileInput.files[0]) {
+        try {
+          finalImage = await readFileAsDataUrl(fileInput.files[0]);
+        } catch (e) {
+          console.warn('File read error:', e);
+        }
+      }
+
+      await warkopSync.addMenuItem({
         name,
         category,
         price,
-        image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=300&q=80'
+        image: finalImage
       });
 
       document.getElementById('new-item-name').value = '';
       document.getElementById('new-item-price').value = '';
+      document.getElementById('new-item-image').value = '';
+      document.getElementById('new-item-file').value = '';
       closeAddModal();
       renderMenuGrid();
     }
 
-    function deleteMenuItem(id) {
+    async function deleteMenuItem(id) {
       if (confirm('Hapus menu ini dari katalog kasir?')) {
-        warkopSync.deleteMenuItem(id);
+        const res = await warkopSync.deleteMenuItem(id);
+        if (res && !res.success) {
+          alert(res.message);
+        }
         renderMenuGrid();
       }
+    }
+
+    function openChangeImageModal(id, name, currentImg) {
+      document.getElementById('edit-image-item-id').value = id;
+      document.getElementById('edit-image-item-name').innerText = name;
+      document.getElementById('edit-image-preview').style.backgroundImage = `url('${currentImg}')`;
+      document.getElementById('edit-image-url-input').value = currentImg.startsWith('data:') ? '' : currentImg;
+      document.getElementById('edit-image-file-input').value = '';
+      document.getElementById('edit-image-modal').classList.remove('hidden');
+      document.getElementById('edit-image-modal').classList.add('flex');
+    }
+
+    function closeChangeImageModal() {
+      document.getElementById('edit-image-modal').classList.remove('flex');
+      document.getElementById('edit-image-modal').classList.add('hidden');
+    }
+
+    function previewEditImage(url) {
+      if (url && url.trim()) {
+        document.getElementById('edit-image-preview').style.backgroundImage = `url('${url.trim()}')`;
+      }
+    }
+
+    async function handleEditFileChange(event) {
+      const file = event.target.files && event.target.files[0];
+      if (file) {
+        try {
+          const dataUrl = await readFileAsDataUrl(file);
+          document.getElementById('edit-image-preview').style.backgroundImage = `url('${dataUrl}')`;
+          document.getElementById('edit-image-preview').dataset.pendingBase64 = dataUrl;
+        } catch (e) {
+          alert('Gagal memproses file gambar.');
+        }
+      }
+    }
+
+    function readFileAsDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function saveItemImage() {
+      const id = document.getElementById('edit-image-item-id').value;
+      const preview = document.getElementById('edit-image-preview');
+      const inputUrl = document.getElementById('edit-image-url-input').value.trim();
+      const base64Img = preview.dataset.pendingBase64;
+
+      const targetImg = base64Img || inputUrl;
+      if (!targetImg) {
+        alert('Mohon masukkan link URL foto atau upload file gambar.');
+        return;
+      }
+
+      await warkopSync.updateMenuItemImage(id, targetImg);
+      delete preview.dataset.pendingBase64;
+      closeChangeImageModal();
+      renderMenuGrid();
     }
 
     // --- CLOUD FIREBASE CONFIG MODAL ---
