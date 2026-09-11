@@ -101,7 +101,7 @@
           <label class="text-xs font-bold text-on-surface-variant">Username</label>
           <div class="relative flex items-center">
             <span class="material-symbols-outlined absolute left-3.5 text-on-surface-variant text-[18px]">person</span>
-            <input type="text" id="input-username" required autocomplete="username" placeholder="Masukkan username" class="w-full h-12 bg-surface-container-lowest border border-surface-container-high rounded-xl pl-10 pr-3.5 text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+            <input type="text" id="input-username" required autocomplete="off" placeholder="Masukkan username" class="w-full h-12 bg-surface-container-lowest border border-surface-container-high rounded-xl pl-10 pr-3.5 text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
           </div>
         </div>
 
@@ -110,7 +110,7 @@
           <label class="text-xs font-bold text-on-surface-variant">Password</label>
           <div class="relative flex items-center">
             <span class="material-symbols-outlined absolute left-3.5 text-on-surface-variant text-[18px]">lock</span>
-            <input type="password" id="input-password" required autocomplete="current-password" placeholder="Masukkan password" class="w-full h-12 bg-surface-container-lowest border border-surface-container-high rounded-xl pl-10 pr-11 text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
+            <input type="password" id="input-password" required autocomplete="off" placeholder="Masukkan password" class="w-full h-12 bg-surface-container-lowest border border-surface-container-high rounded-xl pl-10 pr-11 text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all">
             <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 text-on-surface-variant hover:text-on-surface focus:outline-none" title="Tampilkan/Sembunyikan Password">
               <span class="material-symbols-outlined text-[18px]" id="eye-icon">visibility</span>
             </button>
@@ -123,25 +123,6 @@
           <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
         </button>
       </form>
-
-      <!-- Quick Fill Demo Credentials -->
-      <div class="pt-3 border-t border-surface-container flex flex-col gap-2">
-        <span class="text-[11px] font-semibold text-on-surface-variant text-center">Akun Default (Klik untuk isi instan):</span>
-        <div class="grid grid-cols-2 gap-2">
-          <button type="button" onclick="fillQuickCredentials('kasir')" class="p-2 bg-surface-container hover:bg-surface-container-high rounded-xl text-left border border-surface-container-high active:scale-95 transition-all flex flex-col">
-            <span class="text-[11px] font-bold text-on-surface flex items-center gap-1">
-              <span class="material-symbols-outlined text-[13px] text-primary">badge</span> Kasir
-            </span>
-            <span class="text-[10px] text-on-surface-variant">user: <strong>kasir</strong> / pass: <strong>kasir123</strong></span>
-          </button>
-          <button type="button" onclick="fillQuickCredentials('bos')" class="p-2 bg-surface-container hover:bg-surface-container-high rounded-xl text-left border border-surface-container-high active:scale-95 transition-all flex flex-col">
-            <span class="text-[11px] font-bold text-on-surface flex items-center gap-1">
-              <span class="material-symbols-outlined text-[13px] text-amber-700">admin_panel_settings</span> Bos / Owner
-            </span>
-            <span class="text-[10px] text-on-surface-variant">user: <strong>bos</strong> / pass: <strong>bos123</strong></span>
-          </button>
-        </div>
-      </div>
     </div>
   </main>
 
@@ -155,19 +136,8 @@
     let activeRole = 'kasir';
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Periksa apakah user sudah login sebelumnya
-      const currentUser = warkopAuth.getCurrentUser();
-      if (currentUser) {
-        // Arahkan otomatis ke halaman sesuai peran
-        if (currentUser.role === 'bos') {
-          window.location.href = 'dashboard_owner_detail_mobile.html';
-        } else {
-          window.location.href = 'aplikasi_kasir_warkop_mobile.html';
-        }
-      } else {
-        // Set default field
-        fillQuickCredentials('kasir');
-      }
+      document.getElementById('input-username').value = '';
+      document.getElementById('input-password').value = '';
     });
 
     function selectRole(role) {
@@ -182,23 +152,14 @@
         tabBos.className = 'flex-1 py-2.5 rounded-xl text-xs font-semibold text-on-surface-variant hover:text-on-surface transition-all flex items-center justify-center gap-1.5';
         heading.innerText = 'Login Kasir Warkop';
         subheading.innerText = 'Kelola pesanan, pembayaran, dan belanja modal';
-        fillQuickCredentials('kasir');
       } else {
         tabBos.className = 'flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-primary text-white shadow-sm';
         tabKasir.className = 'flex-1 py-2.5 rounded-xl text-xs font-semibold text-on-surface-variant hover:text-on-surface transition-all flex items-center justify-center gap-1.5';
         heading.innerText = 'Login Bos / Pemilik Warkop';
         subheading.innerText = 'Pantau omzet, laba bersih, dan live feed transaksi';
-        fillQuickCredentials('bos');
       }
-    }
-
-    function fillQuickCredentials(role) {
-      const accounts = warkopAuth.getAccounts();
-      const acc = accounts[role];
-      if (acc) {
-        document.getElementById('input-username').value = acc.username;
-        document.getElementById('input-password').value = acc.password;
-      }
+      document.getElementById('input-username').value = '';
+      document.getElementById('input-password').value = '';
       hideError();
     }
 
@@ -229,14 +190,21 @@
       event.preventDefault();
       hideError();
 
-      const username = document.getElementById('input-username').value;
-      const password = document.getElementById('input-password').value;
+      const username = document.getElementById('input-username').value.trim();
+      const password = document.getElementById('input-password').value.trim();
 
       const result = await warkopAuth.login(username, password);
 
       if (result.success) {
         const user = result.user;
-        if (user.role === 'bos') {
+        if (activeRole === 'bos' && user.role !== 'bos') {
+          showError('⛔ Akun ini adalah Kasir. Silakan pilih tab "Masuk Kasir".');
+          return;
+        }
+        if (activeRole === 'kasir' && user.role === 'bos') {
+          // Bos masuk lewat tab kasir diizinkan
+        }
+        if (user.role === 'bos' && activeRole === 'bos') {
           window.location.href = 'dashboard_owner_detail_mobile.html';
         } else {
           window.location.href = 'aplikasi_kasir_warkop_mobile.html';
