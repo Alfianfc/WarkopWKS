@@ -15,7 +15,9 @@ class WarkopSyncEngine {
     this.listeners = {
       dataChanged: [],
       transactionAdded: [],
-      expenseAdded: []
+      expenseAdded: [],
+      transactionDeleted: [],
+      expenseDeleted: []
     };
 
     this.isSupabaseReady = false;
@@ -42,6 +44,16 @@ class WarkopSyncEngine {
             this.notifyListeners('dataChanged', this.getAllData());
           } else if (type === 'NEW_EXPENSE') {
             this.notifyListeners('expenseAdded', payload);
+            this.notifyListeners('dataChanged', this.getAllData());
+          } else if (type === 'DELETE_TRANSACTION') {
+            const current = this.getTransactions().filter(t => t.id !== payload.id);
+            localStorage.setItem(this.storageKeys.transactions, JSON.stringify(current));
+            this.notifyListeners('transactionDeleted', payload);
+            this.notifyListeners('dataChanged', this.getAllData());
+          } else if (type === 'DELETE_EXPENSE') {
+            const current = this.getExpenses().filter(e => e.id !== payload.id);
+            localStorage.setItem(this.storageKeys.expenses, JSON.stringify(current));
+            this.notifyListeners('expenseDeleted', payload);
             this.notifyListeners('dataChanged', this.getAllData());
           } else if (type === 'MENU_UPDATED' || type === 'DATA_UPDATED') {
             this.notifyListeners('dataChanged', this.getAllData());
@@ -110,6 +122,24 @@ class WarkopSyncEngine {
             this.notifyListeners('dataChanged', this.getAllData());
           }
         })
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'transactions' }, (payload) => {
+          const deletedId = payload.old && payload.old.id;
+          if (deletedId) {
+            const current = this.getTransactions().filter(t => t.id !== deletedId);
+            localStorage.setItem(this.storageKeys.transactions, JSON.stringify(current));
+            this.notifyListeners('transactionDeleted', { id: deletedId });
+            this.notifyListeners('dataChanged', this.getAllData());
+          }
+        })
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'expenses' }, (payload) => {
+          const deletedId = payload.old && payload.old.id;
+          if (deletedId) {
+            const current = this.getExpenses().filter(e => e.id !== deletedId);
+            localStorage.setItem(this.storageKeys.expenses, JSON.stringify(current));
+            this.notifyListeners('expenseDeleted', { id: deletedId });
+            this.notifyListeners('dataChanged', this.getAllData());
+          }
+        })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'menu' }, async () => {
           const { data } = await window.supabaseClient.from('menu').select('*');
           if (data && Array.isArray(data)) {
@@ -142,6 +172,18 @@ class WarkopSyncEngine {
             this.notifyListeners('transactionAdded', tx);
             this.notifyListeners('dataChanged', this.getAllData());
           }
+        });
+        this.socket.on('tx:deleted', ({ id }) => {
+          const current = this.getTransactions().filter(t => t.id !== id);
+          localStorage.setItem(this.storageKeys.transactions, JSON.stringify(current));
+          this.notifyListeners('transactionDeleted', { id });
+          this.notifyListeners('dataChanged', this.getAllData());
+        });
+        this.socket.on('exp:deleted', ({ id }) => {
+          const current = this.getExpenses().filter(e => e.id !== id);
+          localStorage.setItem(this.storageKeys.expenses, JSON.stringify(current));
+          this.notifyListeners('expenseDeleted', { id });
+          this.notifyListeners('dataChanged', this.getAllData());
         });
         this.socket.on('exp:new', (exp) => {
           const current = this.getExpenses();
@@ -445,6 +487,60 @@ class WarkopSyncEngine {
       }
     }
 
+    this.notifyListeners('dataChanged', this.getAllData());
+    return { success: true };
+  }
+
+  async deleteTransaction(id) {
+    if (!id) return { success: false, message: 'ID transaksi tidak valid.' };
+    const current = this.getTransactions().filter(t => t.id !== id);
+    localStorage.setItem(this.storageKeys.transactions, JSON.stringify(current));
+
+    if (this.channel) {
+      try { this.channel.postMessage({ type: 'DELETE_TRANSACTION', payload: { id } }); } catch (e) {}
+    }
+
+    if (window.supabaseClient) {
+      try {
+        await window.supabaseClient.from('transactions').delete().eq('id', id);
+      } catch (err) {
+        console.warn('Supabase delete tx notice:', err);
+      }
+    }
+
+    if (this.socket && this.socket.connected) {
+      try { this.socket.emit('tx:delete', { id }); } catch (e) {}
+    }
+    try { await fetch(`/api/transactions/${encodeURIComponent(id)}`, { method: 'DELETE' }); } catch (e) {}
+
+    this.notifyListeners('transactionDeleted', { id });
+    this.notifyListeners('dataChanged', this.getAllData());
+    return { success: true };
+  }
+
+  async deleteExpense(id) {
+    if (!id) return { success: false, message: 'ID pengeluaran tidak valid.' };
+    const current = this.getExpenses().filter(e => e.id !== id);
+    localStorage.setItem(this.storageKeys.expenses, JSON.stringify(current));
+
+    if (this.channel) {
+      try { this.channel.postMessage({ type: 'DELETE_EXPENSE', payload: { id } }); } catch (e) {}
+    }
+
+    if (window.supabaseClient) {
+      try {
+        await window.supabaseClient.from('expenses').delete().eq('id', id);
+      } catch (err) {
+        console.warn('Supabase delete expense notice:', err);
+      }
+    }
+
+    if (this.socket && this.socket.connected) {
+      try { this.socket.emit('exp:delete', { id }); } catch (e) {}
+    }
+    try { await fetch(`/api/expenses/${encodeURIComponent(id)}`, { method: 'DELETE' }); } catch (e) {}
+
+    this.notifyListeners('expenseDeleted', { id });
     this.notifyListeners('dataChanged', this.getAllData());
     return { success: true };
   }

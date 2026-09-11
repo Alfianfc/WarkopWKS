@@ -79,6 +79,30 @@ app.post('/api/expenses', (req, res) => {
   res.json({ success: true, expense: exp });
 });
 
+app.delete('/api/transactions/:id', (req, res) => {
+  const { id } = req.params;
+  const before = db.transactions.length;
+  db.transactions = db.transactions.filter(t => t.id !== id);
+  if (db.transactions.length === before) {
+    return res.status(404).json({ error: 'Transaksi tidak ditemukan' });
+  }
+  saveData(db);
+  io.emit('tx:deleted', { id });
+  res.json({ success: true, id });
+});
+
+app.delete('/api/expenses/:id', (req, res) => {
+  const { id } = req.params;
+  const before = db.expenses.length;
+  db.expenses = db.expenses.filter(e => e.id !== id);
+  if (db.expenses.length === before) {
+    return res.status(404).json({ error: 'Pengeluaran tidak ditemukan' });
+  }
+  saveData(db);
+  io.emit('exp:deleted', { id });
+  res.json({ success: true, id });
+});
+
 // Default route ke index.html (Portal Login)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
@@ -114,6 +138,22 @@ io.on('connection', (socket) => {
     }
     // Broadcast ke SEMUA client termasuk layar Bos
     socket.broadcast.emit('exp:new', exp);
+  });
+
+  // Hapus transaksi salah input (kasir & owner)
+  socket.on('tx:delete', ({ id }) => {
+    console.log(`[Hapus Transaksi] ${id}`);
+    db.transactions = db.transactions.filter(t => t.id !== id);
+    saveData(db);
+    socket.broadcast.emit('tx:deleted', { id });
+  });
+
+  // Hapus pengeluaran salah input (kasir & owner)
+  socket.on('exp:delete', ({ id }) => {
+    console.log(`[Hapus Pengeluaran] ${id}`);
+    db.expenses = db.expenses.filter(e => e.id !== id);
+    saveData(db);
+    socket.broadcast.emit('exp:deleted', { id });
   });
 
   socket.on('disconnect', () => {

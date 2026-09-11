@@ -286,7 +286,10 @@
         <span class="text-xs font-bold text-on-surface">Total</span>
         <span class="text-base font-extrabold text-primary" id="modal-tx-total">Rp 0</span>
       </div>
-      <button onclick="closeTxDetailModal()" class="mt-1 w-full h-10 bg-primary text-white rounded-xl text-xs font-bold active:scale-95">Tutup</button>
+      <button onclick="deleteModalTransaction()" class="mt-1 w-full h-10 bg-error/10 text-error border border-error/30 rounded-xl text-xs font-bold active:scale-95 flex items-center justify-center gap-1.5">
+        <span class="material-symbols-outlined text-[16px]">delete</span> Hapus Pesanan Ini
+      </button>
+      <button onclick="closeTxDetailModal()" class="w-full h-10 bg-primary text-white rounded-xl text-xs font-bold active:scale-95">Tutup</button>
     </div>
   </div>
 
@@ -357,6 +360,7 @@
     let isAudioEnabled = true;
     let showAllSales = false;
     let showAllExpenses = false;
+    let currentModalTxId = null;
 
     document.addEventListener('DOMContentLoaded', () => {
       if (!warkopAuth.requireAuth('bos')) return;
@@ -621,7 +625,12 @@
               <span class="text-[10px] text-on-surface-variant/70">${tx.cashier} • ${warkopSync.formatTime(tx.timestamp)}</span>
             </div>
           </div>
-          <span class="text-xs font-extrabold text-primary shrink-0">${warkopSync.formatRupiah(tx.total)}</span>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-xs font-extrabold text-primary">${warkopSync.formatRupiah(tx.total)}</span>
+            <button onclick="event.stopPropagation(); deleteTransactionById('${tx.id}')" class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus pesanan salah input">
+              <span class="material-symbols-outlined text-[16px]">delete</span>
+            </button>
+          </div>
         `;
         itemEl.onclick = () => showTxDetailModal(tx);
         feed.appendChild(itemEl);
@@ -661,7 +670,12 @@
               <span class="text-[10px] text-on-surface-variant">${exp.category} • ${exp.cashier} • ${warkopSync.formatTime(exp.timestamp)}</span>
             </div>
           </div>
-          <span class="text-xs font-bold text-error shrink-0">-${warkopSync.formatRupiah(exp.amount)}</span>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-xs font-bold text-error">-${warkopSync.formatRupiah(exp.amount)}</span>
+            <button onclick="deleteExpenseById('${exp.id}')" class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus catatan salah input">
+              <span class="material-symbols-outlined text-[16px]">delete</span>
+            </button>
+          </div>
         `;
         feed.appendChild(itemEl);
       });
@@ -677,6 +691,7 @@
 
     // --- MODAL TRANSAKSI ---
     function showTxDetailModal(tx) {
+      currentModalTxId = tx.id;
       document.getElementById('modal-tx-id').innerText = tx.id;
       document.getElementById('modal-tx-meta').innerText = `${tx.table} • ${tx.cashier} • ${tx.paymentMethod} • ${warkopSync.formatTime(tx.timestamp)}`;
       const itemsContainer = document.getElementById('modal-tx-items');
@@ -696,6 +711,34 @@
     function closeTxDetailModal() {
       document.getElementById('tx-detail-modal').classList.remove('flex');
       document.getElementById('tx-detail-modal').classList.add('hidden');
+    }
+
+    // --- HAPUS PESANAN SALAH INPUT (owner) ---
+    async function deleteTransactionById(id) {
+      if (!confirm('Hapus pesanan ini? Data akan hilang dari laporan & semua perangkat.')) return;
+      const res = await warkopSync.deleteTransaction(id);
+      if (res && !res.success) {
+        alert(res.message || 'Gagal menghapus pesanan.');
+        return;
+      }
+      closeTxDetailModal();
+      refreshDashboard();
+      showToast('🗑️ Pesanan dihapus');
+    }
+
+    async function deleteModalTransaction() {
+      if (currentModalTxId) await deleteTransactionById(currentModalTxId);
+    }
+
+    async function deleteExpenseById(id) {
+      if (!confirm('Hapus catatan belanja ini? Data akan hilang dari laporan.')) return;
+      const res = await warkopSync.deleteExpense(id);
+      if (res && !res.success) {
+        alert(res.message || 'Gagal menghapus catatan.');
+        return;
+      }
+      refreshDashboard();
+      showToast('🗑️ Catatan belanja dihapus');
     }
 
     // --- WHATSAPP ---

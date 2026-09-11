@@ -1027,7 +1027,12 @@
               <span class="text-[11px] text-on-surface-variant">${exp.category} • ${warkopSync.formatTime(exp.timestamp)}</span>
             </div>
           </div>
-          <span class="text-xs font-bold text-error">-${warkopSync.formatRupiah(exp.amount)}</span>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-error">-${warkopSync.formatRupiah(exp.amount)}</span>
+            <button onclick="deleteExpenseById('${exp.id}')" class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus catatan salah input">
+              <span class="material-symbols-outlined text-[16px]">delete</span>
+            </button>
+          </div>
         `;
         container.appendChild(item);
       });
@@ -1069,6 +1074,9 @@
             <span class="text-xs font-bold text-primary">${warkopSync.formatRupiah(tx.total)}</span>
             <button onclick='showReceiptModal(${JSON.stringify(tx).replace(/'/g, "&apos;")})' class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary" title="Cetak Struk">
               <span class="material-symbols-outlined text-[16px]">print</span>
+            </button>
+            <button onclick="deleteTransactionById('${tx.id}')" class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus pesanan salah input">
+              <span class="material-symbols-outlined text-[16px]">delete</span>
             </button>
           </div>
         `;
@@ -1131,6 +1139,29 @@
         }
         renderMenuGrid();
       }
+    }
+
+    // --- HAPUS PESANAN SALAH INPUT (kasir) ---
+    async function deleteTransactionById(id) {
+      if (!confirm('Hapus pesanan ini? Pesanan yang salah input akan hilang dari laporan.')) return;
+      const res = await warkopSync.deleteTransaction(id);
+      if (res && !res.success) {
+        alert(res.message || 'Gagal menghapus pesanan.');
+        return;
+      }
+      renderHistoryList();
+      if (typeof updateFinancialStats === 'function') updateFinancialStats();
+    }
+
+    async function deleteExpenseById(id) {
+      if (!confirm('Hapus catatan belanja ini?')) return;
+      const res = await warkopSync.deleteExpense(id);
+      if (res && !res.success) {
+        alert(res.message || 'Gagal menghapus catatan.');
+        return;
+      }
+      if (typeof renderExpensesList === 'function') renderExpensesList();
+      if (typeof updateFinancialStats === 'function') updateFinancialStats();
     }
 
     function openChangeImageModal(id, name, currentImg) {
