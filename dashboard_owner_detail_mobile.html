@@ -108,6 +108,9 @@
   <!-- Main -->
   <main class="flex flex-col relative w-full px-4 pt-20 pb-28 min-h-screen">
 
+   <!-- VIEW LAPORAN -->
+   <div id="view-laporan" class="flex flex-col">
+
     <!-- Tanggal & Status -->
     <div class="flex items-center justify-between py-2">
       <div class="flex flex-col">
@@ -264,6 +267,33 @@
         <span class="text-xs font-semibold">Unduh Laporan Lengkap (.CSV / Excel)</span>
       </button>
     </div>
+   </div><!-- /view-laporan -->
+
+   <!-- VIEW PENGELOUARAN -->
+   <div id="view-pengeluaran" class="hidden flex-col gap-3">
+     <div class="flex items-center justify-between py-2">
+       <div>
+         <h2 class="text-base font-bold text-on-surface" id="owner-expenses-title">Belanja Modal</h2>
+         <p class="text-xs text-on-surface-variant">Semua belanja kas, ikut filter shift di Laporan</p>
+       </div>
+     </div>
+     <div class="flex flex-col gap-2" id="owner-expenses-list"></div>
+   </div>
+
+   <!-- VIEW RIWAYAT -->
+   <div id="view-riwayat" class="hidden flex-col gap-3">
+     <div class="flex items-center justify-between py-2">
+       <div>
+         <h2 class="text-base font-bold text-on-surface" id="owner-history-title">Riwayat Transaksi</h2>
+         <p class="text-xs text-on-surface-variant" id="owner-history-sub">Ketuk item untuk detail</p>
+       </div>
+       <button onclick="warkopSync.exportToCSV()" class="h-9 px-3 bg-surface-container text-on-surface border border-surface-container-high rounded-xl flex items-center gap-1 text-xs font-semibold active:scale-95">
+         <span class="material-symbols-outlined text-[16px]">download</span>
+         <span>Excel</span>
+       </button>
+     </div>
+     <div class="flex flex-col gap-2" id="owner-history-list"></div>
+   </div>
   </main>
 
   <!-- Bottom Nav -->
@@ -274,14 +304,20 @@
         <span class="material-symbols-outlined text-[22px]">point_of_sale</span>
         <span class="text-[11px]">Kasir POS</span>
       </a>
-      <button class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-primary font-bold">
-        <span class="material-symbols-outlined text-[22px]">analytics</span>
-        <span class="text-[11px]">Laporan Bos</span>
+      <button onclick="switchOwnerTab('pengeluaran')" id="otab-pengeluaran"
+        class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-on-surface-variant hover:text-on-surface transition-all">
+        <span class="material-symbols-outlined text-[22px]">receipt_long</span>
+        <span class="text-[11px]">Pengeluaran</span>
       </button>
-      <button onclick="openAccountModal()"
-        class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-on-surface-variant hover:text-primary transition-all">
-        <span class="material-symbols-outlined text-[22px]">manage_accounts</span>
-        <span class="text-[11px]">Akun</span>
+      <button onclick="switchOwnerTab('riwayat')" id="otab-riwayat"
+        class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-on-surface-variant hover:text-on-surface transition-all">
+        <span class="material-symbols-outlined text-[22px]">history</span>
+        <span class="text-[11px]">Riwayat</span>
+      </button>
+      <button onclick="switchOwnerTab('laporan')" id="otab-laporan"
+        class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-primary font-bold transition-all">
+        <span class="material-symbols-outlined text-[22px]">analytics</span>
+        <span class="text-[11px]">Laporan</span>
       </button>
     </div>
   </nav>
@@ -514,6 +550,8 @@
       renderCategoryComposition(summary);
       renderLiveSalesFeed(summary.filteredTx);
       renderLiveExpensesFeed(summary.filteredExpenses);
+      renderOwnerExpenses(summary);
+      renderOwnerHistory(summary);
     }
 
     // --- BAR CHART ---
@@ -595,6 +633,108 @@
         legend('bg-primary', 'Minuman Panas', hotRev) +
         legend('bg-amber-700', 'Makanan', foodRev) +
         legend('bg-secondary', 'Makanan Ringan', snackRev);
+    }
+
+    // --- TAB OWNER (KasirPOS | Pengeluaran | Riwayat | Laporan) ---
+    function switchOwnerTab(tab) {
+      ['laporan', 'pengeluaran', 'riwayat'].forEach(t => {
+        document.getElementById('view-' + t).classList.add('hidden');
+        document.getElementById('view-' + t).classList.remove('flex');
+        const b = document.getElementById('otab-' + t);
+        if (b) {
+          b.classList.remove('text-primary', 'font-bold');
+          b.classList.add('text-on-surface-variant');
+        }
+      });
+      const v = document.getElementById('view-' + tab);
+      v.classList.remove('hidden');
+      v.classList.add('flex');
+      const ab = document.getElementById('otab-' + tab);
+      if (ab) {
+        ab.classList.remove('text-on-surface-variant');
+        ab.classList.add('text-primary', 'font-bold');
+      }
+      window.scrollTo({ top: 0 });
+      refreshDashboard();
+    }
+
+    function ownerShiftSuffix() {
+      return activeShiftFilter === 'all' ? 'Seharian' : warkopSync.shiftLabel(activeShiftFilter);
+    }
+
+    function renderOwnerExpenses(summary) {
+      const list = document.getElementById('owner-expenses-list');
+      if (!list) return;
+      document.getElementById('owner-expenses-title').innerText =
+        `Belanja - ${ownerShiftSuffix()} (${summary.filteredExpenses.length})`;
+      if (summary.filteredExpenses.length === 0) {
+        list.innerHTML = `<div class="bg-surface-container-lowest p-6 rounded-xl text-center text-xs text-on-surface-variant border border-surface-container">Belum ada belanja modal.</div>`;
+        return;
+      }
+      list.innerHTML = '';
+      summary.filteredExpenses.forEach(exp => {
+        const el = document.createElement('div');
+        el.className = 'flex items-center justify-between bg-surface-container-lowest p-3 rounded-xl border border-surface-container shadow-sm';
+        el.innerHTML = `
+          <div class="flex items-center gap-2.5 flex-1 pr-2 min-w-0">
+            <div class="w-9 h-9 rounded-full bg-amber-500/10 text-amber-800 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[18px]">receipt</span>
+            </div>
+            <div class="flex flex-col min-w-0">
+              <span class="text-xs font-bold text-on-surface truncate">${exp.note}</span>
+              <span class="text-[10px] text-on-surface-variant">${exp.category} • ${exp.cashier} • ${warkopSync.formatTime(exp.timestamp)}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-xs font-bold text-error">-${warkopSync.formatRupiah(exp.amount)}</span>
+            <button onclick="deleteExpenseById('${exp.id}')" class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus">
+              <span class="material-symbols-outlined text-[16px]">delete</span>
+            </button>
+          </div>`;
+        list.appendChild(el);
+      });
+    }
+
+    function renderOwnerHistory(summary) {
+      const list = document.getElementById('owner-history-list');
+      if (!list) return;
+      document.getElementById('owner-history-title').innerText =
+        `Riwayat - ${ownerShiftSuffix()} (${summary.totalOrders})`;
+      document.getElementById('owner-history-sub').innerText =
+        `Total ${warkopSync.formatRupiah(summary.totalRevenue)} • ketuk item untuk detail`;
+      if (summary.filteredTx.length === 0) {
+        list.innerHTML = `<div class="bg-surface-container-lowest p-6 rounded-xl text-center text-xs text-on-surface-variant border border-surface-container">Belum ada transaksi.</div>`;
+        return;
+      }
+      list.innerHTML = '';
+      summary.filteredTx.forEach(tx => {
+        const itemsSummary = (tx.items || []).map(i => `${i.name} (${i.qty}x)`).join(', ');
+        const isQris = tx.paymentMethod && tx.paymentMethod.toUpperCase().includes('QRIS');
+        const el = document.createElement('div');
+        el.className = 'flex items-center justify-between bg-surface-container-lowest p-3 rounded-xl border border-surface-container hover:border-primary/30 transition-all cursor-pointer shadow-sm active:scale-[0.99]';
+        el.innerHTML = `
+          <div class="flex items-center gap-2.5 flex-1 pr-2 min-w-0">
+            <div class="w-9 h-9 rounded-full ${isQris ? 'bg-sky-500/10 text-sky-700' : 'bg-primary/10 text-primary'} flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[18px]">${isQris ? 'qr_code_2' : 'payments'}</span>
+            </div>
+            <div class="flex flex-col truncate">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold text-on-surface truncate">${tx.table}</span>
+                <span class="text-[10px] px-1.5 rounded bg-surface-container text-on-surface-variant font-medium shrink-0">${tx.paymentMethod}</span>
+              </div>
+              <span class="text-[11px] text-on-surface-variant truncate">${itemsSummary || 'Menu Kasir'}</span>
+              <span class="text-[10px] text-on-surface-variant/70">${tx.cashier} • ${warkopSync.formatTime(tx.timestamp)}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-xs font-extrabold text-primary">${warkopSync.formatRupiah(tx.total)}</span>
+            <button onclick="event.stopPropagation(); deleteTransactionById('${tx.id}')" class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus">
+              <span class="material-symbols-outlined text-[16px]">delete</span>
+            </button>
+          </div>`;
+        el.onclick = () => showTxDetailModal(tx);
+        list.appendChild(el);
+      });
     }
 
     // --- FEED SWITCHER ---

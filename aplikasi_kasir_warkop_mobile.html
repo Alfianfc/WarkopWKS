@@ -288,6 +288,10 @@
         <span class="material-symbols-outlined text-[22px]">history</span>
         <span class="text-[11px]">Riwayat</span>
       </button>
+      <button onclick="window.location.href='dashboard_owner_detail_mobile.html'" id="tab-laporan" class="hidden flex-col items-center justify-center gap-1 flex-1 h-full text-on-surface-variant hover:text-on-surface transition-all">
+        <span class="material-symbols-outlined text-[22px]">monitoring</span>
+        <span class="text-[11px]">Laporan</span>
+      </button>
     </div>
   </nav>
 
@@ -632,6 +636,14 @@
       const user = warkopAuth.getCurrentUser();
       if (user) {
         document.getElementById('shift-cashier-label').innerText = `${user.name} • Shift Aktif`;
+        // Owner yang buka halaman kasir dikasih jalan pulang ke Laporan
+        if (user.role === 'bos') {
+          const lap = document.getElementById('tab-laporan');
+          if (lap) {
+            lap.classList.remove('hidden');
+            lap.classList.add('flex');
+          }
+        }
       }
 
       renderMenuGrid();
