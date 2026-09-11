@@ -327,7 +327,9 @@ class WarkopSyncEngine {
       paid: Number(txData.paid) || 0,
       change: Number(txData.change) || 0,
       status: 'PAID',
-      shift: this.shiftOf(new Date())
+      shift: this.shiftOf(new Date()),
+      staff: txData.staff === true,
+      discount: Number(txData.discount) || 0
     };
 
     const current = this.getTransactions();
@@ -551,6 +553,17 @@ class WarkopSyncEngine {
     return { success: true };
   }
 
+  // --- HARGA KARYAWAN (jatah staff) ---
+  // Minuman dingin/panas + makanan = gratis.
+  // Snack Rp1.500 = gratis, snack lain turun Rp1.000.
+  staffPrice(item) {
+    const price = Number(item.price) || 0;
+    const cat = item.category || '';
+    if (cat === 'cold_drink' || cat === 'hot_drink' || cat === 'food') return 0;
+    if (cat === 'snack') return price <= 1500 ? 0 : price - 1000;
+    return price;
+  }
+
   getAllData() {
     return {
       transactions: this.getTransactions(),
@@ -714,7 +727,7 @@ class WarkopSyncEngine {
 
   exportToCSV() {
     const summary = this.getSummary('all');
-    let csv = 'ID Transaksi,Tanggal,Jam,Kasir,Meja,Metode Bayar,Shift,Rincian Pesanan,Subtotal,Pajak,Total,Status\n';
+    let csv = 'ID Transaksi,Tanggal,Jam,Kasir,Meja,Metode Bayar,Shift,Rincian Pesanan,Subtotal,Pajak,Total,Status,Staff\n';
 
     summary.filteredTx.forEach((tx) => {
       const date = tx.timestamp ? new Date(tx.timestamp) : new Date();
@@ -722,7 +735,7 @@ class WarkopSyncEngine {
       const timeStr = date.toLocaleTimeString('id-ID');
       const itemsDetail = (tx.items || []).map((i) => `${i.name} (${i.qty}x)`).join('; ');
 
-      csv += `"${tx.id}","${dateStr}","${timeStr}","${tx.cashier}","${tx.table}","${tx.paymentMethod}","${this.recordShift(tx) === '1' ? 'Shift 1' : 'Shift 2'}","${itemsDetail}",${tx.subtotal},${tx.tax},${tx.total},"${tx.status}"\n`;
+      csv += `"${tx.id}","${dateStr}","${timeStr}","${tx.cashier}","${tx.table}","${tx.paymentMethod}","${this.recordShift(tx) === '1' ? 'Shift 1' : 'Shift 2'}","${itemsDetail}",${tx.subtotal},${tx.tax},${tx.total},"${tx.status}","${tx.staff ? 'Ya' : '-'}","${Number(tx.discount) || 0}"\n`;
     });
 
     csv += '\n\nID Pengeluaran,Tanggal,Jam,Kasir,Kategori,Shift,Keterangan,Nominal\n';

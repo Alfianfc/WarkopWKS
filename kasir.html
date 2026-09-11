@@ -204,6 +204,17 @@
           </select>
         </div>
 
+        <!-- Toggle Karyawan (jatah staff) -->
+        <div class="flex items-center justify-between bg-surface-container rounded-xl px-3 py-2">
+          <span class="text-xs font-bold text-on-surface flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[18px] text-primary">badge</span>
+            <span id="staff-toggle-label">Mode Karyawan OFF</span>
+          </span>
+          <button onclick="toggleStaffMode()" id="staff-toggle" class="w-11 h-6 rounded-full bg-surface-container-high relative transition-all" title="Aktifkan harga karyawan">
+            <span id="staff-toggle-dot" class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-all"></span>
+          </button>
+        </div>
+
         <!-- Cart Items Container -->
         <div class="flex flex-col gap-2 divide-y divide-surface-container" id="cart-items">
           <div class="py-8 flex flex-col items-center justify-center text-center text-on-surface-variant" id="empty-cart">
@@ -222,6 +233,10 @@
           <div class="flex justify-between text-xs text-on-surface-variant">
             <span>Pajak &amp; Service (10%)</span>
             <span id="tax-text" class="font-medium">Rp 0</span>
+          </div>
+          <div class="hidden justify-between text-xs text-emerald-700 font-semibold" id="staff-discount-row">
+            <span>Diskon karyawan</span>
+            <span id="staff-discount-text">-Rp 0</span>
           </div>
           <div class="flex justify-between text-base font-bold text-on-surface pt-1 border-t border-dashed border-surface-container">
             <span>Total Tagihan</span>
@@ -615,6 +630,40 @@
     let selectedPaymentMethod = 'Tunai';
     let currentReceiptData = null;
     let kasirShiftMode = 'shift'; // 'shift' = shift berjalan, 'day' = seharian
+    let staffMode = false; // true = harga jatah karyawan
+
+    function cartUnit(item) {
+      return staffMode ? warkopSync.staffPrice(item) : (Number(item.price) || 0);
+    }
+
+    function cartSubtotal() {
+      return cart.reduce((sum, i) => sum + cartUnit(i) * i.qty, 0);
+    }
+
+    function cartLineHtml(item) {
+      const u = cartUnit(item);
+      const line = u * item.qty;
+      const base = `${warkopSync.formatRupiah(u)} \u00d7 ${item.qty} = <strong>${warkopSync.formatRupiah(line)}</strong>`;
+      if (staffMode && u < (Number(item.price) || 0)) {
+        const tag = u === 0 ? 'Gratis' : 'Staff -1k';
+        return `<s class="opacity-60">${warkopSync.formatRupiah(item.price)}</s> ` + base + ` <span class="text-[10px] font-bold text-emerald-700">${tag}</span>`;
+      }
+      return base;
+    }
+
+    function toggleStaffMode() {
+      staffMode = !staffMode;
+      const btn = document.getElementById('staff-toggle');
+      const dot = document.getElementById('staff-toggle-dot');
+      btn.className = staffMode
+        ? 'w-11 h-6 rounded-full bg-emerald-600 relative transition-all'
+        : 'w-11 h-6 rounded-full bg-surface-container-high relative transition-all';
+      dot.className = staffMode
+        ? 'absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-all translate-x-5'
+        : 'absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-all';
+      document.getElementById('staff-toggle-label').innerText = staffMode ? 'Mode Karyawan ON' : 'Mode Karyawan OFF';
+      renderCart();
+    }
 
     // Escape untuk nama yang disisip ke onclick='...' (kutip + backslash)
     function escQuote(str) {
@@ -847,12 +896,12 @@
       let subtotal = 0;
 
       cart.forEach(item => {
-        subtotal += item.price * item.qty;
+        subtotal += cartUnit(item) * item.qty;
         html += `
           <div class="flex items-center justify-between py-2.5">
             <div class="flex flex-col flex-1 pr-2">
               <span class="text-xs font-bold text-on-surface">${item.name}</span>
-              <span class="text-[11px] text-on-surface-variant font-medium">${warkopSync.formatRupiah(item.price)} × ${item.qty} = <strong>${warkopSync.formatRupiah(item.subtotal)}</strong></span>
+              <span class="text-[11px] text-on-surface-variant font-medium">${cartLineHtml(item)}</span>
             </div>
             <div class="flex items-center gap-1.5 bg-surface-container rounded-xl p-1">
               <button onclick="updateCartQty('${escQuote(item.name)}', -1)" class="w-6 h-6 bg-surface rounded-lg flex items-center justify-center text-on-surface active:scale-90 transition-transform">
@@ -874,12 +923,24 @@
       document.getElementById('subtotal-text').innerText = warkopSync.formatRupiah(subtotal);
       document.getElementById('tax-text').innerText = warkopSync.formatRupiah(tax);
       document.getElementById('total-text').innerText = warkopSync.formatRupiah(total);
+
+      const origSub = cart.reduce((sum, i) => sum + (Number(i.price) || 0) * i.qty, 0);
+      const origTotal = origSub + Math.round(origSub * 0.1);
+      const discRow = document.getElementById('staff-discount-row');
+      if (staffMode && origTotal > total) {
+        document.getElementById('staff-discount-text').innerText = '-' + warkopSync.formatRupiah(origTotal - total);
+        discRow.classList.remove('hidden');
+        discRow.classList.add('flex');
+      } else {
+        discRow.classList.add('hidden');
+        discRow.classList.remove('flex');
+      }
     }
 
     // --- CHECKOUT & PEMBAYARAN ---
     function openCheckoutModal() {
       if (cart.length === 0) return;
-      const subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+      const subtotal = cartSubtotal();
       const tax = Math.round(subtotal * 0.1);
       const total = subtotal + tax;
       const table = document.getElementById('order-table').value;
@@ -942,7 +1003,7 @@
     }
 
     function calculateChange() {
-      const subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+      const subtotal = cartSubtotal();
       const tax = Math.round(subtotal * 0.1);
       const total = subtotal + tax;
       const inputVal = Number(document.getElementById('cash-received-input').value) || 0;
@@ -951,7 +1012,7 @@
     }
 
     async function confirmPayment() {
-      const subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+      const subtotal = cartSubtotal();
       const tax = Math.round(subtotal * 0.1);
       const total = subtotal + tax;
       const table = document.getElementById('order-table').value;
@@ -964,22 +1025,30 @@
         return;
       }
 
-      if (selectedPaymentMethod === 'QRIS' && !document.getElementById('qris-verified-check').checked) {
+      if (total > 0 && selectedPaymentMethod === 'QRIS' && !document.getElementById('qris-verified-check').checked) {
         alert('Centang dulu konfirmasi cek mutasi QRIS sebelum menyelesaikan pembayaran.');
         return;
       }
 
       const payUser = warkopAuth.getCurrentUser();
+      const origSub2 = cart.reduce((sum, i) => sum + (Number(i.price) || 0) * i.qty, 0);
+      const origTotal2 = origSub2 + Math.round(origSub2 * 0.1);
+      const effItems = cart.map(i => {
+        const u = cartUnit(i);
+        return { name: i.name, price: u, qty: i.qty, subtotal: u * i.qty, category: i.category, originalPrice: Number(i.price) || 0 };
+      });
       const txPayload = {
         cashier: (payUser && payUser.name) || 'Kasir',
         table: table,
         paymentMethod: selectedPaymentMethod,
-        items: [...cart],
+        items: effItems,
         subtotal: subtotal,
         tax: tax,
         total: total,
         paid: cashReceived,
-        change: Math.max(0, cashReceived - total)
+        change: Math.max(0, cashReceived - total),
+        staff: staffMode,
+        discount: staffMode ? Math.max(0, origTotal2 - total) : 0
       };
 
       // Simpan dan broadcast real-time
@@ -987,6 +1056,7 @@
 
       closeCheckoutModal();
       clearCart();
+      if (staffMode) toggleStaffMode();
       showReceiptModal(savedTx);
       updateFinancialStats();
     }
@@ -1000,7 +1070,7 @@
     function showReceiptModal(tx) {
       currentReceiptData = tx;
       document.getElementById('receipt-id').innerText = tx.id;
-      document.getElementById('receipt-table').innerText = tx.table;
+      document.getElementById('receipt-table').innerText = (tx.staff ? '[STAFF] ' : '') + tx.table;
       document.getElementById('receipt-cashier').innerText = `Kasir: ${tx.cashier}`;
       document.getElementById('receipt-paymethod').innerText = `Metode: ${tx.paymentMethod}`;
       document.getElementById('receipt-date-time').innerText = `${warkopSync.formatDateIndo(new Date(tx.timestamp))} • ${warkopSync.formatTime(tx.timestamp)}`;
@@ -1147,7 +1217,7 @@
             <div class="flex flex-col">
               <div class="flex items-center gap-1.5">
                 <span class="text-xs font-bold text-on-surface">${tx.table}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-semibold">${tx.paymentMethod}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-semibold">${tx.paymentMethod}</span>${tx.staff ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">STAFF</span>' : ''}
               </div>
               <span class="text-[11px] text-on-surface-variant">${itemCount} item • ${warkopSync.formatTime(tx.timestamp)}</span>
             </div>

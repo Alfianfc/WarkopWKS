@@ -64,6 +64,8 @@ interface Transaction {
   timestamp: string;       // ISO 8601 UTC
   shift: '1' | '2';        // Shift 1 = 06.00-15.00, Shift 2 = 15.00-24.00 (00.00-06.00 ikut hari bisnis sebelumnya)
   cashier: string;         // nama user login (mis. "Kasir Warkop")
+  staff: boolean;            // true = jatah karyawan (harga staff)
+  discount: number;          // selisih harga normal - harga staff (Rp)
   table: string;           // "Meja 04" | "Bungkus / Takeaway"
   paymentMethod: string;   // "Tunai" | "QRIS"
   items: Array<{
