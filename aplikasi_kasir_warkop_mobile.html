@@ -288,7 +288,7 @@
         <span class="material-symbols-outlined text-[22px]">history</span>
         <span class="text-[11px]">Riwayat</span>
       </button>
-      <button onclick="window.location.href='dashboard_owner_detail_mobile.html'" id="tab-laporan" class="hidden flex-col items-center justify-center gap-1 flex-1 h-full text-on-surface-variant hover:text-on-surface transition-all">
+      <button onclick="window.location.href='/bos'" id="tab-laporan" class="hidden flex-col items-center justify-center gap-1 flex-1 h-full text-on-surface-variant hover:text-on-surface transition-all">
         <span class="material-symbols-outlined text-[22px]">monitoring</span>
         <span class="text-[11px]">Laporan</span>
       </button>
@@ -452,13 +452,21 @@
       <div class="flex flex-col gap-3">
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Kategori Pengeluaran</label>
-          <select id="expense-category" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface font-semibold focus:outline-none focus:ring-1 focus:ring-primary">
+          <select id="expense-category" onchange="toggleCustomExpenseCat()" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface font-semibold focus:outline-none focus:ring-1 focus:ring-primary">
+            <option value="Es Batu">Es Batu Kristal</option>
+            <option value="Air Galon">Air Galon / Air Minum</option>
+            <option value="Gas Elpiji">Gas Elpiji 3kg</option>
             <option value="Bahan Baku">Bahan Baku (Kopi, Susu, Mie, Telur, Roti)</option>
-            <option value="Es & Air Minum">Es Batu Kristal &amp; Air Galon</option>
-            <option value="Gas & Listrik">Gas LPG 3kg / Token Listrik</option>
-            <option value="Kebersihan & Plastik">Plastik Takeaway, Sedotan, Sabun</option>
-            <option value="Lain-lain">Lain-lain / Operasional Warung</option>
+            <option value="Plastik & Kemasan">Plastik, Cup &amp; Sedotan Takeaway</option>
+            <option value="Listrik">Token Listrik</option>
+            <option value="Kebersihan">Sabun &amp; Kebersihan</option>
+            <option value="__custom">Lainnya (ketik sendiri)...</option>
           </select>
+        </div>
+
+        <div id="expense-custom-wrap" class="hidden">
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">Kategori Lainnya</label>
+          <input type="text" id="expense-category-custom" placeholder="Contoh: Sewa kompor, servis kipas..." class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
         </div>
 
         <div>
@@ -663,7 +671,7 @@
 
     function confirmLogout() {
       if (confirm('Apakah Anda yakin ingin keluar / logout dari akun kasir?')) {
-        warkopAuth.logout('index.html');
+        warkopAuth.logout('/');
       }
     }
 
@@ -1034,11 +1042,22 @@
       document.getElementById('expense-modal').classList.add('hidden');
     }
 
+    function toggleCustomExpenseCat() {
+      const isCustom = document.getElementById('expense-category').value === '__custom';
+      document.getElementById('expense-custom-wrap').classList.toggle('hidden', !isCustom);
+    }
+
     async function saveExpense() {
-      const category = document.getElementById('expense-category').value;
+      const selCat = document.getElementById('expense-category').value;
+      const customCat = document.getElementById('expense-category-custom').value.trim();
+      const category = selCat === '__custom' ? customCat : selCat;
       const note = document.getElementById('expense-note').value.trim();
       const amount = Number(document.getElementById('expense-amount').value);
 
+      if (!category) {
+        alert('Mohon isi kategori lainnya.');
+        return;
+      }
       if (!note || !amount || amount <= 0) {
         alert('Mohon isi keterangan dan nominal pengeluaran dengan benar.');
         return;
@@ -1054,6 +1073,8 @@
 
       document.getElementById('expense-note').value = '';
       document.getElementById('expense-amount').value = '';
+      document.getElementById('expense-category-custom').value = '';
+      document.getElementById('expense-custom-wrap').classList.add('hidden');
       closeExpenseModal();
       updateFinancialStats();
       renderExpensesList();

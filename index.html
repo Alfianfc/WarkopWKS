@@ -206,9 +206,9 @@
           // Bos masuk lewat tab kasir diizinkan
         }
         if (user.role === 'bos' && activeRole === 'bos') {
-          window.location.href = 'dashboard_owner_detail_mobile.html';
+          window.location.href = '/bos';
         } else {
-          window.location.href = 'aplikasi_kasir_warkop_mobile.html';
+          window.location.href = '/kasir';
         }
       } else {
         showError(result.message);

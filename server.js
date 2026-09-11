@@ -103,6 +103,15 @@ app.delete('/api/expenses/:id', (req, res) => {
   res.json({ success: true, id });
 });
 
+// URL bersih: /kasir dan /bos (sama seperti di Vercel)
+app.get('/kasir', (req, res) => {
+  res.sendFile(path.join(__dirname, 'aplikasi_kasir_warkop_mobile.html'));
+});
+
+app.get('/bos', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dashboard_owner_detail_mobile.html'));
+});
+
 // Default route ke index.html (Portal Login)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));

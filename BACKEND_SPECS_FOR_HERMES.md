@@ -89,7 +89,7 @@ interface Expense {
   timestamp: string;       // ISO 8601 UTC
   shift: '1' | '2';        // sama seperti Transaction
   cashier: string;         // nama user login
-  category: string;        // "Bahan Baku" | "Es & Air Minum" | "Gas & Listrik" | "Kebersihan & Plastik" | "Lain-lain"
+  category: string;        // "Es Batu" | "Air Galon" | "Gas Elpiji" | "Bahan Baku" | "Plastik & Kemasan" | "Listrik" | "Kebersihan" | bebas (custom)
   note: string;            // "Beli Es Batu 2 Bal + Air Galon"
   amount: number;          // Nominal rupiah
 }

@@ -136,7 +136,7 @@ class WarkopAuth {
     return this.getCurrentUser() !== null;
   }
 
-  logout(redirectUrl = 'index.html') {
+  logout(redirectUrl = '/') {
     sessionStorage.removeItem(this.sessionKey);
     localStorage.removeItem(this.sessionKey);
     if (redirectUrl) {
@@ -144,7 +144,7 @@ class WarkopAuth {
     }
   }
 
-  requireAuth(requiredRole = null, fallbackUrl = 'index.html') {
+  requireAuth(requiredRole = null, fallbackUrl = '/') {
     const user = this.getCurrentUser();
     if (!user) {
       window.location.href = fallbackUrl;

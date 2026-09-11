@@ -299,7 +299,7 @@
   <!-- Bottom Nav -->
   <nav class="fixed bottom-0 inset-x-0 z-40 pb-safe bg-surface/95 backdrop-blur-xl border-t border-surface-container shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
     <div class="flex justify-around items-center h-16 px-2">
-      <a href="aplikasi_kasir_warkop_mobile.html"
+      <a href="/kasir"
         class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-on-surface-variant hover:text-primary transition-all">
         <span class="material-symbols-outlined text-[22px]">point_of_sale</span>
         <span class="text-[11px]">Kasir POS</span>
@@ -474,7 +474,7 @@
     }
 
     function confirmLogout() {
-      if (confirm('Keluar dari akun Owner?')) warkopAuth.logout('index.html');
+      if (confirm('Keluar dari akun Owner?')) warkopAuth.logout('/');
     }
 
     function openAccountModal() {
