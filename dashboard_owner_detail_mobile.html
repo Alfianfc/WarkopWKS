@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
-  <title>Dashboard Owner — WarkopWKS</title>
+  <title>Dashboard Owner — Warkop WKS</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☕</text></svg>">
   <style>
     @layer base {
       html, body { width: 100vw; margin: 0; padding: 0; }
@@ -119,9 +120,25 @@
       </div>
     </div>
 
+    <!-- Filter shift: Shift 1 (06-15) / Shift 2 (15-24) -->
+    <div class="flex gap-2 mt-1">
+      <button onclick="setShiftFilter('all')" id="shiftfilter-all"
+        class="flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all">
+        Seharian
+      </button>
+      <button onclick="setShiftFilter('1')" id="shiftfilter-1"
+        class="flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all">
+        Shift 1 (06–15)
+      </button>
+      <button onclick="setShiftFilter('2')" id="shiftfilter-2"
+        class="flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all">
+        Shift 2 (15–24)
+      </button>
+    </div>
+
     <!-- KPI Bento Grid -->
     <div class="grid grid-cols-2 gap-2.5 mt-2">
-      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-xs relative overflow-hidden">
+      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-sm relative overflow-hidden">
         <div class="flex items-center justify-between mb-2">
           <span class="text-xs text-on-surface-variant font-bold">Omzet Bruto</span>
           <span class="flex items-center text-[10px] text-emerald-700 font-extrabold bg-emerald-500/10 px-1.5 py-0.5 rounded-full">
@@ -134,7 +151,7 @@
         </span>
       </div>
 
-      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-xs relative overflow-hidden">
+      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-sm relative overflow-hidden">
         <div class="flex items-center justify-between mb-2">
           <span class="text-xs text-on-surface-variant font-bold">Kas Bersih</span>
           <span class="flex items-center text-[10px] text-emerald-700 font-extrabold bg-emerald-500/10 px-1.5 py-0.5 rounded-full" id="dash-margin-badge">100%</span>
@@ -145,7 +162,7 @@
         </span>
       </div>
 
-      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-xs">
+      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-sm">
         <div class="flex items-center justify-between mb-2">
           <span class="text-xs text-on-surface-variant font-bold">Belanja Modal</span>
           <span class="material-symbols-outlined text-amber-700 text-[18px]">receipt_long</span>
@@ -154,7 +171,7 @@
         <span class="text-[11px] text-on-surface-variant font-medium mt-1" id="dash-expense-count">0 kali belanja</span>
       </div>
 
-      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-xs">
+      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-sm">
         <div class="flex items-center justify-between mb-2">
           <span class="text-xs text-on-surface-variant font-bold">Total Porsi</span>
           <span class="material-symbols-outlined text-primary text-[18px]">local_cafe</span>
@@ -165,7 +182,7 @@
     </div>
 
     <!-- Bar Chart Omzet Per Jam -->
-    <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-xs">
+    <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-sm">
       <div class="flex items-center justify-between mb-2">
         <div>
           <h3 class="text-sm font-bold text-on-surface">Tren Omzet Per Jam</h3>
@@ -184,7 +201,7 @@
     </div>
 
     <!-- Komposisi Penjualan Kategori -->
-    <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-xs">
+    <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-sm">
       <h3 class="text-sm font-bold text-on-surface mb-0.5">Komposisi Penjualan Kategori</h3>
       <p class="text-[11px] text-on-surface-variant mb-3">Distribusi produk paling laris dipesan pengunjung</p>
       <div class="flex w-full h-3 rounded-full overflow-hidden bg-surface-container gap-0.5 mb-3" id="category-stacked-bar">
@@ -197,7 +214,7 @@
     </div>
 
     <!-- Live Feed -->
-    <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-xs">
+    <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-sm">
       <div class="flex items-center justify-between pb-3 border-b border-surface-container">
         <div class="flex items-center gap-1.5">
           <span class="material-symbols-outlined text-primary text-[20px]">rss_feed</span>
@@ -271,7 +288,7 @@
 
   <!-- Modal Detail Transaksi -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4" id="tx-detail-modal">
-    <div class="bg-surface w-full max-w-sm rounded-2xl p-5 flex flex-col gap-3 shadow-2xl animate-in zoom-in-95 duration-150">
+    <div class="bg-surface w-full max-w-sm rounded-2xl p-5 flex flex-col gap-3 shadow-2xl ">
       <div class="flex justify-between items-center pb-2 border-b border-surface-container">
         <div>
           <h4 class="text-sm font-bold text-on-surface" id="modal-tx-id">TRX-0000</h4>
@@ -295,7 +312,7 @@
 
   <!-- Modal Kelola Akun -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="account-modal">
-    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto animate-in fade-in slide-in-from-bottom duration-200">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto ">
       <div class="flex justify-between items-center pb-2 border-b border-surface-container">
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-primary text-[22px]">admin_panel_settings</span>
@@ -361,6 +378,17 @@
     let showAllSales = false;
     let showAllExpenses = false;
     let currentModalTxId = null;
+    let activeShiftFilter = 'all'; // 'all' | '1' | '2'
+
+    function setShiftFilter(f) {
+      activeShiftFilter = f;
+      const on = 'flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all';
+      const off = 'flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
+      document.getElementById('shiftfilter-all').className = f === 'all' ? on : off;
+      document.getElementById('shiftfilter-1').className = f === '1' ? on : off;
+      document.getElementById('shiftfilter-2').className = f === '2' ? on : off;
+      refreshDashboard();
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
       if (!warkopAuth.requireAuth('bos')) return;
@@ -454,14 +482,14 @@
 
     function showToast(text) {
       const toast = document.createElement('div');
-      toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-on-surface text-surface px-4 py-2.5 rounded-full text-xs font-bold shadow-xl border border-white/20 flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 whitespace-nowrap';
+      toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-on-surface text-surface px-4 py-2.5 rounded-full text-xs font-bold shadow-xl border border-white/20 flex items-center gap-2  whitespace-nowrap';
       toast.innerHTML = `<span class="material-symbols-outlined text-primary text-[18px]">notifications_active</span><span>${text}</span>`;
       document.body.appendChild(toast);
       setTimeout(() => { toast.classList.add('opacity-0', 'transition-opacity', 'duration-300'); setTimeout(() => toast.remove(), 300); }, 3500);
     }
 
     function refreshDashboard() {
-      const summary = warkopSync.getSummary('today');
+      const summary = warkopSync.getSummary('today', activeShiftFilter);
 
       document.getElementById('dash-gross-revenue').innerText = warkopSync.formatRupiah(summary.totalRevenue);
       document.getElementById('dash-tx-count').innerHTML = `<span class="material-symbols-outlined text-[13px]">receipt</span> ${summary.totalOrders} Transaksi`;
@@ -511,11 +539,15 @@
       const maxVal = Math.max(...Object.values(hourBuckets), 1);
       let peakKey = '20', peakVal = -1;
 
+      // Pass 1: cari nilai puncak dulu biar highlight tidak dobel
       Object.entries(hourBuckets).forEach(([hr, rev]) => {
         if (rev > peakVal) { peakVal = rev; peakKey = hr; }
+      });
 
+      // Pass 2: render (seri values = peak ikut nyala semua)
+      Object.entries(hourBuckets).forEach(([hr, rev]) => {
         const heightPct = Math.max(8, Math.round((rev / maxVal) * 100));
-        const isPeak = rev > 0 && hr === peakKey;
+        const isPeak = rev > 0 && rev === peakVal;
         const bar = document.createElement('div');
         bar.className = 'flex flex-col items-center gap-1 flex-1 h-full justify-end group cursor-default';
         bar.innerHTML = `
@@ -608,7 +640,7 @@
 
       shown.forEach(tx => {
         const itemEl = document.createElement('div');
-        itemEl.className = 'flex items-center justify-between bg-surface-container-lowest p-3 rounded-xl border border-surface-container hover:border-primary/30 transition-all cursor-pointer shadow-xs active:scale-[0.99]';
+        itemEl.className = 'flex items-center justify-between bg-surface-container-lowest p-3 rounded-xl border border-surface-container hover:border-primary/30 transition-all cursor-pointer shadow-sm active:scale-[0.99]';
         const itemsSummary = (tx.items || []).map(i => `${i.name} (${i.qty}x)`).join(', ');
         const isQris = tx.paymentMethod && tx.paymentMethod.toUpperCase().includes('QRIS');
         itemEl.innerHTML = `
@@ -659,7 +691,7 @@
 
       shown.forEach(exp => {
         const itemEl = document.createElement('div');
-        itemEl.className = 'flex items-center justify-between bg-surface-container-lowest p-3 rounded-xl border border-surface-container shadow-xs';
+        itemEl.className = 'flex items-center justify-between bg-surface-container-lowest p-3 rounded-xl border border-surface-container shadow-sm';
         itemEl.innerHTML = `
           <div class="flex items-center gap-2.5">
             <div class="w-9 h-9 rounded-full bg-amber-500/10 text-amber-800 flex items-center justify-center shrink-0">

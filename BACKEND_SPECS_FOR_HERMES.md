@@ -62,7 +62,8 @@ Frontend (`pos-sync.js`) sudah siap mendengarkan dan mengirim event berikut:
 interface Transaction {
   id: string;              // contoh: "TRX-MTWEE6EV"
   timestamp: string;       // ISO 8601 UTC
-  cashier: string;         // "Kasir 1"
+  shift: '1' | '2';        // Shift 1 = 06.00-15.00, Shift 2 = 15.00-24.00 (00.00-06.00 ikut hari bisnis sebelumnya)
+  cashier: string;         // nama user login (mis. "Kasir Warkop")
   table: string;           // "Meja 04" | "Bungkus / Takeaway"
   paymentMethod: string;   // "Tunai" | "QRIS"
   items: Array<{
@@ -86,8 +87,9 @@ interface Transaction {
 interface Expense {
   id: string;              // contoh: "EXP-MTWEE6F2"
   timestamp: string;       // ISO 8601 UTC
-  cashier: string;         // "Kasir 1"
-  category: string;        // "Bahan Baku" | "Es & Air Minum" | "Gas & Listrik" | "Lain-lain"
+  shift: '1' | '2';        // sama seperti Transaction
+  cashier: string;         // nama user login
+  category: string;        // "Bahan Baku" | "Es & Air Minum" | "Gas & Listrik" | "Kebersihan & Plastik" | "Lain-lain"
   note: string;            // "Beli Es Batu 2 Bal + Air Galon"
   amount: number;          // Nominal rupiah
 }

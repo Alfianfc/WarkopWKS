@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
-  <title>POS Kasir Warkop - Real-time</title>
+  <title>POS Kasir Warkop WKS - Real-time</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☕</text></svg>">
   <style>
     @layer base {
       html, body { width: 100vw; margin: 0; padding: 0; }
@@ -60,9 +61,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- Firebase SDKs (Optional Cloud Real-time) -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <!-- Realtime: Socket.io (server lokal) + Supabase (cloud) + lokal antar-tab -->
   
   <!-- Socket.io for Real-time Server (Optional) -->
   <script src="/socket.io/socket.io.js"></script>
@@ -88,7 +87,7 @@
         </div>
         <div>
           <h1 class="text-base font-bold tracking-tight text-on-surface flex items-center gap-1.5">
-            POS Kasir Warkop
+            POS Kasir Warkop WKS
             <span class="relative flex h-2 w-2">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
@@ -138,6 +137,15 @@
           <span class="material-symbols-outlined text-[14px] text-emerald-700">account_balance_wallet</span> Kas Bersih
         </span>
         <span class="text-sm sm:text-base font-bold text-emerald-700 mt-1" id="stat-netprofit">Rp 0</span>
+      </div>
+    </div>
+
+    <!-- Shift aktif + toggle -->
+    <div class="flex items-center justify-between mb-4">
+      <span class="text-[11px] font-bold text-on-surface-variant" id="kasir-shift-label">Shift berjalan</span>
+      <div class="flex p-0.5 bg-surface-container rounded-lg border border-surface-container-high">
+        <button onclick="setKasirShiftMode('shift')" id="shiftmode-shift" class="px-3 py-1.5 rounded-md text-[11px] font-bold bg-primary text-white transition-all">Shift ini</button>
+        <button onclick="setKasirShiftMode('day')" id="shiftmode-day" class="px-3 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all">Seharian</button>
       </div>
     </div>
 
@@ -232,7 +240,7 @@
     <div id="view-expenses" class="hidden flex flex-col gap-3">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-base font-bold text-on-surface">Catatan Belanja &amp; Modal</h2>
+          <h2 class="text-base font-bold text-on-surface" id="expenses-title">Catatan Belanja &amp; Modal</h2>
           <p class="text-xs text-on-surface-variant">Pengeluaran kas warkop otomatis terpantau Bos</p>
         </div>
         <button onclick="openExpenseModal()" class="h-9 px-3 bg-amber-600 text-white rounded-xl flex items-center gap-1 text-xs font-bold active:scale-95 shadow-sm">
@@ -250,7 +258,7 @@
     <div id="view-history" class="hidden flex flex-col gap-3">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-base font-bold text-on-surface">Riwayat Transaksi Hari Ini</h2>
+          <h2 class="text-base font-bold text-on-surface" id="history-title">Riwayat Transaksi</h2>
           <p class="text-xs text-on-surface-variant">Semua struk penjualan yang sudah dibayar</p>
         </div>
         <button onclick="warkopSync.exportToCSV()" class="h-9 px-3 bg-surface-container text-on-surface border border-surface-container-high rounded-xl flex items-center gap-1 text-xs font-semibold active:scale-95">
@@ -280,10 +288,6 @@
         <span class="material-symbols-outlined text-[22px]">history</span>
         <span class="text-[11px]">Riwayat</span>
       </button>
-      <a href="dashboard_owner_detail_mobile.html" class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-on-surface-variant hover:text-primary transition-all">
-        <span class="material-symbols-outlined text-[22px]">monitoring</span>
-        <span class="text-[11px]">Layar Bos</span>
-      </a>
     </div>
   </nav>
 
@@ -291,7 +295,7 @@
 
   <!-- 1. Modal Pembayaran (Checkout) -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="checkout-modal">
-    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto animate-in fade-in slide-in-from-bottom duration-200">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto ">
       <div class="flex justify-between items-center pb-2 border-b border-surface-container">
         <div>
           <h3 class="text-base font-bold text-on-surface">Proses Pembayaran</h3>
@@ -348,8 +352,12 @@
             <path fill-rule="evenodd" clip-rule="evenodd" d="M10 10H40V40H10V10ZM15 15H35V35H15V15ZM20 20H30V30H20V20ZM60 10H90V40H60V10ZM65 15H85V35H65V15ZM70 20H80V30H70V20ZM10 60H40V90H10V60ZM15 65H35V85H15V65ZM20 70H30V80H20V70ZM60 60H70V70H60V60ZM80 60H90V70H80V60ZM70 70H80V80H70V70ZM60 80H70V90H60V80ZM80 80H90V90H80V80ZM45 10H55V25H45V10ZM45 35H55V55H45V35ZM10 45H25V55H10V45ZM35 45H65V55H35V45ZM75 45H90V55H75V45ZM45 65H55V90H45V65Z" fill="#1A1A1A"/>
           </svg>
         </div>
-        <span class="text-xs font-bold text-gray-800">QRIS WARKOP BERKAH</span>
+        <span class="text-xs font-bold text-gray-800">QRIS WARKOP WKS</span>
         <span class="text-[11px] text-gray-500">Mendukung BCA, Mandiri, GoPay, OVO, Dana, ShopeePay</span>
+        <label class="flex items-center gap-2 text-[11px] font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer text-left w-full">
+          <input type="checkbox" id="qris-verified-check" class="w-4 h-4 accent-emerald-600 shrink-0">
+          <span>Sudah cek mutasi — dana QRIS benar masuk</span>
+        </label>
       </div>
 
       <button onclick="confirmPayment()" class="w-full h-12 bg-primary text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-[0.98] transition-transform shadow-lg shadow-primary/20 mt-1">
@@ -361,10 +369,10 @@
 
   <!-- 2. Modal Cetak Struk (Thermal Receipt) -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4" id="thermal-receipt-modal">
-    <div class="bg-white text-black w-full max-w-sm rounded-2xl p-5 flex flex-col gap-3 shadow-2xl animate-in zoom-in-95 duration-150 font-mono text-xs">
+    <div class="bg-white text-black w-full max-w-sm rounded-2xl p-5 flex flex-col gap-3 shadow-2xl  font-mono text-xs">
       <div class="text-center pb-2 border-b border-dashed border-gray-400">
-        <h4 class="font-bold text-base uppercase tracking-wider font-sans">WARKOP NUSANTARA</h4>
-        <p class="text-[10px] text-gray-600 font-sans">Jl. Kopi Harapan No. 8 • Telp: 0812-9999-8888</p>
+        <h4 class="font-bold text-base uppercase tracking-wider font-sans">WARKOP WKS</h4>
+        <p class="text-[10px] text-gray-600 font-sans">Struk resmi Warkop WKS</p>
         <p class="text-[10px] text-gray-500 font-sans mt-0.5" id="receipt-date-time">-</p>
       </div>
 
@@ -373,7 +381,7 @@
         <span id="receipt-table">Meja 01</span>
       </div>
       <div class="flex justify-between text-[11px] text-gray-700">
-        <span id="receipt-cashier">Kasir: Kasir 1</span>
+        <span id="receipt-cashier">Kasir: -</span>
         <span id="receipt-paymethod">Metode: Tunai</span>
       </div>
 
@@ -406,7 +414,6 @@
 
       <div class="text-center pt-2 border-t border-dashed border-gray-400 text-[10px] text-gray-500 font-sans">
         <p>Terima Kasih Atas Kunjungan Anda!</p>
-        <p>Follow IG: @warkop.nusantara</p>
       </div>
 
       <div class="flex gap-2 pt-2 no-print font-sans">
@@ -424,7 +431,7 @@
 
   <!-- 3. Modal Catat Pengeluaran Kasir (Modal Belanja Bahan/Es/Gas) -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="expense-modal">
-    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl animate-in fade-in slide-in-from-bottom duration-200">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl ">
       <div class="flex justify-between items-center pb-2 border-b border-surface-container">
         <div>
           <h3 class="text-base font-bold text-on-surface flex items-center gap-1.5">
@@ -470,7 +477,7 @@
 
   <!-- 4. Modal Tambah Menu Baru -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="add-menu-modal">
-    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl animate-in fade-in slide-in-from-bottom duration-200">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl ">
       <div class="flex justify-between items-center pb-2 border-b border-surface-container">
         <h3 class="text-base font-bold text-on-surface">Tambah Menu Kasir Baru</h3>
         <button onclick="closeAddModal()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
@@ -514,7 +521,7 @@
 
   <!-- Modal Ganti Foto Menu Manual -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="edit-image-modal">
-    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl animate-in fade-in slide-in-from-bottom duration-200">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl ">
       <div class="flex justify-between items-center pb-2 border-b border-surface-container">
         <div>
           <h3 class="text-base font-bold text-on-surface">Ganti Foto Menu</h3>
@@ -547,15 +554,15 @@
     </div>
   </div>
 
-  <!-- 5. Modal Pengaturan Cloud Real-time (Firebase) -->
+  <!-- 5. Modal Status Koneksi Real-time -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="cloud-modal">
-    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl animate-in fade-in slide-in-from-bottom duration-200">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl ">
       <div class="flex justify-between items-center pb-2 border-b border-surface-container">
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-primary text-[22px]">cloud_sync</span>
           <div>
-            <h3 class="text-base font-bold text-on-surface">Sinkronisasi Real-Time</h3>
-            <p class="text-[11px] text-on-surface-variant">Hubungkan kasir dengan HP Bos dari mana saja</p>
+            <h3 class="text-base font-bold text-on-surface">Status Koneksi Real-Time</h3>
+            <p class="text-[11px] text-on-surface-variant">Kondisi sinkronisasi kasir saat ini</p>
           </div>
         </div>
         <button onclick="closeCloudModal()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
@@ -563,28 +570,28 @@
         </button>
       </div>
 
-      <div class="bg-surface-container-low p-3.5 rounded-xl border border-surface-container text-xs text-on-surface-variant leading-relaxed">
-        <p class="font-bold text-on-surface mb-1 flex items-center gap-1">
-          <span class="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span>
-          Mode Sinkronisasi Instan Aktif!
-        </p>
-        Saat ini aplikasi sudah tersinkronisasi otomatis antar-tab dan antar-jendela di perangkat ini lewat <strong>BroadcastChannel &amp; LocalStorage</strong>.
-        <p class="mt-2 text-[11px]">
-          Ingin bos memantau <strong>dari luar kota lewat HP tanpa satu WiFi</strong>? Anda cukup memasukkan Firebase Config gratis di bawah ini.
-        </p>
+      <div class="flex flex-col gap-2 text-xs" id="cloud-status-list">
+        <div class="flex items-center justify-between bg-surface-container-low p-3 rounded-xl border border-surface-container">
+          <span class="font-bold text-on-surface flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-primary">cloud</span> Supabase Realtime</span>
+          <span id="cloud-st-supabase" class="font-bold">—</span>
+        </div>
+        <div class="flex items-center justify-between bg-surface-container-low p-3 rounded-xl border border-surface-container">
+          <span class="font-bold text-on-surface flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-primary">sync</span> Server Lokal (Socket.io)</span>
+          <span id="cloud-st-socket" class="font-bold">—</span>
+        </div>
+        <div class="flex items-center justify-between bg-surface-container-low p-3 rounded-xl border border-surface-container">
+          <span class="font-bold text-on-surface flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-primary">devices</span> Mode Lokal</span>
+          <span class="font-bold text-emerald-700">Aktif (antar-tab perangkat ini)</span>
+        </div>
       </div>
-
-      <div class="flex flex-col gap-2">
-        <label class="text-xs font-semibold text-on-surface-variant">Firebase Config (Format JSON atau Snippet)</label>
-        <textarea id="firebase-config-input" rows="4" placeholder='{"apiKey": "...", "projectId": "...", "appId": "..."}' class="w-full bg-surface-container-low border border-surface-container rounded-xl p-3 text-xs font-mono text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"></textarea>
-      </div>
+      <p class="text-[11px] text-on-surface-variant leading-relaxed">Pantau dari HP beda jaringan butuh Supabase aktif. Kalau cuma satu WiFi warkop + <strong>npm start</strong>, mode lokal + server lokal sudah cukup.</p>
 
       <div class="flex gap-2">
-        <button onclick="saveFirebaseCloudConfig()" class="flex-1 h-11 bg-primary text-white rounded-xl text-xs font-bold active:scale-95 transition-transform shadow-md">
-          Simpan Konfigurasi Cloud
+        <button onclick="refreshCloudStatus()" class="flex-1 h-11 bg-primary text-white rounded-xl text-xs font-bold active:scale-95 transition-transform shadow-md">
+          Perbarui Status
         </button>
-        <button onclick="clearCloudConfig()" class="px-3 h-11 bg-surface-container text-error rounded-xl text-xs font-semibold active:scale-95">
-          Reset
+        <button onclick="closeCloudModal()" class="px-4 h-11 bg-surface-container text-on-surface rounded-xl text-xs font-semibold active:scale-95">
+          Tutup
         </button>
       </div>
     </div>
@@ -595,6 +602,27 @@
     let cart = [];
     let selectedPaymentMethod = 'Tunai';
     let currentReceiptData = null;
+    let kasirShiftMode = 'shift'; // 'shift' = shift berjalan, 'day' = seharian
+
+    // Escape untuk nama yang disisip ke onclick='...' (kutip + backslash)
+    function escQuote(str) {
+      return String(str == null ? '' : str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    }
+
+    function kasirShiftFilter() {
+      return kasirShiftMode === 'shift' ? warkopSync.shiftOf(new Date()) : 'all';
+    }
+
+    function setKasirShiftMode(mode) {
+      kasirShiftMode = mode;
+      const on = 'px-3 py-1.5 rounded-md text-[11px] font-bold bg-primary text-white transition-all';
+      const off = 'px-3 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all';
+      document.getElementById('shiftmode-shift').className = mode === 'shift' ? on : off;
+      document.getElementById('shiftmode-day').className = mode === 'day' ? on : off;
+      updateFinancialStats();
+      renderExpensesList();
+      renderHistoryList();
+    }
 
     // Inisialisasi saat halaman dimuat
     document.addEventListener('DOMContentLoaded', () => {
@@ -608,9 +636,7 @@
 
       renderMenuGrid();
       renderCart();
-      updateFinancialStats();
-      renderExpensesList();
-      renderHistoryList();
+      setKasirShiftMode('shift');
 
       // Dengarkan perubahan real-time dari engine
       warkopSync.on('dataChanged', () => {
@@ -632,7 +658,7 @@
     function updateCloudButtonState() {
       const btn = document.getElementById('cloud-status-btn');
       const text = document.getElementById('cloud-status-text');
-      if (warkopSync.isFirebaseReady) {
+      if (warkopSync.isSupabaseReady || warkopSync.isSocketReady) {
         text.innerText = 'Cloud LIVE';
         btn.className = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 active:scale-95 transition-transform';
       } else {
@@ -674,10 +700,18 @@
 
     // --- STATISTIK SHIFT FINANCIAL ---
     function updateFinancialStats() {
-      const summary = warkopSync.getSummary('today');
+      const summary = warkopSync.getSummary('today', kasirShiftFilter());
       document.getElementById('stat-revenue').innerText = warkopSync.formatRupiah(summary.totalRevenue);
       document.getElementById('stat-expenses').innerText = warkopSync.formatRupiah(summary.totalExpenses);
       document.getElementById('stat-netprofit').innerText = warkopSync.formatRupiah(summary.netProfit);
+      const lbl = kasirShiftMode === 'shift'
+        ? warkopSync.shiftLabel(warkopSync.shiftOf(new Date()))
+        : 'Seharian ini';
+      document.getElementById('kasir-shift-label').innerText = lbl;
+      const ht = document.getElementById('history-title');
+      if (ht) ht.innerText = kasirShiftMode === 'shift' ? ('Riwayat - ' + lbl) : 'Riwayat - Seharian';
+      const et = document.getElementById('expenses-title');
+      if (et) et.innerText = kasirShiftMode === 'shift' ? ('Belanja - ' + lbl) : 'Belanja - Seharian';
     }
 
     let currentFilterCategory = 'all';
@@ -706,8 +740,8 @@
              </button>`
           : '';
 
-        const safeName = item.name.replace(/'/g, "\\'");
-        const safeImg = (item.image || '').replace(/'/g, "\\'");
+        const safeName = escQuote(item.name);
+        const safeImg = escQuote(item.image || '');
 
         card.innerHTML = `
           ${deleteBtnHtml}
@@ -801,11 +835,11 @@
               <span class="text-[11px] text-on-surface-variant font-medium">${warkopSync.formatRupiah(item.price)} × ${item.qty} = <strong>${warkopSync.formatRupiah(item.subtotal)}</strong></span>
             </div>
             <div class="flex items-center gap-1.5 bg-surface-container rounded-xl p-1">
-              <button onclick="updateCartQty('${item.name}', -1)" class="w-6 h-6 bg-surface rounded-lg flex items-center justify-center text-on-surface active:scale-90 transition-transform">
+              <button onclick="updateCartQty('${escQuote(item.name)}', -1)" class="w-6 h-6 bg-surface rounded-lg flex items-center justify-center text-on-surface active:scale-90 transition-transform">
                 <span class="material-symbols-outlined text-[13px]">remove</span>
               </button>
               <span class="text-xs font-bold w-5 text-center">${item.qty}</span>
-              <button onclick="updateCartQty('${item.name}', 1)" class="w-6 h-6 bg-surface rounded-lg flex items-center justify-center text-on-surface active:scale-90 transition-transform">
+              <button onclick="updateCartQty('${escQuote(item.name)}', 1)" class="w-6 h-6 bg-surface rounded-lg flex items-center justify-center text-on-surface active:scale-90 transition-transform">
                 <span class="material-symbols-outlined text-[13px]">add</span>
               </button>
             </div>
@@ -852,6 +886,7 @@
       });
 
       document.getElementById('cash-received-input').value = total;
+      document.getElementById('qris-verified-check').checked = false;
       calculateChange();
 
       setPaymentMethod('Tunai');
@@ -909,8 +944,14 @@
         return;
       }
 
+      if (selectedPaymentMethod === 'QRIS' && !document.getElementById('qris-verified-check').checked) {
+        alert('Centang dulu konfirmasi cek mutasi QRIS sebelum menyelesaikan pembayaran.');
+        return;
+      }
+
+      const payUser = warkopAuth.getCurrentUser();
       const txPayload = {
-        cashier: 'Kasir 1',
+        cashier: (payUser && payUser.name) || 'Kasir',
         table: table,
         paymentMethod: selectedPaymentMethod,
         items: [...cart],
@@ -931,6 +972,11 @@
     }
 
     // --- STRUK DIGITAL & CETAK ---
+    function showReceiptModalById(id) {
+      const tx = warkopSync.getTransactions().find(t => t.id === id);
+      if (tx) showReceiptModal(tx);
+    }
+
     function showReceiptModal(tx) {
       currentReceiptData = tx;
       document.getElementById('receipt-id').innerText = tx.id;
@@ -986,11 +1032,12 @@
         return;
       }
 
+      const expUser = warkopAuth.getCurrentUser();
       await warkopSync.addExpense({
         category,
         note,
         amount,
-        cashier: 'Kasir 1'
+        cashier: (expUser && expUser.name) || 'Kasir'
       });
 
       document.getElementById('expense-note').value = '';
@@ -1003,7 +1050,8 @@
     function renderExpensesList() {
       const container = document.getElementById('expenses-list');
       if (!container) return;
-      const expenses = warkopSync.getExpenses();
+      const ef = kasirShiftFilter();
+      const expenses = warkopSync.getExpenses().filter(e => ef === 'all' || warkopSync.recordShift(e) === ef);
 
       if (expenses.length === 0) {
         container.innerHTML = `
@@ -1042,7 +1090,8 @@
     function renderHistoryList() {
       const container = document.getElementById('history-list');
       if (!container) return;
-      const txList = warkopSync.getTransactions();
+      const hf = kasirShiftFilter();
+      const txList = warkopSync.getTransactions().filter(t => hf === 'all' || warkopSync.recordShift(t) === hf);
 
       if (txList.length === 0) {
         container.innerHTML = `
@@ -1072,7 +1121,7 @@
           </div>
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-primary">${warkopSync.formatRupiah(tx.total)}</span>
-            <button onclick='showReceiptModal(${JSON.stringify(tx).replace(/'/g, "&apos;")})' class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary" title="Cetak Struk">
+            <button onclick="showReceiptModalById('${tx.id}')" class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary" title="Cetak Struk">
               <span class="material-symbols-outlined text-[16px]">print</span>
             </button>
             <button onclick="deleteTransactionById('${tx.id}')" class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus pesanan salah input">
@@ -1201,7 +1250,29 @@
     function readFileAsDataUrl(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
+        reader.onload = () => {
+          // Kompres foto menu max 800px JPEG 0.72 - localStorage cuma ~5MB
+          if (!file.type || !file.type.startsWith('image/')) return resolve(reader.result);
+          const img = new Image();
+          img.onload = () => {
+            try {
+              const MAX = 800;
+              let w = img.width, h = img.height;
+              if (Math.max(w, h) > MAX) {
+                const sc = MAX / Math.max(w, h);
+                w = Math.round(w * sc); h = Math.round(h * sc);
+              }
+              const c = document.createElement('canvas');
+              c.width = w; c.height = h;
+              c.getContext('2d').drawImage(img, 0, 0, w, h);
+              resolve(c.toDataURL('image/jpeg', 0.72));
+            } catch (e) {
+              resolve(reader.result);
+            }
+          };
+          img.onerror = () => resolve(reader.result);
+          img.src = reader.result;
+        };
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
@@ -1225,12 +1296,9 @@
       renderMenuGrid();
     }
 
-    // --- CLOUD FIREBASE CONFIG MODAL ---
+    // --- MODAL STATUS KONEKSI ---
     function openCloudModal() {
-      const cfg = warkopSync.getFirebaseConfig();
-      if (cfg) {
-        document.getElementById('firebase-config-input').value = JSON.stringify(cfg, null, 2);
-      }
+      refreshCloudStatus();
       document.getElementById('cloud-modal').classList.remove('hidden');
       document.getElementById('cloud-modal').classList.add('flex');
     }
@@ -1240,26 +1308,12 @@
       document.getElementById('cloud-modal').classList.add('hidden');
     }
 
-    function saveFirebaseCloudConfig() {
-      const raw = document.getElementById('firebase-config-input').value.trim();
-      try {
-        const parsed = JSON.parse(raw);
-        warkopSync.saveFirebaseConfig(parsed);
-        alert('Konfigurasi Cloud Firebase tersimpan! Menghubungkan secara real-time...');
-        closeCloudModal();
-        updateCloudButtonState();
-      } catch (e) {
-        alert('Format JSON tidak valid. Pastikan format konfigurasi benar.');
-      }
-    }
-
-    function clearCloudConfig() {
-      if (confirm('Reset ke mode sinkronisasi lokal instan?')) {
-        warkopSync.clearFirebaseConfig();
-        document.getElementById('firebase-config-input').value = '';
-        closeCloudModal();
-        updateCloudButtonState();
-      }
+    function refreshCloudStatus() {
+      const ok = '<span class="text-emerald-700">Aktif</span>';
+      const no = '<span class="text-on-surface-variant">Nonaktif</span>';
+      document.getElementById('cloud-st-supabase').innerHTML = warkopSync.isSupabaseReady ? ok : no;
+      document.getElementById('cloud-st-socket').innerHTML = warkopSync.isSocketReady ? ok : no;
+      updateCloudButtonState();
     }
   </script>
 </body>

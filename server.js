@@ -182,7 +182,7 @@ server.listen(PORT, () => {
   console.log(`👉 Buka di Komputer Ini : http://localhost:${PORT}`);
   console.log(`📱 Buka di HP Kasir / Bos: http://${localIP}:${PORT}`);
   console.log('----------------------------------------------------');
-  console.log('🔐 Akun Kasir : username: kasir | password: kasir123');
-  console.log('👑 Akun Bos   : username: bos   | password: bos123');
+  console.log('🔐 Akun Kasir : username: alfian (lihat PANDUAN_KASIR_DAN_BOS.md)');
+  console.log('👑 Akun Bos   : username: bos (lihat PANDUAN_KASIR_DAN_BOS.md)');
   console.log('====================================================');
 });

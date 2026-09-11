@@ -1,6 +1,17 @@
-# ☕ Panduan Lengkap Website Kasir Warkop & Layar Bos Online Real-Time
+# ☕ Panduan Lengkap Website Kasir Warkop WKS & Layar Bos Online Real-Time
 
 Website ini dilengkapi sistem **Login Username & Password (Kasir & Bos)**, didukung **WebSocket Real-Time (Socket.io)**, dan siap dibuka secara publik dari HP atau laptop mana saja.
+
+## ⏰ Shift Kerja (WIB)
+
+| Shift | Jam | Keterangan |
+| :--- | :--- | :--- |
+| **Shift 1 (Pagi)** | 06.00 – 15.00 | Serah terima ke shift 2 jam 15.00 |
+| **Shift 2 (Sore)** | 15.00 – 24.00 | Tutup warkop jam 24.00 |
+
+- Setiap transaksi & pengeluaran otomatis ditandai shift-nya (transaksi 00.00–06.00 ikut hari bisnis sebelumnya).
+- Halaman **kasir** bisa toggle statistik **Shift ini / Seharian**; halaman **bos** bisa filter **Seharian / Shift 1 / Shift 2**.
+- Laporan "hari ini" memakai **tanggal lokal perangkat** (bukan UTC), jadi transaksi lewat tengah malam tidak lompat hari.
 
 ---
 
@@ -49,6 +60,8 @@ Project ini sudah dilengkapi konfigurasi `vercel.json`:
 1. Buat akun di [vercel.com](https://vercel.com) (gratis).
 2. Jalankan perintah `npx vercel` di folder project ini.
 3. Anda akan mendapatkan URL permanen `https://warkop-anda.vercel.app` berfitur HTTPS aman yang aktif 24 jam non-stop!
+
+> ⚠️ **Catatan Vercel:** `server.js` (Express + Socket.io) tidak berjalan di serverless Vercel — di deploy Vercel, realtime 100% lewat **Supabase** (aktifkan + isi kredensial di `supabase-client.js`). Socket.io hanya hidup saat `npm start` di laptop/PC warkop.
 
 ---
 

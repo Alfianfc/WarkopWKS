@@ -75,8 +75,11 @@ class WarkopSyncEngine {
 
   // --- Supabase Realtime & Remote Database Sync ---
   async initSupabase() {
-    if (!window.supabaseClient) return;
-    this.isSupabaseReady = true;
+    if (!window.supabaseClient) {
+      this.isSupabaseReady = false;
+      return;
+    }
+    this.isSupabaseReady = false; // baru true setelah fetch awal sukses
 
     try {
       // 1. Initial Data Fetch from Supabase
@@ -96,6 +99,7 @@ class WarkopSyncEngine {
         localStorage.setItem(this.storageKeys.menu, JSON.stringify(menuRes.data));
       }
 
+      this.isSupabaseReady = (!txRes.error && !expRes.error);
       this.notifyListeners('dataChanged', this.getAllData());
 
       // 2. Realtime Subscriptions
@@ -322,7 +326,8 @@ class WarkopSyncEngine {
       total: Number(txData.total) || 0,
       paid: Number(txData.paid) || 0,
       change: Number(txData.change) || 0,
-      status: 'PAID'
+      status: 'PAID',
+      shift: this.shiftOf(new Date())
     };
 
     const current = this.getTransactions();
@@ -367,7 +372,8 @@ class WarkopSyncEngine {
       cashier: expData.cashier || 'Kasir',
       category: expData.category || 'Bahan Baku',
       note: expData.note || 'Pengeluaran operasional',
-      amount: Number(expData.amount) || 0
+      amount: Number(expData.amount) || 0,
+      shift: this.shiftOf(new Date())
     };
 
     const current = this.getExpenses();
@@ -554,23 +560,64 @@ class WarkopSyncEngine {
     };
   }
 
-  getSummary(dateFilter = 'today') {
+  // --- TANGGAL BISNIS & SHIFT (waktu lokal perangkat) ---
+  // Shift 1: 06.00–15.00, Shift 2: 15.00–24.00.
+  // Jam 00.00–06.00 (warkop tutup) dihitung masuk hari bisnis sebelumnya, shift 2.
+  businessDateStr(d = new Date()) {
+    const dt = d instanceof Date ? d : new Date(d);
+    const ref = new Date(dt);
+    if (ref.getHours() < 6) ref.setDate(ref.getDate() - 1);
+    return `${ref.getFullYear()}-${String(ref.getMonth() + 1).padStart(2, '0')}-${String(ref.getDate()).padStart(2, '0')}`;
+  }
+
+  shiftOf(d = new Date()) {
+    const dt = d instanceof Date ? d : new Date(d);
+    const h = dt.getHours();
+    if (h >= 6 && h < 15) return '1';
+    return '2';
+  }
+
+  shiftLabel(s) {
+    return s === '1' ? 'Shift 1 (06–15)' : 'Shift 2 (15–24)';
+  }
+
+  recordShift(r) {
+    if (r && r.shift) return r.shift;
+    try {
+      return this.shiftOf(new Date(r.timestamp));
+    } catch (e) {
+      return '1';
+    }
+  }
+
+  recordMatchesDay(r, dayStr) {
+    if (!r || !r.timestamp) return false;
+    try {
+      return this.businessDateStr(new Date(r.timestamp)) === dayStr;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  getSummary(dateFilter = 'today', shiftFilter = 'all') {
     const transactions = this.getTransactions();
     const expenses = this.getExpenses();
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = this.businessDateStr(new Date());
+
+    const matchShift = (r) => shiftFilter === 'all' || this.recordShift(r) === shiftFilter;
 
     const filteredTx = transactions.filter((t) => {
       if (dateFilter === 'today') {
-        return t.timestamp && t.timestamp.startsWith(todayStr);
+        return this.recordMatchesDay(t, todayStr) && matchShift(t);
       }
-      return true;
+      return matchShift(t);
     });
 
     const filteredExpenses = expenses.filter((e) => {
       if (dateFilter === 'today') {
-        return e.timestamp && e.timestamp.startsWith(todayStr);
+        return this.recordMatchesDay(e, todayStr) && matchShift(e);
       }
-      return true;
+      return matchShift(e);
     });
 
     let totalRevenue = 0;
@@ -667,24 +714,24 @@ class WarkopSyncEngine {
 
   exportToCSV() {
     const summary = this.getSummary('all');
-    let csv = 'ID Transaksi,Tanggal,Jam,Kasir,Meja,Metode Bayar,Rincian Pesanan,Subtotal,Pajak,Total,Status\n';
+    let csv = 'ID Transaksi,Tanggal,Jam,Kasir,Meja,Metode Bayar,Shift,Rincian Pesanan,Subtotal,Pajak,Total,Status\n';
 
     summary.filteredTx.forEach((tx) => {
       const date = tx.timestamp ? new Date(tx.timestamp) : new Date();
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       const timeStr = date.toLocaleTimeString('id-ID');
       const itemsDetail = (tx.items || []).map((i) => `${i.name} (${i.qty}x)`).join('; ');
 
-      csv += `"${tx.id}","${dateStr}","${timeStr}","${tx.cashier}","${tx.table}","${tx.paymentMethod}","${itemsDetail}",${tx.subtotal},${tx.tax},${tx.total},"${tx.status}"\n`;
+      csv += `"${tx.id}","${dateStr}","${timeStr}","${tx.cashier}","${tx.table}","${tx.paymentMethod}","${this.recordShift(tx) === '1' ? 'Shift 1' : 'Shift 2'}","${itemsDetail}",${tx.subtotal},${tx.tax},${tx.total},"${tx.status}"\n`;
     });
 
-    csv += '\n\nID Pengeluaran,Tanggal,Jam,Kasir,Kategori,Keterangan,Nominal\n';
+    csv += '\n\nID Pengeluaran,Tanggal,Jam,Kasir,Kategori,Shift,Keterangan,Nominal\n';
     summary.filteredExpenses.forEach((exp) => {
       const date = exp.timestamp ? new Date(exp.timestamp) : new Date();
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       const timeStr = date.toLocaleTimeString('id-ID');
 
-      csv += `"${exp.id}","${dateStr}","${timeStr}","${exp.cashier}","${exp.category}","${exp.note}",${exp.amount}\n`;
+      csv += `"${exp.id}","${dateStr}","${timeStr}","${exp.cashier}","${exp.category}","${this.recordShift(exp) === '1' ? 'Shift 1' : 'Shift 2'}","${exp.note}",${exp.amount}\n`;
     });
 
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
