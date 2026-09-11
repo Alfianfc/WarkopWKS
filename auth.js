@@ -15,8 +15,8 @@ class WarkopAuth {
     if (!localStorage.getItem(this.storageKey)) {
       const defaultAccounts = {
         kasir: {
-          username: 'kasir',
-          password: 'kasir123',
+          username: 'alfian',
+          password: 'alfian3839',
           role: 'kasir',
           name: 'Kasir Warkop'
         },
