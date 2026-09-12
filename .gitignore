@@ -6,3 +6,5 @@ warkop_data.json
 
 cap_*.json
 __pycache__/
+_patch_*.py
+_t*.js
