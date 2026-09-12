@@ -184,12 +184,15 @@
         <span class="text-[11px] text-on-surface-variant font-medium mt-1" id="dash-avg-item">Rata-rata menu warkop</span>
       </div>
 
-      <div class="col-span-2 flex items-center justify-between bg-emerald-500/5 rounded-2xl p-3.5 border border-emerald-200/60">
-        <span class="text-xs font-bold text-on-surface flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-[18px] text-emerald-700">badge</span>
-          Konsumsi Karyawan
-        </span>
-        <span class="text-[11px] text-on-surface-variant font-semibold" id="dash-staff-info">0 transaksi • Rp 0 digratiskan</span>
+      <div onclick="toggleStaffMenu()" class="col-span-2 flex flex-col gap-1.5 bg-emerald-500/5 rounded-2xl p-3.5 border border-emerald-200/60 cursor-pointer active:scale-[0.99] transition-transform" title="Ketuk untuk rincian">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-on-surface flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[18px] text-emerald-700">badge</span>
+            Konsumsi Karyawan
+          </span>
+          <span class="text-[11px] text-on-surface-variant font-semibold" id="dash-staff-info">0 transaksi • Rp 0 digratiskan</span>
+        </div>
+        <div class="hidden flex-col gap-1.5" id="staff-menu-list"></div>
       </div>
 
       <div class="col-span-2 flex items-center justify-between gap-2 bg-surface-container-low rounded-2xl p-3.5 border border-surface-container shadow-sm">
@@ -631,6 +634,7 @@
       }
       document.getElementById('dash-bon-info').innerText = `${summary.bonCount} bon • ${warkopSync.formatRupiah(summary.bonTotal)}`;
       document.getElementById('dash-staff-info').innerText = `${staffTx.length} transaksi • ${warkopSync.formatRupiah(staffDisc)} digratiskan`;
+      renderStaffMenu(summary, staffTx);
 
       renderRevenueChart();
       renderHourlyChart(summary.filteredTx);
@@ -642,6 +646,45 @@
       renderOwnerHistory(summary);
       renderOpnameRecap();
       renderOmzetBreakdown(summary);
+    }
+
+    // --- RINCIAN KONSUMSI KARYAWAN (klik kartu) ---
+    let staffOpen = false;
+
+    function toggleStaffMenu() {
+      staffOpen = !staffOpen;
+      const summary = warkopSync.getSummary('today', activeShiftFilter);
+      const staffTx = summary.filteredTx.filter(t => t.staff);
+      renderStaffMenu(summary, staffTx);
+    }
+
+    function renderStaffMenu(summary, staffTx) {
+      const box = document.getElementById('staff-menu-list');
+      if (!box) return;
+      box.classList.toggle('hidden', !staffOpen);
+      box.classList.toggle('flex', staffOpen);
+      if (!staffOpen) return;
+      const agg = {};
+      (staffTx || []).forEach(tx => {
+        (tx.items || []).forEach(it => {
+          const k = it.name || '?';
+          if (!agg[k]) agg[k] = { qty: 0, rev: 0 };
+          agg[k].qty += Number(it.qty) || 1;
+          const orig = Number(it.originalPrice != null ? it.originalPrice : it.price) || 0;
+          agg[k].rev += orig * (Number(it.qty) || 1);
+        });
+      });
+      const rows = Object.entries(agg).sort((a, b) => b[1].qty - a[1].qty).slice(0, 8);
+      if (rows.length === 0) {
+        box.innerHTML = `<div class="text-[11px] text-on-surface-variant bg-surface-container-lowest border border-surface-container rounded-xl p-3 text-center">Belum ada konsumsi karyawan.</div>`;
+        return;
+      }
+      box.innerHTML = rows.map(([name, v]) => `
+        <div class="flex items-center gap-2.5 bg-surface-container-lowest p-2.5 rounded-xl border border-surface-container">
+          <span class="text-xs font-bold text-on-surface flex-1 truncate">${name}</span>
+          <span class="text-[11px] text-on-surface-variant font-semibold shrink-0">${v.qty}x diambil</span>
+          <span class="text-xs font-extrabold text-emerald-700 shrink-0">${warkopSync.formatRupiah(v.rev)}</span>
+        </div>`).join('');
     }
 
     // --- RINCIAN OMZET (klik kartu) ---
