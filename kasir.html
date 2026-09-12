@@ -188,21 +188,6 @@
           <button class="text-xs text-error font-semibold hover:underline" onclick="clearCart()">Kosongkan</button>
         </div>
 
-        <!-- Pilihan Nomor Meja / Takeaway -->
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-on-surface-variant font-medium whitespace-nowrap">Pesanan:</span>
-          <select id="order-table" class="flex-1 h-9 bg-surface-container rounded-lg px-2.5 text-xs text-on-surface font-semibold focus:outline-none focus:ring-1 focus:ring-primary border-none">
-            <option value="Meja 01">Meja 01</option>
-            <option value="Meja 02">Meja 02</option>
-            <option value="Meja 03">Meja 03</option>
-            <option value="Meja 04">Meja 04</option>
-            <option value="Meja 05">Meja 05</option>
-            <option value="Meja 06">Meja 06</option>
-            <option value="Meja Lesehan A">Meja Lesehan A</option>
-            <option value="Meja Lesehan B">Meja Lesehan B</option>
-            <option value="Bungkus / Takeaway">Bungkus / Takeaway</option>
-          </select>
-        </div>
 
         <!-- Toggle Karyawan (jatah staff) -->
         <div class="flex items-center justify-between bg-surface-container rounded-xl px-3 py-2">
@@ -957,7 +942,7 @@
       const subtotal = cartSubtotal();
       const tax = 0; // Warkop WKS tanpa pajak/service
       const total = subtotal;
-      const table = document.getElementById('order-table').value;
+      const table = 'Takeaway';
 
       document.getElementById('checkout-table-info').innerText = `${table} • ${cart.reduce((s, i) => s + i.qty, 0)} Porsi`;
       document.getElementById('checkout-total-display').innerText = warkopSync.formatRupiah(total);
@@ -1029,7 +1014,7 @@
       const subtotal = cartSubtotal();
       const tax = 0; // Warkop WKS tanpa pajak/service
       const total = subtotal;
-      const table = document.getElementById('order-table').value;
+      const table = 'Takeaway';
       const cashReceived = selectedPaymentMethod === 'Tunai' 
         ? (Number(document.getElementById('cash-received-input').value) || total)
         : total;

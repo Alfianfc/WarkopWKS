@@ -66,7 +66,7 @@ interface Transaction {
   cashier: string;         // nama user login (mis. "Kasir Warkop")
   staff: boolean;            // true = jatah karyawan (harga staff)
   discount: number;          // selisih harga normal - harga staff (Rp)
-  table: string;           // "Meja 04" | "Bungkus / Takeaway"
+  table: string;           // selalu "Takeaway" (pilihan meja dihapus)
   paymentMethod: string;   // "Tunai" | "QRIS"
   items: Array<{
     name: string;
