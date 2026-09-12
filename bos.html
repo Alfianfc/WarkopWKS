@@ -211,6 +211,36 @@
       </div>
     </div>
 
+    <!-- Grafik Pendapatan -->
+    <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-sm">
+      <div class="flex items-center justify-between mb-2">
+        <div>
+          <h3 class="text-sm font-bold text-on-surface">Grafik Pendapatan</h3>
+          <span class="text-[11px] text-on-surface-variant" id="rev-total-label">Memuat data...</span>
+        </div>
+        <span class="material-symbols-outlined text-[20px] text-on-surface-variant">calendar_month</span>
+      </div>
+      <div class="flex gap-2 mb-2.5">
+        <button onclick="setRevPeriod('day')" id="revp-day"
+          class="flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all">
+          Harian
+        </button>
+        <button onclick="setRevPeriod('week')" id="revp-week"
+          class="flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all">
+          Mingguan
+        </button>
+        <button onclick="setRevPeriod('month')" id="revp-month"
+          class="flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all">
+          Bulanan
+        </button>
+      </div>
+      <div class="flex items-end justify-between gap-1.5 h-36 pt-4 pb-2 px-2 bg-surface-container-lowest rounded-xl border border-surface-container" id="revenue-chart-container"></div>
+      <div class="flex items-center justify-between mt-2 pt-2 border-t border-surface-container text-xs">
+        <span class="text-on-surface-variant font-medium" id="rev-avg-label">—</span>
+        <span class="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-bold" id="rev-best-label">—</span>
+      </div>
+    </div>
+
     <!-- Komposisi Penjualan Kategori -->
     <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-sm">
       <h3 class="text-sm font-bold text-on-surface mb-0.5">Komposisi Penjualan Kategori</h3>
@@ -422,7 +452,8 @@
     let showAllSales = false;
     let showAllExpenses = false;
     let currentModalTxId = null;
-    let activeShiftFilter = 'all'; // 'all' | '1' | '2'
+    let activeShiftFilter = 'all';
+    let revPeriod = 'day'; // 'all' | '1' | '2'
 
     function setShiftFilter(f) {
       activeShiftFilter = f;
@@ -558,12 +589,106 @@
       const staffDisc = staffTx.reduce((sum, t) => sum + (Number(t.discount) || 0), 0);
       document.getElementById('dash-staff-info').innerText = `${staffTx.length} transaksi • ${warkopSync.formatRupiah(staffDisc)} digratiskan`;
 
+      renderRevenueChart();
       renderHourlyChart(summary.filteredTx);
       renderCategoryComposition(summary);
       renderLiveSalesFeed(summary.filteredTx);
       renderLiveExpensesFeed(summary.filteredExpenses);
       renderOwnerExpenses(summary);
       renderOwnerHistory(summary);
+    }
+
+    // --- GRAFIK PENDAPATAN (Harian / Mingguan / Bulanan) ---
+    const MONTH_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+    function setRevPeriod(p) {
+      revPeriod = p;
+      const on = 'flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all';
+      const off = 'flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
+      document.getElementById('revp-day').className = p === 'day' ? on : off;
+      document.getElementById('revp-week').className = p === 'week' ? on : off;
+      document.getElementById('revp-month').className = p === 'month' ? on : off;
+      renderRevenueChart();
+    }
+
+    function revBuckets() {
+      // [label, key] terurut tua -> muda
+      const out = [];
+      const now = new Date();
+      if (revPeriod === 'day') {
+        for (let i = 13; i >= 0; i--) {
+          const d = new Date(now);
+          d.setDate(d.getDate() - i);
+          const key = warkopSync.businessDateStr(d);
+          out.push([`${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`, key]);
+        }
+      } else if (revPeriod === 'week') {
+        const monday = new Date(now);
+        monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+        for (let i = 7; i >= 0; i--) {
+          const d = new Date(monday);
+          d.setDate(d.getDate() - i * 7);
+          const key = warkopSync.businessDateStr(d);
+          out.push([`${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`, key]);
+        }
+      } else {
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          out.push([`${MONTH_ID[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`, key]);
+        }
+      }
+      return out;
+    }
+
+    function renderRevenueChart() {
+      const container = document.getElementById('revenue-chart-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const txAll = warkopSync.getSummary('all', activeShiftFilter).filteredTx;
+      const sums = {};
+      txAll.forEach(tx => {
+        if (!tx.timestamp) return;
+        const day = warkopSync.businessDateStr(new Date(tx.timestamp));
+        let key = day;
+        if (revPeriod === 'week') {
+          const d = new Date(tx.timestamp);
+          if (d.getHours() < 6) d.setDate(d.getDate() - 1);
+          d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+          key = warkopSync.businessDateStr(d);
+        } else if (revPeriod === 'month') {
+          key = day.slice(0, 7);
+        }
+        sums[key] = (sums[key] || 0) + (Number(tx.total) || 0);
+      });
+
+      const buckets = revBuckets();
+      const maxVal = Math.max(...buckets.map(([, k]) => sums[k] || 0), 1);
+      let peakVal = -1;
+      buckets.forEach(([, k]) => { if ((sums[k] || 0) > peakVal) peakVal = sums[k] || 0; });
+
+      buckets.forEach(([label, k]) => {
+        const rev = sums[k] || 0;
+        const heightPct = Math.max(6, Math.round((rev / maxVal) * 100));
+        const isPeak = rev > 0 && rev === peakVal;
+        const bar = document.createElement('div');
+        bar.className = 'flex flex-col items-center gap-1 flex-1 h-full justify-end group cursor-default min-w-0';
+        bar.innerHTML = `
+          <span class="text-[9px] font-bold text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">${rev > 0 ? (rev >= 1000000 ? (rev / 1000000).toFixed(1) + 'jt' : Math.round(rev / 1000) + 'k') : '-'}</span>
+          <div class="w-full rounded-t transition-all ${rev > 0 ? (isPeak ? 'bg-emerald-600' : 'bg-emerald-600/50') : 'bg-surface-container'}" style="height:${heightPct}%" title="${label}: ${warkopSync.formatRupiah(rev)}"></div>
+          <span class="text-[9px] ${isPeak && rev > 0 ? 'text-emerald-700 font-bold' : 'text-on-surface-variant'} whitespace-nowrap">${label}</span>
+        `;
+        container.appendChild(bar);
+      });
+
+      const total = buckets.reduce((s, [, k]) => s + (sums[k] || 0), 0);
+      const n = revPeriod === 'day' ? 14 : revPeriod === 'week' ? 8 : 6;
+      const periodName = revPeriod === 'day' ? '14 hari' : revPeriod === 'week' ? '8 pekan' : '6 bulan';
+      document.getElementById('rev-total-label').innerText = `Total ${periodName}: ${warkopSync.formatRupiah(total)}`;
+      document.getElementById('rev-avg-label').innerText = `Rata-rata ${warkopSync.formatRupiah(n > 0 ? Math.round(total / n) : 0)}`;
+      const best = buckets.reduce((b, [label, k]) => (sums[k] || 0) > (b.v || 0) ? { label, v: sums[k] } : b, {});
+      document.getElementById('rev-best-label').innerText = best.v > 0 ? `Terbaik: ${best.label}` : 'Belum ada data';
     }
 
     // --- BAR CHART ---
