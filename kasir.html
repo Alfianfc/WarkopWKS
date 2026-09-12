@@ -13,6 +13,13 @@
       .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
     }
     ::-webkit-scrollbar { display: none; }
+    .ui-sheet-panel { transition: transform .22s ease-out; }
+    .ui-dialog-card { transition: transform .15s ease-out, opacity .15s ease-out; }
+    @keyframes ui-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+    .ui-shake { animation: ui-shake .25s ease-in-out; }
+    .ui-toast-in { transition: opacity .25s ease, transform .25s ease; }
+    input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     @media print {
       body * { visibility: hidden; }
       #thermal-receipt-modal, #thermal-receipt-modal * { visibility: visible; }
@@ -493,16 +500,11 @@
       <div class="flex flex-col gap-3">
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Kategori Pengeluaran</label>
-          <select id="expense-category" onchange="toggleCustomExpenseCat()" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface font-semibold focus:outline-none focus:ring-1 focus:ring-primary">
-            <option value="Es Batu">Es Batu Kristal</option>
-            <option value="Air Galon">Air Galon / Air Minum</option>
-            <option value="Gas Elpiji">Gas Elpiji 3kg</option>
-            <option value="Bahan Baku">Bahan Baku (Kopi, Susu, Mie, Telur, Roti)</option>
-            <option value="Plastik & Kemasan">Plastik, Cup &amp; Sedotan Takeaway</option>
-            <option value="Listrik">Token Listrik</option>
-            <option value="Kebersihan">Sabun &amp; Kebersihan</option>
-            <option value="__custom">Lainnya (ketik sendiri)...</option>
-          </select>
+          <input type="hidden" id="expense-category" value="Es Batu">
+          <button type="button" onclick="openExpenseCatSheet()" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface font-semibold flex items-center justify-between gap-2 active:scale-[0.99] transition-transform">
+            <span id="expense-category-label">Es Batu Kristal</span>
+            <span class="material-symbols-outlined text-[18px] text-on-surface-variant shrink-0">expand_more</span>
+          </button>
         </div>
 
         <div id="expense-custom-wrap" class="hidden">
@@ -545,12 +547,11 @@
         </div>
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Kategori</label>
-          <select id="new-item-cat" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
-            <option value="cold_drink">Minuman Dingin</option>
-            <option value="hot_drink">Minuman Panas / Hangat</option>
-            <option value="food">Makanan</option>
-            <option value="snack">Makanan Ringan</option>
-          </select>
+          <input type="hidden" id="new-item-cat" value="cold_drink">
+          <button type="button" onclick="openMenuCatSheet()" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface font-semibold flex items-center justify-between gap-2 active:scale-[0.99] transition-transform">
+            <span id="new-item-cat-label">Minuman Dingin</span>
+            <span class="material-symbols-outlined text-[18px] text-on-surface-variant shrink-0">expand_more</span>
+          </button>
         </div>
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Harga Jual (Rp)</label>
@@ -731,6 +732,34 @@
     </div>
   </div>
 
+  <!-- UI KIT: bottom sheet + dialog + (toast dinamis) -->
+  <div id="ui-sheet" class="fixed inset-0 z-[60] hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSheet()"></div>
+    <div class="absolute bottom-0 inset-x-0 flex justify-center pointer-events-none">
+      <div id="ui-sheet-panel" class="ui-sheet-panel pointer-events-auto bg-surface w-full md:max-w-md rounded-t-3xl p-5 pb-safe max-h-[70vh] flex flex-col gap-1 overflow-hidden translate-y-full shadow-2xl">
+        <div class="w-10 h-1 rounded-full bg-surface-container-high mx-auto mb-1.5 shrink-0"></div>
+        <h3 class="text-sm font-bold text-on-surface px-1 mb-1" id="ui-sheet-title">Pilih</h3>
+        <div id="ui-sheet-list" class="overflow-y-auto flex flex-col gap-1.5 pb-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ui-dialog" class="fixed inset-0 z-[70] hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeDialog(null, true)"></div>
+    <div id="ui-dialog-card" class="ui-dialog-card relative bg-surface w-full max-w-sm rounded-2xl p-5 flex flex-col gap-3 shadow-2xl scale-95 opacity-0">
+      <h3 class="text-base font-bold text-on-surface" id="ui-dialog-title">Konfirmasi</h3>
+      <p class="text-xs text-on-surface-variant leading-relaxed" id="ui-dialog-msg"></p>
+      <div id="ui-dialog-field" class="hidden flex-col gap-1">
+        <label class="text-xs font-semibold text-on-surface-variant" id="ui-dialog-label">Isi</label>
+        <input id="ui-dialog-input" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-xl px-3.5 text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">
+      </div>
+      <div class="flex gap-2 mt-1">
+        <button onclick="closeDialog(null, true)" id="ui-dialog-cancel" class="flex-1 h-11 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl text-xs font-bold active:scale-95 transition-all">Batal</button>
+        <button onclick="submitDialog()" id="ui-dialog-ok" class="flex-1 h-11 bg-primary text-white rounded-xl text-xs font-bold active:scale-95 transition-all shadow-md">Simpan</button>
+      </div>
+    </div>
+  </div>
+
   <!-- APPLICATION LOGIC SCRIPT -->
   <script>
     let cart = [];
@@ -828,8 +857,8 @@
       updateCloudButtonState();
     });
 
-    function confirmLogout() {
-      if (confirm('Apakah Anda yakin ingin keluar / logout dari akun kasir?')) {
+    async function confirmLogout() {
+      if (await uiConfirm({ title: 'Keluar Kasir?', message: 'Sesi kasir berakhir. Semua transaksi tersimpan aman.', okText: 'Keluar', danger: true })) {
         warkopAuth.logout('/');
       }
     }
@@ -844,6 +873,181 @@
         text.innerText = 'Local Sync';
         btn.className = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 active:scale-95 transition-transform';
       }
+    }
+
+    // --- UI KIT (sheet + dialog + toast) ---
+    const EXPENSE_CATS = [
+      { value: 'Es Batu', label: 'Es Batu Kristal' },
+      { value: 'Air Galon', label: 'Air Galon / Air Minum' },
+      { value: 'Gas Elpiji', label: 'Gas Elpiji 3kg' },
+      { value: 'Bahan Baku', label: 'Bahan Baku', desc: 'Kopi, Susu, Mie, Telur, Roti' },
+      { value: 'Plastik & Kemasan', label: 'Plastik & Kemasan', desc: 'Plastik, Cup & Sedotan' },
+      { value: 'Listrik', label: 'Token Listrik' },
+      { value: 'Kebersihan', label: 'Kebersihan', desc: 'Sabun & operasional' },
+      { value: '__custom', label: 'Lainnya (ketik sendiri)...' }
+    ];
+    const MENU_CATS = [
+      { value: 'cold_drink', label: 'Minuman Dingin' },
+      { value: 'hot_drink', label: 'Minuman Panas / Hangat' },
+      { value: 'food', label: 'Makanan' },
+      { value: 'snack', label: 'Makanan Ringan' }
+    ];
+
+    function openOptionSheet({ title, options, selected, onPick }) {
+      document.getElementById('ui-sheet-title').innerText = title;
+      const list = document.getElementById('ui-sheet-list');
+      list.innerHTML = '';
+      options.forEach(opt => {
+        const active = opt.value === selected;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'w-full flex items-center justify-between gap-2 p-3.5 rounded-2xl border text-left active:scale-[0.99] transition-all ' +
+          (active ? 'border-primary bg-primary/5' : 'border-surface-container bg-surface-container-lowest');
+        btn.innerHTML = `
+          <span class="flex flex-col min-w-0">
+            <span class="text-xs font-bold ${active ? 'text-primary' : 'text-on-surface'}">${opt.label}</span>
+            ${opt.desc ? `<span class="text-[11px] text-on-surface-variant">${opt.desc}</span>` : ''}
+          </span>
+          ${active ? '<span class="material-symbols-outlined text-primary text-[20px] shrink-0">check_circle</span>' : ''}`;
+        btn.onclick = () => { closeSheet(); onPick(opt.value); };
+        list.appendChild(btn);
+      });
+      const wrap = document.getElementById('ui-sheet');
+      wrap.classList.remove('hidden');
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        document.getElementById('ui-sheet-panel').classList.remove('translate-y-full');
+      }));
+    }
+
+    function closeSheet() {
+      document.getElementById('ui-sheet-panel').classList.add('translate-y-full');
+      setTimeout(() => document.getElementById('ui-sheet').classList.add('hidden'), 200);
+    }
+
+    function openExpenseCatSheet() {
+      openOptionSheet({
+        title: 'Kategori Pengeluaran',
+        options: EXPENSE_CATS,
+        selected: document.getElementById('expense-category').value,
+        onPick: (v) => {
+          const labels = {};
+          EXPENSE_CATS.forEach(o => { labels[o.value] = o.label; });
+          document.getElementById('expense-category').value = v;
+          document.getElementById('expense-category-label').innerText = labels[v] || v;
+          toggleCustomExpenseCat();
+        }
+      });
+    }
+
+    function openMenuCatSheet() {
+      openOptionSheet({
+        title: 'Kategori Menu',
+        options: MENU_CATS,
+        selected: document.getElementById('new-item-cat').value,
+        onPick: (v) => {
+          const labels = {};
+          MENU_CATS.forEach(o => { labels[o.value] = o.label; });
+          document.getElementById('new-item-cat').value = v;
+          document.getElementById('new-item-cat-label').innerText = labels[v] || v;
+        }
+      });
+    }
+
+    let __dlgResolve = null;
+    let __dlgHasInput = false;
+    let __dlgRequired = false;
+
+    function openDialogCfg({ title, message, label, value, inputType, placeholder, required, okText, danger }) {
+      return new Promise(resolve => {
+        __dlgResolve = resolve;
+        __dlgHasInput = label !== undefined && label !== null;
+        __dlgRequired = !!required;
+        document.getElementById('ui-dialog-title').innerText = title || 'Konfirmasi';
+        const msgEl = document.getElementById('ui-dialog-msg');
+        msgEl.innerText = message || '';
+        msgEl.classList.toggle('hidden', !message);
+        const field = document.getElementById('ui-dialog-field');
+        field.classList.toggle('hidden', !__dlgHasInput);
+        field.classList.toggle('flex', __dlgHasInput);
+        const okBtn = document.getElementById('ui-dialog-ok');
+        okBtn.innerText = okText || 'Simpan';
+        okBtn.className = 'flex-1 h-11 text-white rounded-xl text-xs font-bold active:scale-95 transition-all shadow-md ' +
+          (danger ? 'bg-error' : 'bg-primary');
+        if (__dlgHasInput) {
+          const inp = document.getElementById('ui-dialog-input');
+          inp.type = inputType || 'text';
+          inp.value = value == null ? '' : value;
+          inp.placeholder = placeholder || '';
+          document.getElementById('ui-dialog-label').innerText = label;
+          okBtn.classList.toggle('opacity-40', __dlgRequired && !inp.value);
+        }
+        const wrap = document.getElementById('ui-dialog');
+        wrap.classList.remove('hidden');
+        wrap.classList.add('flex');
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          const card = document.getElementById('ui-dialog-card');
+          card.classList.remove('scale-95', 'opacity-0');
+        }));
+        if (__dlgHasInput) {
+          setTimeout(() => document.getElementById('ui-dialog-input').focus(), 120);
+        }
+      });
+    }
+
+    function closeDialog(val, isCancel) {
+      if (!__dlgResolve) return;
+      const resolve = __dlgResolve;
+      __dlgResolve = null;
+      const card = document.getElementById('ui-dialog-card');
+      card.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        const wrap = document.getElementById('ui-dialog');
+        wrap.classList.add('hidden');
+        wrap.classList.remove('flex');
+      }, 130);
+      if (__dlgHasInput && isCancel) resolve(null);
+      else resolve(val);
+    }
+
+    function submitDialog() {
+      if (__dlgHasInput) {
+        const inp = document.getElementById('ui-dialog-input');
+        if (__dlgRequired && !inp.value.trim()) {
+          const card = document.getElementById('ui-dialog-card');
+          card.classList.remove('ui-shake');
+          void card.offsetWidth;
+          card.classList.add('ui-shake');
+          return;
+        }
+        closeDialog(inp.value);
+      } else {
+        closeDialog(true);
+      }
+    }
+
+    function uiConfirm({ title, message, okText, cancelText, danger }) {
+      if (cancelText) document.getElementById('ui-dialog-cancel').innerText = cancelText;
+      else document.getElementById('ui-dialog-cancel').innerText = 'Batal';
+      return openDialogCfg({ title, message, label: null, okText: okText || 'Ya', danger: !!danger });
+    }
+
+    function uiPrompt({ title, label, value, inputType, placeholder, required }) {
+      return openDialogCfg({ title, label, value, inputType, placeholder, required: required !== false, okText: 'Simpan' });
+    }
+
+    function uiToast(msg) {
+      const t = document.createElement('div');
+      t.className = 'ui-toast-in fixed bottom-24 left-1/2 -translate-x-1/2 z-[80] bg-on-surface text-surface pl-4 pr-4 py-2.5 rounded-full text-xs font-bold shadow-xl border border-white/20 flex items-center gap-2 whitespace-nowrap max-w-[92vw] overflow-hidden opacity-0 translate-y-2';
+      t.innerHTML = `<span class="material-symbols-outlined text-primary text-[18px] shrink-0">info</span><span class="truncate"></span>`;
+      t.querySelector('span:last-child').innerText = msg;
+      document.body.appendChild(t);
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        t.classList.remove('opacity-0', 'translate-y-2');
+      }));
+      setTimeout(() => {
+        t.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => t.remove(), 300);
+      }, 2600);
     }
 
     // --- TAB SWITCHING ---
@@ -964,7 +1168,7 @@
       const existing = cart.find(i => i.name === name);
       const inCart = existing ? existing.qty : 0;
       if (stock != null && inCart + 1 > stock) {
-        alert(stock <= 0 ? `${name} stoknya habis.` : `Sisa stok ${name} tinggal ${stock - inCart}.`);
+        uiToast(stock <= 0 ? `${name} stoknya habis.` : `Sisa stok ${name} tinggal ${stock - inCart}.`);
         return;
       }
       if (existing) {
@@ -982,7 +1186,7 @@
         if (delta > 0) {
           const stock = menuStockOf(name);
           if (stock != null && item.qty + 1 > stock) {
-            alert(stock <= 0 ? `${name} stoknya habis.` : `Sisa stok ${name} tinggal ${stock - item.qty}.`);
+            uiToast(stock <= 0 ? `${name} stoknya habis.` : `Sisa stok ${name} tinggal ${stock - item.qty}.`);
             return;
           }
         }
@@ -1183,12 +1387,12 @@
       }
 
       if (selectedPaymentMethod === 'Tunai' && cashReceived < total) {
-        alert('Nominal uang yang diterima kurang dari total tagihan!');
+        uiToast('Uang diterima kurang dari total tagihan.');
         return;
       }
 
       if (total > 0 && selectedPaymentMethod === 'QRIS' && !document.getElementById('qris-verified-check').checked) {
-        alert('Centang dulu konfirmasi cek mutasi QRIS sebelum menyelesaikan pembayaran.');
+        uiToast('Centang dulu konfirmasi cek mutasi QRIS.');
         return;
       }
 
@@ -1286,11 +1490,11 @@
       const amount = Number(document.getElementById('expense-amount').value);
 
       if (!category) {
-        alert('Mohon isi kategori lainnya.');
+        uiToast('Mohon isi kategori lainnya.');
         return;
       }
       if (!note || !amount || amount <= 0) {
-        alert('Mohon isi keterangan dan nominal pengeluaran dengan benar.');
+        uiToast('Isi keterangan dan nominal dengan benar.');
         return;
       }
 
@@ -1419,7 +1623,7 @@
       const fileInput = document.getElementById('new-item-file');
 
       if (!name || !price || price <= 0) {
-        alert('Mohon isi nama dan harga menu dengan benar.');
+        uiToast('Isi nama dan harga menu dengan benar.');
         return;
       }
 
@@ -1451,10 +1655,10 @@
     }
 
     async function deleteMenuItem(id) {
-      if (confirm('Hapus menu ini dari katalog kasir?')) {
+      if (await uiConfirm({ title: 'Hapus Menu?', message: 'Menu ini hilang dari katalog kasir di semua perangkat.', okText: 'Hapus', danger: true })) {
         const res = await warkopSync.deleteMenuItem(id);
         if (res && !res.success) {
-          alert(res.message);
+          uiToast(res.message);
         }
         renderMenuGrid();
       }
@@ -1551,7 +1755,7 @@
       if (opnameMode === 'open') {
         const modal = Number(document.getElementById('opname-modal-input').value);
         if (!modal || modal < 0) {
-          alert('Isi modal awal dengan benar.');
+          uiToast('Isi modal awal dengan benar.');
           return;
         }
         await warkopSync.saveCashSession({
@@ -1562,7 +1766,7 @@
       } else {
         const cash = Number(document.getElementById('opname-cash-input').value);
         if (!document.getElementById('opname-cash-input').value) {
-          alert('Isi hasil hitung kas fisik.');
+          uiToast('Isi hasil hitung kas fisik.');
           return;
         }
         const note = document.getElementById('opname-note-input').value.trim();
@@ -1639,7 +1843,7 @@
         ? (Number(document.getElementById('settle-cash-input').value) || 0)
         : settleTotal;
       if (settleMethod === 'Tunai' && paid < settleTotal) {
-        alert('Uang diterima kurang dari tagihan!');
+        uiToast('Uang diterima kurang dari tagihan.');
         return;
       }
       const res = await warkopSync.settleTransaction(settleTxId, {
@@ -1648,7 +1852,7 @@
         change: Math.max(0, paid - settleTotal)
       });
       if (res && !res.success) {
-        alert('Gagal melunasi.');
+        uiToast('Gagal melunasi.');
         return;
       }
       closeSettleModal();
@@ -1658,10 +1862,10 @@
 
     // --- HAPUS PESANAN SALAH INPUT (kasir) ---
     async function deleteTransactionById(id) {
-      if (!confirm('Hapus pesanan ini? Pesanan yang salah input akan hilang dari laporan.')) return;
+      if (!await uiConfirm({ title: 'Hapus Pesanan?', message: 'Pesanan yang salah input akan hilang dari laporan dan semua perangkat.', okText: 'Hapus', danger: true })) return;
       const res = await warkopSync.deleteTransaction(id);
       if (res && !res.success) {
-        alert(res.message || 'Gagal menghapus pesanan.');
+        uiToast(res.message || 'Gagal menghapus pesanan.');
         return;
       }
       renderHistoryList();
@@ -1669,10 +1873,10 @@
     }
 
     async function deleteExpenseById(id) {
-      if (!confirm('Hapus catatan belanja ini?')) return;
+      if (!await uiConfirm({ title: 'Hapus Catatan?', message: 'Catatan belanja ini hilang dari laporan kas.', okText: 'Hapus', danger: true })) return;
       const res = await warkopSync.deleteExpense(id);
       if (res && !res.success) {
-        alert(res.message || 'Gagal menghapus catatan.');
+        uiToast(res.message || 'Gagal menghapus catatan.');
         return;
       }
       if (typeof renderExpensesList === 'function') renderExpensesList();
@@ -1682,10 +1886,16 @@
     async function setStockPrompt(id) {
       const m = warkopSync.getMenu().find(x => x.id === id);
       if (!m) return;
-      const input = prompt(`Atur stok "${m.name}" (kosongkan = tanpa batas):`, m.stock == null ? '' : m.stock);
+      const input = await uiPrompt({
+        title: 'Atur Stok',
+        label: m.name,
+        value: m.stock == null ? '' : String(m.stock),
+        inputType: 'number',
+        placeholder: 'cth: 20 — kosongkan = tanpa batas'
+      });
       if (input === null) return;
       const res = await warkopSync.updateMenuItemStock(id, input.trim());
-      if (res && !res.success) alert(res.message || 'Gagal menyimpan stok.');
+      if (res && !res.success) uiToast(res.message || 'Gagal menyimpan stok.');
       renderMenuGrid();
     }
 
@@ -1718,7 +1928,7 @@
           document.getElementById('edit-image-preview').style.backgroundImage = `url('${dataUrl}')`;
           document.getElementById('edit-image-preview').dataset.pendingBase64 = dataUrl;
         } catch (e) {
-          alert('Gagal memproses file gambar.');
+          uiToast('Gagal memproses file gambar.');
         }
       }
     }
@@ -1762,7 +1972,7 @@
 
       const targetImg = base64Img || inputUrl;
       if (!targetImg) {
-        alert('Mohon masukkan link URL foto atau upload file gambar.');
+        uiToast('Masukkan link foto atau upload file gambar.');
         return;
       }
 

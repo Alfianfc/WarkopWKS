@@ -13,6 +13,7 @@
       .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
     }
     ::-webkit-scrollbar { display: none; }
+    .ui-dialog-card { transition: transform .15s ease-out, opacity .15s ease-out; }
   </style>
   <script src="https://cdn.tailwindcss.com"></script>
   <script id="tailwind-config">
@@ -391,6 +392,19 @@
     </div>
   </nav>
 
+  <!-- UI KIT: dialog -->
+  <div id="ui-dialog" class="fixed inset-0 z-[70] hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeDialog(null, true)"></div>
+    <div id="ui-dialog-card" class="ui-dialog-card relative bg-surface w-full max-w-sm rounded-2xl p-5 flex flex-col gap-3 shadow-2xl scale-95 opacity-0">
+      <h3 class="text-base font-bold text-on-surface" id="ui-dialog-title">Konfirmasi</h3>
+      <p class="text-xs text-on-surface-variant leading-relaxed" id="ui-dialog-msg"></p>
+      <div class="flex gap-2 mt-1">
+        <button onclick="closeDialog(null, true)" id="ui-dialog-cancel" class="flex-1 h-11 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl text-xs font-bold active:scale-95 transition-all">Batal</button>
+        <button onclick="submitDialog()" id="ui-dialog-ok" class="flex-1 h-11 bg-primary text-white rounded-xl text-xs font-bold active:scale-95 transition-all shadow-md">Ya</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal Detail Transaksi -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4" id="tx-detail-modal">
     <div class="bg-surface w-full max-w-sm rounded-2xl p-5 flex flex-col gap-3 shadow-2xl ">
@@ -545,8 +559,8 @@
       }
     }
 
-    function confirmLogout() {
-      if (confirm('Keluar dari akun Owner?')) warkopAuth.logout('/');
+    async function confirmLogout() {
+      if (await uiConfirm({ title: 'Keluar Dashboard?', message: 'Sesi owner berakhir. Data laporan tersimpan aman.', okText: 'Keluar', danger: true })) warkopAuth.logout('/');
     }
 
     function openAccountModal() {
@@ -578,7 +592,7 @@
         showToast(`✅ Akun ${role.toUpperCase()} berhasil diperbarui!`);
         closeAccountModal();
       } else {
-        alert(res.message);
+        showToast(res.message);
       }
     }
 
@@ -1198,6 +1212,45 @@
       }
     }
 
+    // --- UI KIT (dialog konfirmasi) ---
+    let __dlgResolve = null;
+
+    function uiConfirm({ title, message, okText, cancelText, danger }) {
+      return new Promise(resolve => {
+        __dlgResolve = resolve;
+        document.getElementById('ui-dialog-title').innerText = title || 'Konfirmasi';
+        document.getElementById('ui-dialog-msg').innerText = message || '';
+        document.getElementById('ui-dialog-cancel').innerText = cancelText || 'Batal';
+        const okBtn = document.getElementById('ui-dialog-ok');
+        okBtn.innerText = okText || 'Ya';
+        okBtn.className = 'flex-1 h-11 text-white rounded-xl text-xs font-bold active:scale-95 transition-all shadow-md ' +
+          (danger ? 'bg-error' : 'bg-primary');
+        const wrap = document.getElementById('ui-dialog');
+        wrap.classList.remove('hidden');
+        wrap.classList.add('flex');
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          document.getElementById('ui-dialog-card').classList.remove('scale-95', 'opacity-0');
+        }));
+      });
+    }
+
+    function closeDialog(val) {
+      if (!__dlgResolve) return;
+      const resolve = __dlgResolve;
+      __dlgResolve = null;
+      document.getElementById('ui-dialog-card').classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        const wrap = document.getElementById('ui-dialog');
+        wrap.classList.add('hidden');
+        wrap.classList.remove('flex');
+      }, 130);
+      resolve(val);
+    }
+
+    function submitDialog() {
+      closeDialog(true);
+    }
+
     // --- MODAL TRANSAKSI ---
     function showTxDetailModal(tx) {
       currentModalTxId = tx.id;
@@ -1224,10 +1277,10 @@
 
     // --- HAPUS PESANAN SALAH INPUT (owner) ---
     async function deleteTransactionById(id) {
-      if (!confirm('Hapus pesanan ini? Data akan hilang dari laporan & semua perangkat.')) return;
+      if (!await uiConfirm({ title: 'Hapus Pesanan?', message: 'Data akan hilang dari laporan dan semua perangkat.', okText: 'Hapus', danger: true })) return;
       const res = await warkopSync.deleteTransaction(id);
       if (res && !res.success) {
-        alert(res.message || 'Gagal menghapus pesanan.');
+        showToast(res.message || 'Gagal menghapus pesanan.');
         return;
       }
       closeTxDetailModal();
@@ -1240,10 +1293,10 @@
     }
 
     async function deleteExpenseById(id) {
-      if (!confirm('Hapus catatan belanja ini? Data akan hilang dari laporan.')) return;
+      if (!await uiConfirm({ title: 'Hapus Catatan?', message: 'Catatan belanja hilang dari laporan kas.', okText: 'Hapus', danger: true })) return;
       const res = await warkopSync.deleteExpense(id);
       if (res && !res.success) {
-        alert(res.message || 'Gagal menghapus catatan.');
+        showToast(res.message || 'Gagal menghapus catatan.');
         return;
       }
       refreshDashboard();
