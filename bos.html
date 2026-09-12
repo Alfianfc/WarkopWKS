@@ -115,7 +115,7 @@
     <!-- Tanggal & Status -->
     <div class="flex items-center justify-between py-2">
       <div class="flex flex-col">
-        <span class="text-xs font-semibold text-on-surface-variant">Laporan Hari Ini</span>
+        <span class="text-xs font-semibold text-on-surface-variant" id="dashboard-date-label">Laporan Hari Ini</span>
         <h2 class="text-lg font-extrabold text-on-surface tracking-tight" id="dashboard-date-display">—</h2>
       </div>
       <div id="kasir-status-badge" class="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container text-on-surface-variant border border-surface-container-high rounded-full">
@@ -140,6 +140,16 @@
       </button>
     </div>
 
+    <!-- Histori tanggal -->
+    <div class="flex gap-2 mt-2">
+      <button onclick="resetHistoryDate()" id="datebtn-today"
+        class="flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all">
+        Hari ini
+      </button>
+      <input type="date" id="history-date" onchange="setHistoryDate(this.value)"
+        class="flex-[2] h-9 bg-surface-container-lowest border border-surface-container rounded-xl px-3 text-xs font-semibold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+    </div>
+
     <!-- KPI Bento Grid -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mt-2">
       <div onclick="toggleOmzetBreakdown()" class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-sm relative overflow-hidden cursor-pointer active:scale-[0.99] transition-transform" title="Ketuk untuk rincian">
@@ -154,6 +164,11 @@
           <span class="material-symbols-outlined text-[13px]">receipt</span> 0 Transaksi
         </span>
         <div class="hidden flex-col gap-1.5 mt-2.5 pt-2.5 border-t border-surface-container" id="omzet-breakdown"></div>
+      </div>
+
+      <div class="hidden items-center justify-between gap-2 mt-2 text-[11px] font-semibold text-on-surface-variant" id="rev-hist-note">
+        <span>Mode histori — ringkasan, riwayat, WA &amp; Excel ikut tanggal di atas. Grafik tren tetap periode terakhir.</span>
+        <button onclick="resetHistoryDate()" class="text-primary font-bold hover:underline shrink-0">Kembali hari ini</button>
       </div>
 
       <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-sm relative overflow-hidden">
@@ -266,7 +281,7 @@
           Bulanan
         </button>
       </div>
-      <div class="flex items-end justify-between gap-1.5 h-36 pt-4 pb-2 px-2 bg-surface-container-lowest rounded-xl border border-surface-container" id="revenue-chart-container"></div>
+      <div class="pt-3 pb-1 px-1 bg-surface-container-lowest rounded-xl border border-surface-container" id="revenue-chart-container"></div>
       <div class="flex items-center justify-between mt-2 pt-2 border-t border-surface-container text-xs">
         <span class="text-on-surface-variant font-medium" id="rev-avg-label">—</span>
         <span class="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-bold" id="rev-best-label">—</span>
@@ -331,9 +346,9 @@
       <button onclick="sendWhatsAppSummary()"
         class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-700/20 active:scale-[0.98] transition-transform">
         <span class="material-symbols-outlined text-[22px]">send</span>
-        <span class="text-xs font-bold tracking-wide">Kirim Rekap Hari Ini ke WhatsApp</span>
+        <span class="text-xs font-bold tracking-wide" id="wa-summary-label">Kirim Rekap Hari Ini ke WhatsApp</span>
       </button>
-      <button onclick="warkopSync.exportToCSV()"
+      <button onclick="warkopSync.exportToCSV(activeDateFilter)"
         class="w-full h-12 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-2xl flex items-center justify-center gap-2 border border-surface-container-high active:scale-[0.98] transition-transform">
         <span class="material-symbols-outlined text-[20px] text-primary">download</span>
         <span class="text-xs font-semibold">Unduh Laporan Lengkap (.CSV / Excel)</span>
@@ -359,7 +374,7 @@
          <h2 class="text-base font-bold text-on-surface" id="owner-history-title">Riwayat Transaksi</h2>
          <p class="text-xs text-on-surface-variant" id="owner-history-sub">Ketuk item untuk detail</p>
        </div>
-       <button onclick="warkopSync.exportToCSV()" class="h-9 px-3 bg-surface-container text-on-surface border border-surface-container-high rounded-xl flex items-center gap-1 text-xs font-semibold active:scale-95">
+       <button onclick="warkopSync.exportToCSV(activeDateFilter)" class="h-9 px-3 bg-surface-container text-on-surface border border-surface-container-high rounded-xl flex items-center gap-1 text-xs font-semibold active:scale-95">
          <span class="material-symbols-outlined text-[16px]">download</span>
          <span>Excel</span>
        </button>
@@ -502,6 +517,36 @@
     let activeShiftFilter = 'all';
     let revPeriod = 'day'; // 'all' | '1' | '2'
 
+    let activeDateFilter = 'today'; // 'today' | 'YYYY-MM-DD'
+
+    function dateFilterLabel() {
+      if (activeDateFilter === 'today') return 'Hari Ini';
+      try { return warkopSync.formatDateIndo(new Date(activeDateFilter + 'T12:00:00')); }
+      catch (e) { return activeDateFilter; }
+    }
+
+    function setHistoryDate(v) {
+      if (!v) return;
+      activeDateFilter = v;
+      paintDateBtn();
+      refreshDashboard();
+    }
+
+    function resetHistoryDate() {
+      activeDateFilter = 'today';
+      const inp = document.getElementById('history-date');
+      if (inp) inp.value = '';
+      paintDateBtn();
+      refreshDashboard();
+    }
+
+    function paintDateBtn() {
+      const on = 'flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all';
+      const off = 'flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
+      const el = document.getElementById('datebtn-today');
+      if (el) el.className = activeDateFilter === 'today' ? on : off;
+    }
+
     function setShiftFilter(f) {
       activeShiftFilter = f;
       const on = 'flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all';
@@ -521,6 +566,9 @@
       }
 
       document.getElementById('dashboard-date-display').innerText = warkopSync.formatDateIndo(new Date());
+      const hd = document.getElementById('history-date');
+      if (hd) hd.max = warkopSync.businessDateStr(new Date());
+      paintDateBtn();
 
       updateSupabaseStatus();
       refreshDashboard();
@@ -536,6 +584,11 @@
 
       // Cek status Supabase setelah 3 detik (setelah init selesai)
       setTimeout(updateSupabaseStatus, 3000);
+      let revResizeT = null;
+      window.addEventListener('resize', () => {
+        clearTimeout(revResizeT);
+        revResizeT = setTimeout(() => { try { renderRevenueChart(); } catch (e) {} }, 200);
+      });
     });
 
     function updateSupabaseStatus() {
@@ -614,7 +667,17 @@
     }
 
     function refreshDashboard() {
-      const summary = warkopSync.getSummary('today', activeShiftFilter);
+      const summary = warkopSync.getSummary(activeDateFilter, activeShiftFilter);
+      document.getElementById('dashboard-date-display').innerText = activeDateFilter === 'today' ? warkopSync.formatDateIndo(new Date()) : dateFilterLabel();
+      const ddl = document.getElementById('dashboard-date-label');
+      if (ddl) ddl.innerText = activeDateFilter === 'today' ? 'Laporan Hari Ini' : 'Laporan • ' + dateFilterLabel();
+      const wal = document.getElementById('wa-summary-label');
+      if (wal) wal.innerText = activeDateFilter === 'today' ? 'Kirim Rekap Hari Ini ke WhatsApp' : 'Kirim Rekap ' + dateFilterLabel() + ' ke WhatsApp';
+      const rhn = document.getElementById('rev-hist-note');
+      if (rhn) {
+        rhn.classList.toggle('hidden', activeDateFilter === 'today');
+        rhn.classList.toggle('flex', activeDateFilter !== 'today');
+      }
 
       document.getElementById('dash-gross-revenue').innerText = warkopSync.formatRupiah(summary.totalRevenue);
       document.getElementById('dash-tx-count').innerHTML = `<span class="material-symbols-outlined text-[13px]">receipt</span> ${summary.totalOrders} Transaksi`;
@@ -670,7 +733,7 @@
 
     function toggleStaffMenu() {
       staffOpen = !staffOpen;
-      const summary = warkopSync.getSummary('today', activeShiftFilter);
+      const summary = warkopSync.getSummary(activeDateFilter, activeShiftFilter);
       const staffTx = summary.filteredTx.filter(t => t.staff);
       renderStaffMenu(summary, staffTx);
     }
@@ -709,7 +772,7 @@
 
     function toggleOmzetBreakdown() {
       omzetOpen = !omzetOpen;
-      renderOmzetBreakdown(warkopSync.getSummary('today', activeShiftFilter));
+      renderOmzetBreakdown(warkopSync.getSummary(activeDateFilter, activeShiftFilter));
     }
 
     function renderOmzetBreakdown(summary) {
@@ -790,7 +853,7 @@
       const out = [];
       const now = new Date();
       if (revPeriod === 'day') {
-        for (let i = 13; i >= 0; i--) {
+        for (let i = 6; i >= 0; i--) {
           const d = new Date(now);
           d.setDate(d.getDate() - i);
           const key = warkopSync.businessDateStr(d);
@@ -842,23 +905,31 @@
       let peakVal = -1;
       buckets.forEach(([, k]) => { if ((sums[k] || 0) > peakVal) peakVal = sums[k] || 0; });
 
-      buckets.forEach(([label, k]) => {
-        const rev = sums[k] || 0;
-        const heightPct = Math.max(6, Math.round((rev / maxVal) * 100));
-        const isPeak = rev > 0 && rev === peakVal;
-        const bar = document.createElement('div');
-        bar.className = 'flex flex-col items-center gap-1 flex-1 h-full justify-end group cursor-default min-w-0';
-        bar.innerHTML = `
-          <span class="text-[9px] font-bold text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">${rev > 0 ? (rev >= 1000000 ? (rev / 1000000).toFixed(1) + 'jt' : Math.round(rev / 1000) + 'k') : '-'}</span>
-          <div class="w-full rounded-t transition-all ${rev > 0 ? (isPeak ? 'bg-emerald-600' : 'bg-emerald-600/50') : 'bg-surface-container'}" style="height:${heightPct}%" title="${label}: ${warkopSync.formatRupiah(rev)}"></div>
-          <span class="text-[9px] ${isPeak && rev > 0 ? 'text-emerald-700 font-bold' : 'text-on-surface-variant'} whitespace-nowrap">${label}</span>
-        `;
-        container.appendChild(bar);
-      });
+      (function () {
+        const W = Math.max(container.clientWidth || 0, 280);
+        const H = 150, PAD = 16;
+        const vals = buckets.map(([, kk]) => sums[kk] || 0);
+        const nn = buckets.length;
+        const X = i => nn === 1 ? W / 2 : PAD + (i * (W - PAD * 2)) / (nn - 1);
+        const peak = Math.max(...vals, 0);
+        const Y = v => peak > 0 ? (H - PAD - (v / peak) * (H - PAD * 2)) : (H - PAD);
+        const pts = buckets.map((bb, i) => [X(i), Y(vals[i])]);
+        const line = pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+        const area = PAD + ',' + (H - PAD) + ' ' + line + ' ' + (W - PAD) + ',' + (H - PAD);
+        const fmtK = v => v >= 1000000 ? (v / 1000000).toFixed(1) + 'jt' : Math.round(v / 1000) + 'k';
+        container.innerHTML = `
+          <svg viewBox="0 0 ${W} ${H}" class="w-full" style="height:${H}px">
+            ${[0.25, 0.5, 0.75].map(f => `<line x1="${PAD}" y1="${(H * f).toFixed(1)}" x2="${W - PAD}" y2="${(H * f).toFixed(1)}" stroke="#eadfd6" stroke-width="1" stroke-dasharray="3 4"/>`).join('')}
+            <polygon points="${area}" fill="rgba(168,51,1,0.10)"/>
+            <polyline points="${line}" fill="none" stroke="#a83301" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+            ${pts.map((p, i) => `<g><circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${vals[i] === peak && peak > 0 ? 5 : 3.5}" fill="${vals[i] === peak && peak > 0 ? '#a83301' : '#fff8f5'}" stroke="#a83301" stroke-width="2"/><title>${buckets[i][0]}: ${warkopSync.formatRupiah(vals[i])}</title>${vals[i] === peak && peak > 0 ? `<text x="${p[0].toFixed(1)}" y="${(p[1] - 10).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" fill="#a83301">${fmtK(vals[i])}</text>` : ''}</g>`).join('')}
+          </svg>
+          <div class="flex justify-between mt-1" style="padding:0 ${PAD}px">${buckets.map(([label], i) => `<span class="text-[9px] ${vals[i] === peak && peak > 0 ? 'text-primary font-bold' : 'text-on-surface-variant'}">${label}</span>`).join('')}</div>`;
+      })();
 
       const total = buckets.reduce((s, [, k]) => s + (sums[k] || 0), 0);
-      const n = revPeriod === 'day' ? 14 : revPeriod === 'week' ? 8 : 6;
-      const periodName = revPeriod === 'day' ? '14 hari' : revPeriod === 'week' ? '8 pekan' : '6 bulan';
+      const n = revPeriod === 'day' ? 7 : revPeriod === 'week' ? 8 : 6;
+      const periodName = revPeriod === 'day' ? '7 hari' : revPeriod === 'week' ? '8 pekan' : '6 bulan';
       document.getElementById('rev-total-label').innerText = `Total ${periodName}: ${warkopSync.formatRupiah(total)}`;
       document.getElementById('rev-avg-label').innerText = `Rata-rata ${warkopSync.formatRupiah(n > 0 ? Math.round(total / n) : 0)}`;
       const best = buckets.reduce((b, [label, k]) => (sums[k] || 0) > (b.v || 0) ? { label, v: sums[k] } : b, {});
@@ -901,7 +972,7 @@
         bar.className = 'flex flex-col items-center gap-1 flex-1 h-full justify-end group cursor-default';
         bar.innerHTML = `
           <span class="text-[9px] font-bold text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">${rev > 0 ? (Math.round(rev / 1000) + 'k') : '-'}</span>
-          <div class="w-full rounded-t transition-all ${rev > 0 ? (isPeak ? 'bg-primary' : 'bg-primary/50') : 'bg-surface-container'}" style="height:${heightPct}%"></div>
+          <div class="w-full max-w-[26px] mx-auto rounded-t-md transition-all ${rev > 0 ? (isPeak ? 'bg-primary' : 'bg-primary/35') : 'bg-surface-container'}" style="height:${heightPct}%"></div>
           <span class="text-[10px] ${isPeak && rev > 0 ? 'text-primary font-bold' : 'text-on-surface-variant'}">${hr}:00</span>
         `;
         container.appendChild(bar);
@@ -970,7 +1041,8 @@
     }
 
     function ownerShiftSuffix() {
-      return activeShiftFilter === 'all' ? 'Seharian' : warkopSync.shiftLabel(activeShiftFilter);
+      const s = activeShiftFilter === 'all' ? 'Seharian' : warkopSync.shiftLabel(activeShiftFilter);
+      return activeDateFilter === 'today' ? s : s + ' • ' + dateFilterLabel();
     }
 
     function renderOwnerExpenses(summary) {
@@ -1110,12 +1182,12 @@
       if (type === 'sales') {
         showAllSales = true;
         document.getElementById('btn-show-all-sales').classList.add('hidden');
-        const summary = warkopSync.getSummary('today');
+        const summary = warkopSync.getSummary(activeDateFilter, activeShiftFilter);
         renderLiveSalesFeed(summary.filteredTx);
       } else {
         showAllExpenses = true;
         document.getElementById('btn-show-all-expenses').classList.add('hidden');
-        const summary = warkopSync.getSummary('today');
+        const summary = warkopSync.getSummary(activeDateFilter, activeShiftFilter);
         renderLiveExpensesFeed(summary.filteredExpenses);
       }
     }
@@ -1164,7 +1236,9 @@
 
       const btnAll = document.getElementById('btn-show-all-sales');
       if (!showAllSales && transactions.length > 8) {
-        btnAll.innerText = `Lihat Semua ${transactions.length} Transaksi Hari Ini`;
+        btnAll.innerText = activeDateFilter === 'today'
+          ? `Lihat Semua ${transactions.length} Transaksi Hari Ini`
+          : `Lihat Semua ${transactions.length} Transaksi ${dateFilterLabel()}`;
         btnAll.classList.remove('hidden');
       } else {
         btnAll.classList.add('hidden');
@@ -1208,7 +1282,9 @@
 
       const btnAll = document.getElementById('btn-show-all-expenses');
       if (!showAllExpenses && expenses.length > 8) {
-        btnAll.innerText = `Lihat Semua ${expenses.length} Pengeluaran Hari Ini`;
+        btnAll.innerText = activeDateFilter === 'today'
+          ? `Lihat Semua ${expenses.length} Pengeluaran Hari Ini`
+          : `Lihat Semua ${expenses.length} Pengeluaran ${dateFilterLabel()}`;
         btnAll.classList.remove('hidden');
       } else {
         btnAll.classList.add('hidden');
@@ -1312,7 +1388,7 @@
 
     // --- WHATSAPP ---
     function sendWhatsAppSummary() {
-      const msg = warkopSync.generateWhatsAppSummary();
+      const msg = warkopSync.generateWhatsAppSummary(activeDateFilter);
       window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
     }
   </script>

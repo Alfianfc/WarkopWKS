@@ -636,6 +636,31 @@ class WarkopSyncEngine {
     return { success: true, stock: n };
   }
 
+  async updateMenuItemPrice(id, price) {
+    const list = this.getMenu();
+    const target = list.find(m => m.id === id);
+    if (!target) return { success: false, message: 'Menu tidak ditemukan.' };
+    const n = isNaN(Number(price)) ? null : Math.max(0, Math.round(Number(price)));
+    if (n == null) return { success: false, message: 'Harga tidak valid.' };
+    target.price = n;
+    localStorage.setItem(this.storageKeys.menu, JSON.stringify(list));
+
+    if (this.channel) {
+      try { this.channel.postMessage({ type: 'MENU_UPDATED', payload: target }); } catch (e) {}
+    }
+
+    if (window.supabaseClient) {
+      try {
+        await window.supabaseClient.from('menu').update({ price: n }).eq('id', id);
+      } catch (err) {
+        console.warn('Supabase update price error:', err);
+      }
+    }
+
+    this.notifyListeners('dataChanged', this.getAllData());
+    return { success: true, price: n };
+  }
+
   decrementMenuStock(items) {
     if (!Array.isArray(items) || items.length === 0) return;
     const list = this.getMenu();
@@ -842,16 +867,19 @@ class WarkopSyncEngine {
 
     const matchShift = (r) => shiftFilter === 'all' || this.recordShift(r) === shiftFilter;
 
+    // dateFilter: 'today' | 'all' | 'YYYY-MM-DD' eksplisit (histori)
+    const dayStr = dateFilter === 'today' ? todayStr : (dateFilter === 'all' ? null : dateFilter);
+
     const filteredTx = transactions.filter((t) => {
-      if (dateFilter === 'today') {
-        return this.recordMatchesDay(t, todayStr) && matchShift(t);
+      if (dayStr) {
+        return this.recordMatchesDay(t, dayStr) && matchShift(t);
       }
       return matchShift(t);
     });
 
     const filteredExpenses = expenses.filter((e) => {
-      if (dateFilter === 'today') {
-        return this.recordMatchesDay(e, todayStr) && matchShift(e);
+      if (dayStr) {
+        return this.recordMatchesDay(e, dayStr) && matchShift(e);
       }
       return matchShift(e);
     });
@@ -931,9 +959,10 @@ class WarkopSyncEngine {
     });
   }
 
-  generateWhatsAppSummary() {
-    const summary = this.getSummary('today');
-    const dateStr = this.formatDateIndo(new Date());
+  generateWhatsAppSummary(dateFilter = 'today') {
+    const summary = this.getSummary(dateFilter);
+    const isHist = dateFilter !== 'today' && dateFilter !== 'all';
+    const dateStr = isHist ? this.formatDateIndo(new Date(dateFilter + 'T12:00:00')) : this.formatDateIndo(new Date());
 
     let msg = `*📊 LAPORAN KASIR WARKOP REAL-TIME*\n`;
     msg += `📅 Tanggal: ${dateStr}\n`;
@@ -949,7 +978,7 @@ class WarkopSyncEngine {
     msg += `━━━━━━━━━━━━━━━━━━━\n\n`;
 
     if (summary.filteredExpenses.length > 0) {
-      msg += `*Rincian Pengeluaran Hari Ini:*\n`;
+      msg += isHist ? `*Rincian Pengeluaran ${dateStr}:*\n` : `*Rincian Pengeluaran Hari Ini:*\n`;
       summary.filteredExpenses.forEach((e, idx) => {
         msg += `${idx + 1}. ${e.note} (${e.category}) : ${this.formatRupiah(e.amount)}\n`;
       });
@@ -966,8 +995,10 @@ class WarkopSyncEngine {
     return /^[=+\-@\t\r]/.test(str) ? `'${str}` : str;
   }
 
-  exportToCSV() {
-    const summary = this.getSummary('all');
+  exportToCSV(dateFilter = 'all') {
+    const summary = this.getSummary(dateFilter);
+    const stamp = (dateFilter === 'today' || dateFilter === 'all')
+      ? new Date().toISOString().split('T')[0] : dateFilter;
     let csv = 'ID Transaksi,Tanggal,Jam,Kasir,Meja,Metode Bayar,Shift,Rincian Pesanan,Subtotal,Pajak,Total,Status,Staff\n';
 
     summary.filteredTx.forEach((tx) => {
@@ -992,7 +1023,7 @@ class WarkopSyncEngine {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `Laporan_Kasir_Warkop_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `Laporan_Kasir_Warkop_${stamp}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

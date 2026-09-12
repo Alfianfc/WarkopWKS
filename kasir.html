@@ -254,7 +254,7 @@
             <span id="subtotal-text" class="font-medium">Rp 0</span>
           </div>
           <div class="hidden justify-between text-xs text-emerald-700 font-semibold" id="staff-discount-row">
-            <span>Diskon karyawan</span>
+            <span>Diskon</span>
             <span id="staff-discount-text">-Rp 0</span>
           </div>
           <div class="flex justify-between text-base font-bold text-on-surface pt-1 border-t border-dashed border-surface-container">
@@ -771,6 +771,7 @@
     let staffMode = false; // true = harga jatah karyawan
 
     function cartUnit(item) {
+      if (item.custom != null && item.custom !== '' && !isNaN(Number(item.custom))) return Number(item.custom);
       return staffMode ? warkopSync.staffPrice(item) : (Number(item.price) || 0);
     }
 
@@ -785,6 +786,9 @@
       if (staffMode && u < (Number(item.price) || 0)) {
         const tag = u === 0 ? 'Gratis' : 'Staff -1k';
         return `<s class="opacity-60">${warkopSync.formatRupiah(item.price)}</s> ` + base + ` <span class="text-[10px] font-bold text-emerald-700">${tag}</span>`;
+      }
+      if (item.custom != null && item.custom !== '' && !isNaN(Number(item.custom)) && Number(item.custom) !== (Number(item.price) || 0)) {
+        return base + ' <span class="text-[10px] font-bold text-primary">Custom</span>';
       }
       return base;
     }
@@ -1146,7 +1150,7 @@
           <div class="w-full h-24 rounded-xl bg-cover bg-center overflow-hidden cursor-pointer" style="background-image: url('${item.image}')" onclick="openChangeImageModal('${item.id}', '${safeName}', '${safeImg}')"></div>
           <div class="flex flex-col">
             <span class="text-xs font-bold text-on-surface truncate" title="${escHtml(item.name)}">${escHtml(item.name)}</span>
-            <span class="text-xs font-semibold text-primary">${warkopSync.formatRupiah(item.price)}</span>
+            <button onclick="setPricePrompt('${item.id}')" class="self-start text-xs font-semibold text-primary underline decoration-dotted underline-offset-2 active:scale-95" title="Ketuk untuk ubah harga">${warkopSync.formatRupiah(item.price)}</button>
             ${item.category === 'snack' ? `<button onclick="event.stopPropagation(); setStockPrompt('${item.id}')" class="mt-1 self-start text-[10px] font-bold px-1.5 py-0.5 rounded ${item.stock == null ? 'bg-surface-container text-on-surface-variant' : item.stock <= 0 ? 'bg-error/10 text-error' : item.stock <= 5 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-700'}" title="Ketuk untuk atur stok">${item.stock == null ? 'Stok: --' : item.stock <= 0 ? 'Stok habis' : 'Sisa ' + item.stock}</button>` : ''}
           </div>
           <button onclick="addToCart('${safeName}', ${item.price}, '${item.category}')" class="w-full h-9 bg-primary text-white rounded-xl flex items-center justify-center gap-1 text-xs font-bold active:scale-95 transition-transform shadow-sm">
@@ -1185,11 +1189,29 @@
       }
       if (existing) {
         existing.qty += 1;
-        existing.subtotal = existing.qty * existing.price;
+        existing.subtotal = existing.qty * cartUnit(existing);
       } else {
-        cart.push({ name, price, qty: 1, subtotal: price, category });
+        const m0 = warkopSync.getMenu().find(x => x.name === name);
+        const livePrice = m0 ? (Number(m0.price) || 0) : price;
+        cart.push({ name, price: livePrice, qty: 1, subtotal: livePrice, category });
       }
       renderCart();
+    }
+
+    async function setPricePrompt(id) {
+      const m = warkopSync.getMenu().find(x => x.id === id);
+      if (!m) return;
+      const input = await uiPrompt({
+        title: 'Ubah Harga',
+        label: m.name,
+        value: String(Number(m.price) || 0),
+        inputType: 'number',
+        placeholder: 'cth: 5000'
+      });
+      if (input === null) return;
+      const res = await warkopSync.updateMenuItemPrice(id, input.trim());
+      if (res && !res.success) uiToast(res.message || 'Gagal menyimpan harga.');
+      renderMenuGrid();
     }
 
     function updateCartQty(name, delta) {
@@ -1206,7 +1228,7 @@
         if (item.qty <= 0) {
           cart = cart.filter(i => i.name !== name);
         } else {
-          item.subtotal = item.qty * item.price;
+          item.subtotal = item.qty * cartUnit(item);
         }
       }
       renderCart();
@@ -1240,7 +1262,7 @@
       let html = '';
       let subtotal = 0;
 
-      cart.forEach(item => {
+      cart.forEach((item, idx) => {
         subtotal += cartUnit(item) * item.qty;
         html += `
           <div class="flex items-center justify-between py-2.5">
@@ -1248,6 +1270,9 @@
               <span class="text-xs font-bold text-on-surface">${escHtml(item.name)}</span>
               <span class="text-[11px] text-on-surface-variant font-medium">${cartLineHtml(item)}</span>
             </div>
+            <button onclick="editCartPrice(${idx})" class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary shrink-0" title="Ubah harga">
+              <span class="material-symbols-outlined text-[15px]">edit</span>
+            </button>
             <div class="flex items-center gap-1.5 bg-surface-container rounded-xl p-1">
               <button onclick="updateCartQty('${escQuote(item.name)}', -1)" class="w-6 h-6 bg-surface rounded-lg flex items-center justify-center text-on-surface active:scale-90 transition-transform">
                 <span class="material-symbols-outlined text-[13px]">remove</span>
@@ -1271,7 +1296,7 @@
       const origSub = cart.reduce((sum, i) => sum + (Number(i.price) || 0) * i.qty, 0);
       const origTotal = origSub;
       const discRow = document.getElementById('staff-discount-row');
-      if (staffMode && origTotal > total) {
+      if (origTotal > total) {
         document.getElementById('staff-discount-text').innerText = '-' + warkopSync.formatRupiah(origTotal - total);
         discRow.classList.remove('hidden');
         discRow.classList.add('flex');
@@ -1279,6 +1304,24 @@
         discRow.classList.add('hidden');
         discRow.classList.remove('flex');
       }
+    }
+
+    async function editCartPrice(idx) {
+      const item = cart[idx];
+      if (!item) return;
+      const input = await uiPrompt({
+        title: 'Harga Custom',
+        label: item.name + ' (normal ' + warkopSync.formatRupiah(item.price) + ')',
+        value: String(cartUnit(item)),
+        inputType: 'number',
+        placeholder: 'cth: 5000'
+      });
+      if (input === null) return;
+      const v = Number(input);
+      if (isNaN(v) || v < 0) { uiToast('Harga tidak valid.'); return; }
+      if (v === (Number(item.price) || 0)) { delete item.custom; } else { item.custom = v; }
+      item.subtotal = v * item.qty;
+      renderCart();
     }
 
     // --- CHECKOUT & PEMBAYARAN ---
@@ -1387,7 +1430,7 @@
           status: 'BON',
           customer: customer,
           staff: staffMode,
-          discount: staffMode ? Math.max(0, obSub - total) : 0
+          discount: Math.max(0, obSub - total)
         });
         document.getElementById('bon-customer-input').value = '';
         closeCheckoutModal();
@@ -1426,7 +1469,7 @@
         paid: cashReceived,
         change: Math.max(0, cashReceived - total),
         staff: staffMode,
-        discount: staffMode ? Math.max(0, origTotal2 - total) : 0
+        discount: Math.max(0, origTotal2 - total)
       };
 
       // Simpan dan broadcast real-time
