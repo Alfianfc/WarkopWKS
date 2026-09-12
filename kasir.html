@@ -77,10 +77,10 @@
   <script src="pos-sync.js"></script>
 </head>
 
-<body class="bg-surface font-sans text-on-surface flex flex-col antialiased selection:bg-primary selection:text-white">
+<body class="bg-surface md:bg-[#e3d3c8] font-sans text-on-surface flex flex-col antialiased selection:bg-primary selection:text-white">
   <!-- Header -->
   <header class="fixed top-0 inset-x-0 z-40 bg-surface/90 backdrop-blur-xl border-b border-surface-container pt-safe">
-    <div class="h-16 px-4 flex items-center justify-between">
+    <div class="h-16 px-4 flex items-center justify-between md:max-w-md md:mx-auto w-full">
       <div class="flex items-center gap-2.5">
         <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
           <span class="material-symbols-outlined text-[24px]">coffee</span>
@@ -114,7 +114,7 @@
   </header>
 
   <!-- Main Content Area -->
-  <main class="flex flex-col relative w-full px-4 pt-20 pb-28 min-h-screen">
+  <main class="flex flex-col relative w-full px-4 pt-20 pb-28 min-h-screen md:max-w-md md:mx-auto md:bg-surface md:min-h-screen md:shadow-2xl md:shadow-stone-900/10">
     
     <!-- Shift Stats Banner (Real-time Financial Summary) -->
     <div class="grid grid-cols-3 gap-2.5 mb-4">
@@ -286,7 +286,7 @@
 
   <!-- Bottom Navigation Bar -->
   <nav class="fixed bottom-0 inset-x-0 z-40 pb-safe bg-surface/95 backdrop-blur-xl border-t border-surface-container shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
-    <div class="flex justify-around items-center h-16 px-2">
+    <div class="flex justify-around items-center h-16 px-2 md:max-w-md md:mx-auto">
       <button onclick="switchTab('pos')" id="tab-pos" class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-primary font-bold transition-all">
         <span class="material-symbols-outlined text-[22px]">point_of_sale</span>
         <span class="text-[11px]">Kasir POS</span>
@@ -1170,7 +1170,7 @@
           </div>
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-error">-${warkopSync.formatRupiah(exp.amount)}</span>
-            <button onclick="deleteExpenseById('${exp.id}')" class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus catatan salah input">
+            <button onclick="deleteExpenseById('${exp.id}')" class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus catatan salah input">
               <span class="material-symbols-outlined text-[16px]">delete</span>
             </button>
           </div>
@@ -1214,10 +1214,10 @@
           </div>
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-primary">${warkopSync.formatRupiah(tx.total)}</span>
-            <button onclick="showReceiptModalById('${tx.id}')" class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary" title="Cetak Struk">
+            <button onclick="showReceiptModalById('${tx.id}')" class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary" title="Cetak Struk">
               <span class="material-symbols-outlined text-[16px]">print</span>
             </button>
-            <button onclick="deleteTransactionById('${tx.id}')" class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus pesanan salah input">
+            <button onclick="deleteTransactionById('${tx.id}')" class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus pesanan salah input">
               <span class="material-symbols-outlined text-[16px]">delete</span>
             </button>
           </div>
