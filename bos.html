@@ -141,7 +141,7 @@
 
     <!-- KPI Bento Grid -->
     <div class="grid grid-cols-2 gap-2.5 mt-2">
-      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-sm relative overflow-hidden">
+      <div onclick="toggleOmzetBreakdown()" class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-sm relative overflow-hidden cursor-pointer active:scale-[0.99] transition-transform" title="Ketuk untuk rincian">
         <div class="flex items-center justify-between mb-2">
           <span class="text-xs text-on-surface-variant font-bold">Omzet Bruto</span>
           <span class="flex items-center text-[10px] text-emerald-700 font-extrabold bg-emerald-500/10 px-1.5 py-0.5 rounded-full">
@@ -152,6 +152,7 @@
         <span class="text-[11px] text-on-surface-variant font-medium mt-1 flex items-center gap-1" id="dash-tx-count">
           <span class="material-symbols-outlined text-[13px]">receipt</span> 0 Transaksi
         </span>
+        <div class="hidden flex-col gap-1.5 mt-2.5 pt-2.5 border-t border-surface-container" id="omzet-breakdown"></div>
       </div>
 
       <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-sm relative overflow-hidden">
@@ -640,6 +641,42 @@
       renderOwnerExpenses(summary);
       renderOwnerHistory(summary);
       renderOpnameRecap();
+      renderOmzetBreakdown(summary);
+    }
+
+    // --- RINCIAN OMZET (klik kartu) ---
+    let omzetOpen = false;
+
+    function toggleOmzetBreakdown() {
+      omzetOpen = !omzetOpen;
+      renderOmzetBreakdown(warkopSync.getSummary('today', activeShiftFilter));
+    }
+
+    function renderOmzetBreakdown(summary) {
+      const box = document.getElementById('omzet-breakdown');
+      if (!box) return;
+      box.classList.toggle('hidden', !omzetOpen);
+      box.classList.toggle('flex', omzetOpen);
+      if (!omzetOpen) return;
+      const agg = { Tunai: { n: 0, v: 0 }, QRIS: { n: 0, v: 0 }, Bon: { n: 0, v: 0 } };
+      summary.filteredTx.forEach(tx => {
+        if (tx.status === 'BON') {
+          agg.Bon.n += 1;
+          agg.Bon.v += Number(tx.total) || 0;
+          return;
+        }
+        const k = tx.paymentMethod === 'QRIS' ? 'QRIS' : 'Tunai';
+        agg[k].n += 1;
+        agg[k].v += Number(tx.total) || 0;
+      });
+      const row = (label, icon, d) => `
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="flex items-center gap-1.5 text-on-surface-variant font-semibold"><span class="material-symbols-outlined text-[15px]">${icon}</span>${label} (${d.n})</span>
+          <span class="font-extrabold text-on-surface">${warkopSync.formatRupiah(d.v)}</span>
+        </div>`;
+      box.innerHTML = row('Tunai', 'payments', agg.Tunai)
+        + row('QRIS', 'qr_code_2', agg.QRIS)
+        + row('Bon belum bayar', 'receipt_long', agg.Bon);
     }
 
     // --- REKAP OPNAME KAS ---
