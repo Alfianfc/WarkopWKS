@@ -807,7 +807,7 @@
       return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    // Escape untuk string JS dalam onclick='...' (kutip + backslash + </script>)
+    // Escape untuk string JS dalam onclick='...' (kutip + backslash + tag script)
     function escJs(s) {
       var b = String.fromCharCode(92);
       return String(s == null ? '' : s).split(b).join(b + b).split("'").join(b + "'").split('<').join('[').split('>').join(']');
