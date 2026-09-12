@@ -16,13 +16,13 @@ class WarkopAuth {
       const defaultAccounts = {
         kasir: {
           username: 'alfian',
-          password: 'alfian3839',
+          password: 'wks-3a61f6',
           role: 'kasir',
           name: 'Kasir Warkop'
         },
         bos: {
-          username: 'bos',
-          password: 'bos123',
+          username: 'Bu Ulfa',
+          password: 'wks-dd61f6',
           role: 'bos',
           name: 'Owner / Bos'
         }

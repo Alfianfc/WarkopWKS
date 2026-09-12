@@ -605,7 +605,8 @@
     function showToast(text) {
       const toast = document.createElement('div');
       toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-on-surface text-surface px-4 py-2.5 rounded-full text-xs font-bold shadow-xl border border-white/20 flex items-center gap-2  whitespace-nowrap';
-      toast.innerHTML = `<span class="material-symbols-outlined text-primary text-[18px]">notifications_active</span><span>${text}</span>`;
+      toast.innerHTML = `<span class="material-symbols-outlined text-primary text-[18px]">notifications_active</span><span></span>`;
+      toast.querySelector('span:last-child').innerText = text;
       document.body.appendChild(toast);
       setTimeout(() => { toast.classList.add('opacity-0', 'transition-opacity', 'duration-300'); setTimeout(() => toast.remove(), 300); }, 3500);
     }
@@ -695,7 +696,7 @@
       }
       box.innerHTML = rows.map(([name, v]) => `
         <div class="flex items-center gap-2.5 bg-surface-container-lowest p-2.5 rounded-xl border border-surface-container">
-          <span class="text-xs font-bold text-on-surface flex-1 truncate">${name}</span>
+          <span class="text-xs font-bold text-on-surface flex-1 truncate">${escHtml(name)}</span>
           <span class="text-[11px] text-on-surface-variant font-semibold shrink-0">${v.qty}x diambil</span>
           <span class="text-xs font-extrabold text-emerald-700 shrink-0">${warkopSync.formatRupiah(v.rev)}</span>
         </div>`).join('');
@@ -762,7 +763,7 @@
         row.innerHTML = `
           <div class="flex flex-col">
             <span class="text-[11px] font-bold text-on-surface">${label}</span>
-            <span class="text-[10px] text-on-surface-variant">Modal ${warkopSync.formatRupiah(r.modal_awal)}${r.closed_by ? ` • tutup: ${r.closed_by}` : ''}</span>
+            <span class="text-[10px] text-on-surface-variant">Modal ${warkopSync.formatRupiah(r.modal_awal)}${r.closed_by ? ` • tutup: ${escHtml(r.closed_by)}` : ''}</span>
           </div>
           ${right}`;
         list.appendChild(row);
@@ -990,7 +991,7 @@
             </div>
             <div class="flex flex-col min-w-0">
               <span class="text-xs font-bold text-on-surface truncate">${exp.note}</span>
-              <span class="text-[10px] text-on-surface-variant">${exp.category} • ${exp.cashier} • ${warkopSync.formatTime(exp.timestamp)}</span>
+              <span class="text-[10px] text-on-surface-variant">${escHtml(exp.category)} • ${escHtml(exp.cashier)} • ${warkopSync.formatTime(exp.timestamp)}</span>
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
@@ -1016,7 +1017,7 @@
       }
       list.innerHTML = '';
       summary.filteredTx.forEach(tx => {
-        const itemsSummary = (tx.items || []).map(i => `${i.name} (${i.qty}x)`).join(', ');
+        const itemsSummary = (tx.items || []).map(i => `${escHtml(i.name)} (${i.qty}x)`).join(', ');
         const isQris = tx.paymentMethod && tx.paymentMethod.toUpperCase().includes('QRIS');
         const el = document.createElement('div');
         el.className = 'flex items-center justify-between bg-surface-container-lowest p-3 rounded-xl border border-surface-container hover:border-primary/30 transition-all cursor-pointer shadow-sm active:scale-[0.99]';
@@ -1027,11 +1028,11 @@
             </div>
             <div class="flex flex-col truncate">
               <div class="flex items-center gap-1.5">
-                <span class="text-xs font-bold text-on-surface truncate">${tx.table}</span>
-                <span class="text-[10px] px-1.5 rounded bg-surface-container text-on-surface-variant font-medium shrink-0">${tx.paymentMethod}</span>${tx.staff ? '<span class="text-[10px] px-1.5 rounded bg-emerald-100 text-emerald-800 font-bold shrink-0">STAFF</span>' : ''}${tx.status === 'BON' ? '<span class="text-[10px] px-1.5 rounded bg-amber-100 text-amber-800 font-bold shrink-0">BON</span>' : ''}
+                <span class="text-xs font-bold text-on-surface truncate">${escHtml(tx.table)}</span>
+                <span class="text-[10px] px-1.5 rounded bg-surface-container text-on-surface-variant font-medium shrink-0">${escHtml(tx.paymentMethod)}</span>${tx.staff ? '<span class="text-[10px] px-1.5 rounded bg-emerald-100 text-emerald-800 font-bold shrink-0">STAFF</span>' : ''}${tx.status === 'BON' ? '<span class="text-[10px] px-1.5 rounded bg-amber-100 text-amber-800 font-bold shrink-0">BON</span>' : ''}
               </div>
               <span class="text-[11px] text-on-surface-variant truncate">${itemsSummary || 'Menu Kasir'}</span>
-              <span class="text-[10px] text-on-surface-variant/70">${tx.cashier} • ${warkopSync.formatTime(tx.timestamp)}</span>
+              <span class="text-[10px] text-on-surface-variant/70">${escHtml(tx.cashier)} • ${warkopSync.formatTime(tx.timestamp)}</span>
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
@@ -1082,7 +1083,7 @@
       box.innerHTML = `<div class="text-[11px] font-bold text-on-surface-variant px-1">Terlaris — ${TOPCAT_NAMES[topCat] || topCat}</div>` + rows.map(([name, v], i) => `
         <div class="flex items-center gap-2.5 bg-surface-container-lowest p-2.5 rounded-xl border border-surface-container">
           <span class="w-6 h-6 rounded-full ${i === 0 ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'} flex items-center justify-center text-[11px] font-extrabold shrink-0">${i + 1}</span>
-          <span class="text-xs font-bold text-on-surface flex-1 truncate">${name}</span>
+          <span class="text-xs font-bold text-on-surface flex-1 truncate">${escHtml(name)}</span>
           <span class="text-[11px] text-on-surface-variant font-semibold shrink-0">${v.qty} terjual</span>
           <span class="text-xs font-extrabold text-primary shrink-0">${warkopSync.formatRupiah(v.rev)}</span>
         </div>`).join('');
@@ -1132,7 +1133,7 @@
       shown.forEach(tx => {
         const itemEl = document.createElement('div');
         itemEl.className = 'flex items-center justify-between bg-surface-container-lowest p-3 rounded-xl border border-surface-container hover:border-primary/30 transition-all cursor-pointer shadow-sm active:scale-[0.99]';
-        const itemsSummary = (tx.items || []).map(i => `${i.name} (${i.qty}x)`).join(', ');
+        const itemsSummary = (tx.items || []).map(i => `${escHtml(i.name)} (${i.qty}x)`).join(', ');
         const isQris = tx.paymentMethod && tx.paymentMethod.toUpperCase().includes('QRIS');
         itemEl.innerHTML = `
           <div class="flex items-center gap-2.5 flex-1 pr-2 min-w-0">
@@ -1141,11 +1142,11 @@
             </div>
             <div class="flex flex-col truncate">
               <div class="flex items-center gap-1.5">
-                <span class="text-xs font-bold text-on-surface truncate">${tx.table}</span>
-                <span class="text-[10px] px-1.5 rounded bg-surface-container text-on-surface-variant font-medium shrink-0">${tx.paymentMethod}</span>${tx.staff ? '<span class="text-[10px] px-1.5 rounded bg-emerald-100 text-emerald-800 font-bold shrink-0">STAFF</span>' : ''}${tx.status === 'BON' ? '<span class="text-[10px] px-1.5 rounded bg-amber-100 text-amber-800 font-bold shrink-0">BON</span>' : ''}
+                <span class="text-xs font-bold text-on-surface truncate">${escHtml(tx.table)}</span>
+                <span class="text-[10px] px-1.5 rounded bg-surface-container text-on-surface-variant font-medium shrink-0">${escHtml(tx.paymentMethod)}</span>${tx.staff ? '<span class="text-[10px] px-1.5 rounded bg-emerald-100 text-emerald-800 font-bold shrink-0">STAFF</span>' : ''}${tx.status === 'BON' ? '<span class="text-[10px] px-1.5 rounded bg-amber-100 text-amber-800 font-bold shrink-0">BON</span>' : ''}
               </div>
               <span class="text-[11px] text-on-surface-variant truncate">${itemsSummary || 'Menu Kasir'}</span>
-              <span class="text-[10px] text-on-surface-variant/70">${tx.cashier} • ${warkopSync.formatTime(tx.timestamp)}</span>
+              <span class="text-[10px] text-on-surface-variant/70">${escHtml(tx.cashier)} • ${warkopSync.formatTime(tx.timestamp)}</span>
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
@@ -1189,8 +1190,8 @@
               <span class="material-symbols-outlined text-[18px]">receipt</span>
             </div>
             <div class="flex flex-col">
-              <span class="text-xs font-bold text-on-surface">${exp.note}</span>
-              <span class="text-[10px] text-on-surface-variant">${exp.category} • ${exp.cashier} • ${warkopSync.formatTime(exp.timestamp)}</span>
+              <span class="text-xs font-bold text-on-surface">${escHtml(exp.note)}</span>
+              <span class="text-[10px] text-on-surface-variant">${escHtml(exp.category)} • ${escHtml(exp.cashier)} • ${warkopSync.formatTime(exp.timestamp)}</span>
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
@@ -1249,6 +1250,10 @@
 
     function submitDialog() {
       closeDialog(true);
+    }
+
+    function escHtml(s) {
+      return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
     // --- MODAL TRANSAKSI ---

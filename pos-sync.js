@@ -939,6 +939,12 @@ class WarkopSyncEngine {
     return encodeURIComponent(msg);
   }
 
+  // Cegah formula injection saat CSV dibuka di Excel
+  csvEsc(v) {
+    const str = String(v == null ? '' : v);
+    return /^[=+\-@\t\r]/.test(str) ? `'${str}` : str;
+  }
+
   exportToCSV() {
     const summary = this.getSummary('all');
     let csv = 'ID Transaksi,Tanggal,Jam,Kasir,Meja,Metode Bayar,Shift,Rincian Pesanan,Subtotal,Pajak,Total,Status,Staff\n';
@@ -947,9 +953,9 @@ class WarkopSyncEngine {
       const date = tx.timestamp ? new Date(tx.timestamp) : new Date();
       const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       const timeStr = date.toLocaleTimeString('id-ID');
-      const itemsDetail = (tx.items || []).map((i) => `${i.name} (${i.qty}x)`).join('; ');
+      const itemsDetail = (tx.items || []).map((i) => `${this.csvEsc(i.name)} (${i.qty}x)`).join('; ');
 
-      csv += `"${tx.id}","${dateStr}","${timeStr}","${tx.cashier}","${tx.table}","${tx.paymentMethod}","${this.recordShift(tx) === '1' ? 'Shift 1' : 'Shift 2'}","${itemsDetail}",${tx.subtotal},${tx.tax},${tx.total},"${tx.status}","${tx.staff ? 'Ya' : '-'}","${Number(tx.discount) || 0}"\n`;
+      csv += `"${tx.id}","${dateStr}","${timeStr}","${this.csvEsc(tx.cashier)}","${this.csvEsc(tx.table)}","${this.csvEsc(tx.paymentMethod)}","${this.recordShift(tx) === '1' ? 'Shift 1' : 'Shift 2'}","${this.csvEsc(itemsDetail)}",${tx.subtotal},${tx.tax},${tx.total},"${tx.status}","${tx.staff ? 'Ya' : '-'}","${Number(tx.discount) || 0}"\n`;
     });
 
     csv += '\n\nID Pengeluaran,Tanggal,Jam,Kasir,Kategori,Shift,Keterangan,Nominal\n';
@@ -958,7 +964,7 @@ class WarkopSyncEngine {
       const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       const timeStr = date.toLocaleTimeString('id-ID');
 
-      csv += `"${exp.id}","${dateStr}","${timeStr}","${exp.cashier}","${exp.category}","${this.recordShift(exp) === '1' ? 'Shift 1' : 'Shift 2'}","${exp.note}",${exp.amount}\n`;
+      csv += `"${exp.id}","${dateStr}","${timeStr}","${this.csvEsc(exp.cashier)}","${this.csvEsc(exp.category)}","${this.recordShift(exp) === '1' ? 'Shift 1' : 'Shift 2'}","${this.csvEsc(exp.note)}",${exp.amount}\n`;
     });
 
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });

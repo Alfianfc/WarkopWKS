@@ -21,8 +21,8 @@ Saat pertama kali membuka website, silakan gunakan kredensial berikut:
 
 | Peran (Role) | Username | Password | Hak Akses |
 | :--- | :--- | :--- | :--- |
-| **Kasir Warkop** | `alfian` | `alfian3839` | Buat Pesanan, Hitung Kembalian, Catat Pengeluaran Belanja Bahan, Cetak Struk. *(Tidak bisa melihat laporan keuangan bos)* |
-| **Bos / Owner** | `bos` | `bos123` | Akses Penuh: Omzet Bruto, Laba Bersih, Pengeluaran Modal, Live Feed, Rekap WhatsApp, Ekspor Excel, dan **Ganti Password**. |
+| **Kasir Warkop** | `alfian` | `•••••• (minta ke owner)` | Buat Pesanan, Hitung Kembalian, Catat Pengeluaran Belanja Bahan, Cetak Struk. *(Tidak bisa melihat laporan keuangan bos)* |
+| **Bos / Owner** | `Bu Ulfa` | `•••••• (minta ke owner)` | Akses Penuh: Omzet Bruto, Laba Bersih, Pengeluaran Modal, Live Feed, Rekap WhatsApp, Ekspor Excel, dan **Ganti Password**. |
 
 > 🔑 **Catatan Keamanan:** Bos dapat mengganti password kasir maupun password bos kapan saja melalui tombol ikon kunci (**Kelola Akun**) di kanan atas layar Bos.
 
