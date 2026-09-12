@@ -87,7 +87,7 @@
 <body class="bg-surface md:bg-[#e3d3c8] font-sans text-on-surface flex flex-col antialiased selection:bg-primary selection:text-white">
   <!-- Header -->
   <header class="fixed top-0 inset-x-0 z-40 bg-surface/90 backdrop-blur-xl border-b border-surface-container pt-safe">
-    <div class="h-16 px-4 flex items-center justify-between md:max-w-md md:mx-auto w-full">
+    <div class="h-16 px-4 flex items-center justify-between md:max-w-md md:mx-auto w-full lg:max-w-5xl">
       <div class="flex items-center gap-2.5">
         <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
           <span class="material-symbols-outlined text-[24px]">coffee</span>
@@ -121,7 +121,7 @@
   </header>
 
   <!-- Main Content Area -->
-  <main class="flex flex-col relative w-full px-4 pt-20 pb-28 min-h-screen md:max-w-md md:mx-auto md:bg-surface md:min-h-screen md:shadow-2xl md:shadow-stone-900/10">
+  <main class="flex flex-col relative w-full px-4 pt-20 pb-28 min-h-screen md:max-w-md md:mx-auto md:bg-surface md:min-h-screen md:shadow-2xl md:shadow-stone-900/10 lg:max-w-5xl">
     
     <!-- Shift Stats Banner (Real-time Financial Summary) -->
     <div class="grid grid-cols-3 gap-2.5 mb-4">
@@ -198,7 +198,8 @@
     </div>
 
     <!-- SECTION 1: POS VIEW (CATALOG & CART) -->
-    <div id="view-pos" class="flex flex-col gap-4">
+    <div id="view-pos" class="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
+      <div class="flex flex-col gap-4 min-w-0">
       <!-- Category Filter Chips -->
       <div class="flex items-center gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-none">
         <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-primary text-white shadow-sm transition-all" onclick="filterMenu('all', this)">Semua Menu</button>
@@ -209,12 +210,13 @@
       </div>
 
       <!-- Menu Grid Container -->
-      <div class="grid grid-cols-2 gap-3" id="menu-grid">
+      <div class="grid grid-cols-2 lg:grid-cols-3 gap-3" id="menu-grid">
         <!-- Rendered dynamically via renderMenuGrid() -->
       </div>
 
+      </div>
       <!-- Active Bill Section (Cart) -->
-      <div class="bg-surface-container-low rounded-2xl p-4 border border-surface-container flex flex-col gap-3.5 shadow-sm mt-2">
+      <div class="bg-surface-container-low rounded-2xl p-4 border border-surface-container flex flex-col gap-3.5 shadow-sm mt-2 lg:mt-0 lg:sticky lg:top-20">
         <div class="flex justify-between items-center pb-2 border-b border-surface-container">
           <div class="flex items-center gap-2">
             <span class="material-symbols-outlined text-primary text-[20px]">shopping_cart</span>
@@ -269,7 +271,7 @@
     </div>
 
     <!-- SECTION 2: PENGELUARAN VIEW -->
-    <div id="view-expenses" class="hidden flex flex-col gap-3">
+    <div id="view-expenses" class="hidden flex-col gap-3 lg:max-w-3xl lg:mx-auto w-full">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-base font-bold text-on-surface" id="expenses-title">Catatan Belanja &amp; Modal</h2>
@@ -287,7 +289,7 @@
     </div>
 
     <!-- SECTION 3: RIWAYAT VIEW -->
-    <div id="view-history" class="hidden flex flex-col gap-3">
+    <div id="view-history" class="hidden flex-col gap-3 lg:max-w-3xl lg:mx-auto w-full">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-base font-bold text-on-surface" id="history-title">Riwayat Transaksi</h2>
@@ -312,7 +314,7 @@
 
   <!-- Bottom Navigation Bar -->
   <nav class="fixed bottom-0 inset-x-0 z-40 pb-safe bg-surface/95 backdrop-blur-xl border-t border-surface-container shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
-    <div class="flex justify-around items-center h-16 px-2 md:max-w-md md:mx-auto">
+    <div class="flex justify-around items-center h-16 px-2 md:max-w-md md:mx-auto lg:max-w-5xl">
       <button onclick="switchTab('pos')" id="tab-pos" class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-primary font-bold transition-all">
         <span class="material-symbols-outlined text-[22px]">point_of_sale</span>
         <span class="text-[11px]">Kasir POS</span>

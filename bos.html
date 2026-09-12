@@ -57,7 +57,7 @@
 
   <!-- Header -->
   <header class="fixed top-0 inset-x-0 z-40 bg-surface/90 backdrop-blur-xl border-b border-surface-container pt-safe">
-    <div class="h-16 px-3 flex items-center justify-between md:max-w-md md:mx-auto w-full">
+    <div class="h-16 px-3 flex items-center justify-between md:max-w-md md:mx-auto w-full lg:max-w-6xl">
       <div class="flex items-center gap-2.5">
         <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
           <span class="material-symbols-outlined text-[24px]">coffee</span>
@@ -107,7 +107,7 @@
   </header>
 
   <!-- Main -->
-  <main class="flex flex-col relative w-full px-4 pt-20 pb-28 min-h-screen md:max-w-md md:mx-auto md:bg-surface md:min-h-screen md:shadow-2xl md:shadow-stone-900/10">
+  <main class="flex flex-col relative w-full px-4 pt-20 pb-28 min-h-screen md:max-w-md md:mx-auto md:bg-surface md:min-h-screen md:shadow-2xl md:shadow-stone-900/10 lg:max-w-6xl">
 
    <!-- VIEW LAPORAN -->
    <div id="view-laporan" class="flex flex-col">
@@ -141,7 +141,7 @@
     </div>
 
     <!-- KPI Bento Grid -->
-    <div class="grid grid-cols-2 gap-2.5 mt-2">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mt-2">
       <div onclick="toggleOmzetBreakdown()" class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-sm relative overflow-hidden cursor-pointer active:scale-[0.99] transition-transform" title="Ketuk untuk rincian">
         <div class="flex items-center justify-between mb-2">
           <span class="text-xs text-on-surface-variant font-bold">Omzet Bruto</span>
@@ -223,6 +223,7 @@
       </div>
     </div>
 
+    <div class="flex flex-col gap-3 lg:grid lg:grid-cols-2">
     <!-- Bar Chart Omzet Per Jam -->
     <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-sm">
       <div class="flex items-center justify-between mb-2">
@@ -272,6 +273,7 @@
       </div>
     </div>
 
+    </div>
     <!-- Komposisi Penjualan Kategori -->
     <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-sm">
       <h3 class="text-sm font-bold text-on-surface mb-0.5">Komposisi Penjualan Kategori</h3>
@@ -287,7 +289,7 @@
     </div>
 
     <!-- Live Feed -->
-    <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-sm">
+    <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-sm lg:max-w-3xl">
       <div class="flex items-center justify-between pb-3 border-b border-surface-container">
         <div class="flex items-center gap-1.5">
           <span class="material-symbols-outlined text-primary text-[20px]">rss_feed</span>
@@ -340,7 +342,7 @@
    </div><!-- /view-laporan -->
 
    <!-- VIEW PENGELOUARAN -->
-   <div id="view-pengeluaran" class="hidden flex-col gap-3">
+   <div id="view-pengeluaran" class="hidden flex-col gap-3 lg:max-w-3xl">
      <div class="flex items-center justify-between py-2">
        <div>
          <h2 class="text-base font-bold text-on-surface" id="owner-expenses-title">Belanja Modal</h2>
@@ -351,7 +353,7 @@
    </div>
 
    <!-- VIEW RIWAYAT -->
-   <div id="view-riwayat" class="hidden flex-col gap-3">
+   <div id="view-riwayat" class="hidden flex-col gap-3 lg:max-w-3xl">
      <div class="flex items-center justify-between py-2">
        <div>
          <h2 class="text-base font-bold text-on-surface" id="owner-history-title">Riwayat Transaksi</h2>
@@ -368,7 +370,7 @@
 
   <!-- Bottom Nav -->
   <nav class="fixed bottom-0 inset-x-0 z-40 pb-safe bg-surface/95 backdrop-blur-xl border-t border-surface-container shadow-[0_-2px_10px_rgba(0,0,0,0.03)]">
-    <div class="flex justify-around items-center h-16 px-2 md:max-w-md md:mx-auto">
+    <div class="flex justify-around items-center h-16 px-2 md:max-w-md md:mx-auto lg:max-w-6xl">
       <a href="/kasir"
         class="flex flex-col items-center justify-center gap-1 flex-1 h-full text-on-surface-variant hover:text-primary transition-all">
         <span class="material-symbols-outlined text-[22px]">point_of_sale</span>
