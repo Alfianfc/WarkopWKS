@@ -149,6 +149,35 @@
       </div>
     </div>
 
+    <!-- Kas Shift / Opname -->
+    <div class="bg-surface-container-low rounded-2xl p-3.5 border border-surface-container flex flex-col gap-2.5 mb-4 shadow-sm">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-on-surface flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[18px] text-primary">account_balance_wallet</span>
+          Kas <span id="opname-shift-label">Shift</span>
+        </span>
+        <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant" id="opname-status">-</span>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="bg-surface-container-lowest rounded-xl p-2 border border-surface-container">
+          <div class="text-[10px] text-on-surface-variant font-semibold">Modal awal</div>
+          <div class="text-xs font-extrabold text-on-surface" id="opname-modal-awal">Rp 0</div>
+        </div>
+        <div class="bg-surface-container-lowest rounded-xl p-2 border border-surface-container">
+          <div class="text-[10px] text-on-surface-variant font-semibold">Ekspektasi</div>
+          <div class="text-xs font-extrabold text-primary" id="opname-expected">Rp 0</div>
+        </div>
+        <div class="bg-surface-container-lowest rounded-xl p-2 border border-surface-container">
+          <div class="text-[10px] text-on-surface-variant font-semibold">Selisih</div>
+          <div class="text-xs font-extrabold text-on-surface-variant" id="opname-diff">-</div>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="openOpnameModal('open')" class="flex-1 h-10 bg-surface-container hover:bg-surface-container-high text-on-surface border border-surface-container-high rounded-xl text-xs font-bold active:scale-95">Set Modal</button>
+        <button onclick="openOpnameModal('close')" id="opname-close-btn" class="flex-1 h-10 bg-primary text-white rounded-xl text-xs font-bold active:scale-95 shadow-sm">Tutup Shift</button>
+      </div>
+    </div>
+
     <!-- Quick Action Bar: Catat Pengeluaran Modal & Tambah Menu -->
     <div class="flex items-center gap-2 mb-4">
       <button onclick="openExpenseModal()" class="flex-1 h-11 bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-300/60 rounded-xl flex items-center justify-center gap-2 text-xs font-bold active:scale-[0.98] transition-all">
@@ -662,6 +691,46 @@
     </div>
   </div>
 
+  <!-- 7. Modal Opname Kas -->
+  <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="opname-modal">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-2 border-b border-surface-container">
+        <div>
+          <h3 class="text-base font-bold text-on-surface" id="opname-modal-title">Set Modal Awal</h3>
+          <p class="text-xs text-on-surface-variant" id="opname-modal-sub">-</p>
+        </div>
+        <button onclick="closeOpnameModal()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+      <div id="opname-open-box" class="flex flex-col gap-3">
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">Modal kas awal shift ini (Rp)</label>
+          <input type="number" id="opname-modal-input" placeholder="cth: 100000" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-xl px-3.5 text-base font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+      </div>
+      <div id="opname-close-box" class="hidden flex-col gap-3">
+        <div class="bg-surface-container-low p-3 rounded-xl border border-surface-container text-xs text-on-surface-variant leading-relaxed" id="opname-close-info">-</div>
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">Hitung kas fisik di laci (Rp)</label>
+          <input type="number" id="opname-cash-input" oninput="opnameCalcDiff()" placeholder="cth: 250000" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-xl px-3.5 text-base font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <div class="bg-surface-container p-3 rounded-xl flex justify-between items-center">
+          <span class="text-xs font-semibold text-on-surface-variant">Selisih (fisik − sistem):</span>
+          <span class="text-base font-extrabold" id="opname-diff-preview">Rp 0</span>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">Catatan (opsional)</label>
+          <input type="text" id="opname-note-input" placeholder="cth: kembalian nyangkut 2rb" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+        </div>
+      </div>
+      <button onclick="saveOpname()" class="w-full h-12 bg-primary text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-[0.98] transition-transform shadow-md mt-1">
+        <span class="material-symbols-outlined text-[20px]">save</span>
+        <span>Simpan</span>
+      </button>
+    </div>
+  </div>
+
   <!-- APPLICATION LOGIC SCRIPT -->
   <script>
     let cart = [];
@@ -750,7 +819,10 @@
         updateFinancialStats();
         renderExpensesList();
         renderHistoryList();
+        renderOpnameCard();
       });
+      warkopSync.on('cashChanged', () => renderOpnameCard());
+      warkopSync.refreshCashSessions().then(() => renderOpnameCard());
 
       // Update status button cloud
       updateCloudButtonState();
@@ -1386,6 +1458,128 @@
         }
         renderMenuGrid();
       }
+    }
+
+    // --- OPNAME KAS SHIFT (kasir) ---
+    let opnameMode = 'open';
+    let opnameExpected = 0;
+
+    function currentShiftKey() {
+      const date = warkopSync.businessDateStr(new Date());
+      const shift = warkopSync.shiftOf(new Date());
+      return { date, shift, id: `${date}_${shift}` };
+    }
+
+    function renderOpnameCard() {
+      const { date, shift, id } = currentShiftKey();
+      const rec = warkopSync.getCashSessions()[id];
+      const flow = warkopSync.shiftCashFlow(shift, date);
+      const modal = rec ? (Number(rec.modal_awal) || 0) : 0;
+      const expected = modal + flow.cashIn - flow.expenses;
+      opnameExpected = expected;
+
+      document.getElementById('opname-shift-label').innerText = warkopSync.shiftLabel(shift);
+      document.getElementById('opname-modal-awal').innerText = warkopSync.formatRupiah(modal);
+      document.getElementById('opname-expected').innerText = warkopSync.formatRupiah(expected);
+
+      const stEl = document.getElementById('opname-status');
+      const diffEl = document.getElementById('opname-diff');
+      if (rec && rec.closed_at) {
+        const diff = Number(rec.diff) || 0;
+        stEl.innerText = 'Sudah tutup';
+        stEl.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant';
+        diffEl.innerText = (diff >= 0 ? '+' : '') + warkopSync.formatRupiah(diff);
+        diffEl.className = 'text-xs font-extrabold ' + (diff >= 0 ? 'text-emerald-700' : 'text-error');
+      } else if (rec) {
+        stEl.innerText = 'Berjalan';
+        stEl.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200';
+        diffEl.innerText = '-';
+        diffEl.className = 'text-xs font-extrabold text-on-surface-variant';
+      } else {
+        stEl.innerText = 'Belum dibuka';
+        stEl.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200';
+        diffEl.innerText = '-';
+        diffEl.className = 'text-xs font-extrabold text-on-surface-variant';
+      }
+      document.getElementById('opname-close-btn').disabled = !rec;
+      document.getElementById('opname-close-btn').classList.toggle('opacity-40', !rec);
+    }
+
+    function openOpnameModal(mode) {
+      opnameMode = mode;
+      const { date, shift } = currentShiftKey();
+      const rec = warkopSync.getCashSessions()[`${date}_${shift}`] || {};
+      const user = warkopAuth.getCurrentUser();
+      document.getElementById('opname-modal-sub').innerText = `${warkopSync.shiftLabel(shift)} • ${user ? user.name : ''}`;
+      const isOpen = mode === 'open';
+      document.getElementById('opname-modal-title').innerText = isOpen ? 'Set Modal Awal' : 'Tutup Shift — Hitung Kas';
+      document.getElementById('opname-open-box').classList.toggle('hidden', !isOpen);
+      document.getElementById('opname-close-box').classList.toggle('hidden', isOpen);
+      document.getElementById('opname-close-box').classList.toggle('flex', !isOpen);
+      if (isOpen) {
+        document.getElementById('opname-modal-input').value = rec.modal_awal || '';
+      } else {
+        const flow = warkopSync.shiftCashFlow(shift, date);
+        const modal = Number(rec.modal_awal) || 0;
+        document.getElementById('opname-close-info').innerHTML =
+          `Modal ${warkopSync.formatRupiah(modal)} + Tunai ${warkopSync.formatRupiah(flow.cashIn)} − Belanja ${warkopSync.formatRupiah(flow.expenses)} = <strong>${warkopSync.formatRupiah(modal + flow.cashIn - flow.expenses)}</strong>`;
+        document.getElementById('opname-cash-input').value = '';
+        document.getElementById('opname-note-input').value = rec.note || '';
+        opnameCalcDiff();
+      }
+      document.getElementById('opname-modal').classList.remove('hidden');
+      document.getElementById('opname-modal').classList.add('flex');
+    }
+
+    function closeOpnameModal() {
+      document.getElementById('opname-modal').classList.remove('flex');
+      document.getElementById('opname-modal').classList.add('hidden');
+    }
+
+    function opnameCalcDiff() {
+      const cash = Number(document.getElementById('opname-cash-input').value) || 0;
+      const diff = cash - opnameExpected;
+      const el = document.getElementById('opname-diff-preview');
+      el.innerText = (diff >= 0 ? '+' : '') + warkopSync.formatRupiah(diff);
+      el.className = 'text-base font-extrabold ' + (diff >= 0 ? 'text-emerald-700' : 'text-error');
+    }
+
+    async function saveOpname() {
+      const { date, shift, id } = currentShiftKey();
+      const user = warkopAuth.getCurrentUser();
+      const name = (user && user.name) || 'Kasir';
+      if (opnameMode === 'open') {
+        const modal = Number(document.getElementById('opname-modal-input').value);
+        if (!modal || modal < 0) {
+          alert('Isi modal awal dengan benar.');
+          return;
+        }
+        await warkopSync.saveCashSession({
+          id, business_date: date, shift,
+          opened_by: name, modal_awal: modal,
+          open_at: new Date().toISOString()
+        });
+      } else {
+        const cash = Number(document.getElementById('opname-cash-input').value);
+        if (!document.getElementById('opname-cash-input').value) {
+          alert('Isi hasil hitung kas fisik.');
+          return;
+        }
+        const note = document.getElementById('opname-note-input').value.trim();
+        const rec = warkopSync.getCashSessions()[id] || {};
+        const modal = Number(rec.modal_awal) || 0;
+        await warkopSync.saveCashSession({
+          id, business_date: date, shift,
+          opened_by: rec.opened_by || name,
+          modal_awal: modal,
+          open_at: rec.open_at || new Date().toISOString(),
+          closed_by: name, cash_actual: cash,
+          expected: opnameExpected, diff: cash - opnameExpected,
+          note: note, closed_at: new Date().toISOString()
+        });
+      }
+      closeOpnameModal();
+      renderOpnameCard();
     }
 
     // --- FILTER RIWAYAT + LUNASI BON (kasir) ---

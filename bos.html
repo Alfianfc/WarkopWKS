@@ -199,6 +199,16 @@
         <span class="text-[11px] text-on-surface-variant font-semibold" id="dash-bon-info">0 bon • Rp 0</span>
       </div>
 
+      <div class="col-span-2 flex flex-col gap-2 bg-surface-container-low rounded-2xl p-3.5 border border-surface-container shadow-sm">
+        <span class="text-xs font-bold text-on-surface flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[18px] text-primary">account_balance_wallet</span>
+          Opname Kas
+        </span>
+        <div class="flex flex-col gap-1.5" id="dash-opname-list">
+          <span class="text-[11px] text-on-surface-variant">Memuat...</span>
+        </div>
+      </div>
+
       <div class="col-span-2 hidden items-center justify-between gap-2 bg-amber-50 rounded-2xl p-3.5 border border-amber-200" id="low-stock-card">
         <span class="text-xs font-bold text-amber-900 flex items-center gap-1.5 shrink-0">
           <span class="material-symbols-outlined text-[18px]">inventory_2</span>
@@ -495,6 +505,8 @@
       refreshDashboard();
 
       warkopSync.on('dataChanged', () => refreshDashboard());
+      warkopSync.on('cashChanged', () => renderOpnameRecap());
+      warkopSync.refreshCashSessions();
 
       warkopSync.on('transactionAdded', (tx) => {
         if (isAudioEnabled) warkopSync.playNotificationSound();
@@ -625,6 +637,40 @@
       renderLiveExpensesFeed(summary.filteredExpenses);
       renderOwnerExpenses(summary);
       renderOwnerHistory(summary);
+      renderOpnameRecap();
+    }
+
+    // --- REKAP OPNAME KAS ---
+    function renderOpnameRecap() {
+      const list = document.getElementById('dash-opname-list');
+      if (!list) return;
+      const all = warkopSync.getCashSessions();
+      const keys = Object.keys(all).sort().reverse().slice(0, 6);
+      if (keys.length === 0) {
+        list.innerHTML = `<span class="text-[11px] text-on-surface-variant">Belum ada opname. Kasir input dari halaman Kasir POS.</span>`;
+        return;
+      }
+      list.innerHTML = '';
+      keys.forEach(k => {
+        const r = all[k];
+        const label = `${r.business_date} • ${warkopSync.shiftLabel(r.shift)}`;
+        let right;
+        if (r.closed_at) {
+          const diff = Number(r.diff) || 0;
+          right = `<span class="text-[11px] font-extrabold ${diff >= 0 ? 'text-emerald-700' : 'text-error'}">${diff >= 0 ? '+' : ''}${warkopSync.formatRupiah(diff)}</span>`;
+        } else {
+          right = `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant">Berjalan</span>`;
+        }
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between bg-surface-container-lowest px-3 py-2 rounded-xl border border-surface-container';
+        row.innerHTML = `
+          <div class="flex flex-col">
+            <span class="text-[11px] font-bold text-on-surface">${label}</span>
+            <span class="text-[10px] text-on-surface-variant">Modal ${warkopSync.formatRupiah(r.modal_awal)}${r.closed_by ? ` • tutup: ${r.closed_by}` : ''}</span>
+          </div>
+          ${right}`;
+        list.appendChild(row);
+      });
     }
 
     // --- GRAFIK PENDAPATAN (Harian / Mingguan / Bulanan) ---

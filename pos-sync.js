@@ -17,7 +17,8 @@ class WarkopSyncEngine {
       transactionAdded: [],
       expenseAdded: [],
       transactionDeleted: [],
-      expenseDeleted: []
+      expenseDeleted: [],
+      cashChanged: []
     };
 
     this.isSupabaseReady = false;
@@ -59,6 +60,8 @@ class WarkopSyncEngine {
             localStorage.setItem(this.storageKeys.expenses, JSON.stringify(current));
             this.notifyListeners('expenseDeleted', payload);
             this.notifyListeners('dataChanged', this.getAllData());
+          } else if (type === 'CASH_UPDATED') {
+            this.refreshCashSessions();
           } else if (type === 'MENU_UPDATED' || type === 'DATA_UPDATED') {
             this.notifyListeners('dataChanged', this.getAllData());
           }
@@ -690,6 +693,77 @@ class WarkopSyncEngine {
       paid: Number((pay && pay.paid)) || 0,
       change: Number((pay && pay.change)) || 0
     });
+  }
+
+  // --- OPNAME KAS per tanggal bisnis + shift ---
+  cashStoreKey() {
+    return 'warkop_cash_v1';
+  }
+
+  getCashSessions() {
+    try {
+      const data = localStorage.getItem(this.cashStoreKey());
+      return data ? JSON.parse(data) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  setCashSessions(obj) {
+    localStorage.setItem(this.cashStoreKey(), JSON.stringify(obj || {}));
+  }
+
+  async refreshCashSessions() {
+    if (!window.supabaseClient) return;
+    try {
+      const { data, error } = await window.supabaseClient
+        .from('cash_sessions')
+        .select('*')
+        .order('business_date', { ascending: false })
+        .order('shift', { ascending: false })
+        .limit(14);
+      if (!error && Array.isArray(data)) {
+        const obj = {};
+        data.forEach(r => { obj[r.id] = r; });
+        this.setCashSessions(obj);
+        this.notifyListeners('cashChanged', obj);
+        this.notifyListeners('dataChanged', this.getAllData());
+      }
+    } catch (e) {
+      console.warn('refresh cash notice:', e);
+    }
+  }
+
+  async saveCashSession(rec) {
+    if (!rec || !rec.id) return { success: false };
+    const obj = this.getCashSessions();
+    obj[rec.id] = { ...obj[rec.id], ...rec };
+    this.setCashSessions(obj);
+
+    if (this.channel) {
+      try { this.channel.postMessage({ type: 'CASH_UPDATED', payload: { id: rec.id } }); } catch (e) {}
+    }
+
+    if (window.supabaseClient) {
+      try {
+        await window.supabaseClient.from('cash_sessions').upsert([obj[rec.id]], { onConflict: 'id' });
+      } catch (err) {
+        console.warn('Supabase save cash notice:', err);
+      }
+    }
+
+    this.notifyListeners('cashChanged', obj);
+    this.notifyListeners('dataChanged', this.getAllData());
+    return { success: true };
+  }
+
+  // Arus kas shift: masuk tunai (lunas) - belanja. QRIS/Bon bukan kas fisik.
+  shiftCashFlow(shift, dayStr) {
+    const summary = this.getSummary('today', shift);
+    const cashIn = summary.filteredTx
+      .filter(t => t.paymentMethod === 'Tunai')
+      .reduce((a, t) => a + (Number(t.total) || 0), 0);
+    return { cashIn, expenses: summary.totalExpenses };
   }
 
   getAllData() {
