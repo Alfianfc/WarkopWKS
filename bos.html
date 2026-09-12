@@ -56,13 +56,13 @@
 
   <!-- Header -->
   <header class="fixed top-0 inset-x-0 z-40 bg-surface/90 backdrop-blur-xl border-b border-surface-container pt-safe">
-    <div class="h-16 px-4 flex items-center justify-between md:max-w-md md:mx-auto w-full">
+    <div class="h-16 px-3 flex items-center justify-between md:max-w-md md:mx-auto w-full">
       <div class="flex items-center gap-2.5">
         <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
           <span class="material-symbols-outlined text-[24px]">coffee</span>
         </div>
         <div>
-          <h1 class="text-base font-bold tracking-tight text-on-surface flex items-center gap-1.5">
+          <h1 class="text-[15px] font-bold tracking-tight text-on-surface flex items-center gap-1.5 whitespace-nowrap">
             Dashboard Owner
             <span class="relative flex h-2 w-2">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
@@ -76,7 +76,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-1.5">
+      <div class="flex items-center gap-1">
         <!-- Audio Toggle -->
         <button onclick="toggleAudioChime()" id="audio-toggle-btn"
           class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary active:scale-95 transition-all"
@@ -91,8 +91,8 @@
         </button>
         <!-- Status Supabase -->
         <div id="supabase-status-badge"
-          class="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <span class="material-symbols-outlined text-[14px]">cloud_done</span>
+          class="flex items-center gap-0.5 px-1.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap shrink-0">
+          <span class="material-symbols-outlined text-[12px]">cloud_done</span>
           <span id="supabase-status-text">Supabase LIVE</span>
         </div>
         <!-- Logout -->
@@ -465,14 +465,14 @@
       const kasirText = document.getElementById('kasir-status-text');
 
       if (warkopSync.isSupabaseReady) {
-        badge.className = 'flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200';
+        badge.className = 'flex items-center gap-0.5 px-1.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap shrink-0';
         text.innerText = 'Supabase LIVE';
 
         kasirBadge.className = 'flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full';
         kasirBadge.querySelector('span').className = 'w-2 h-2 rounded-full bg-emerald-600 animate-pulse';
         kasirText.innerText = 'Sistem Aktif';
       } else {
-        badge.className = 'flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200';
+        badge.className = 'flex items-center gap-0.5 px-1.5 py-1 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap shrink-0';
         text.innerText = 'Mode Lokal';
 
         kasirBadge.className = 'flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-full';
