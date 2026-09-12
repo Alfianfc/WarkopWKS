@@ -3,3 +3,5 @@ node_modules/
 .vercel/
 *.log
 warkop_data.json
+
+cap_*.json
