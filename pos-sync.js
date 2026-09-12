@@ -27,9 +27,9 @@ class WarkopSyncEngine {
 
     this.initBroadcastChannel();
     this.initLocalStorageListener();
-    this.initDefaultData();
-    this.initSupabase();
-    this.initSocketIO();
+    try { this.initDefaultData(); } catch (e) { console.warn('init menu notice:', e); }
+    try { this.initSupabase(); } catch (e) { console.warn('init cloud notice:', e); }
+    try { this.initSocketIO(); } catch (e) { console.warn('init socket notice:', e); }
   }
 
   // --- BroadcastChannel for multi-tab sync ---
@@ -78,6 +78,27 @@ class WarkopSyncEngine {
         this.notifyListeners('dataChanged', this.getAllData());
       }
     });
+  }
+
+  // Tulis localStorage yang tahan kuota penuh (return false kalau gagal)
+  safeSet(key, val) {
+    try {
+      localStorage.setItem(key, val);
+      return true;
+    } catch (e) {
+      console.warn('localStorage penuh, pakai memori sementara:', e);
+      this._memFallback = this._memFallback || {};
+      this._memFallback[key] = val;
+      return false;
+    }
+  }
+
+  safeGet(key) {
+    try {
+      const v = localStorage.getItem(key);
+      if (v != null) return v;
+    } catch (e) {}
+    return (this._memFallback || {})[key] || null;
   }
 
   // --- Supabase Realtime & Remote Database Sync ---
@@ -249,7 +270,7 @@ class WarkopSyncEngine {
   }
 
   initDefaultData() {
-    const existing = localStorage.getItem(this.storageKeys.menu);
+    const existing = this.safeGet(this.storageKeys.menu);
     let menuList = [];
     try {
       menuList = existing ? JSON.parse(existing) : [];
@@ -326,7 +347,7 @@ class WarkopSyncEngine {
 
   getTransactions() {
     try {
-      const data = localStorage.getItem(this.storageKeys.transactions);
+      const data = this.safeGet(this.storageKeys.transactions);
       return data ? JSON.parse(data) : [];
     } catch (e) {
       return [];
@@ -383,7 +404,7 @@ class WarkopSyncEngine {
 
   getExpenses() {
     try {
-      const data = localStorage.getItem(this.storageKeys.expenses);
+      const data = this.safeGet(this.storageKeys.expenses);
       return data ? JSON.parse(data) : [];
     } catch (e) {
       return [];
@@ -429,7 +450,7 @@ class WarkopSyncEngine {
   // --- Menu Management Engine ---
   getMenu() {
     try {
-      const data = localStorage.getItem(this.storageKeys.menu);
+      const data = this.safeGet(this.storageKeys.menu);
       return data ? JSON.parse(data) : [];
     } catch (e) {
       return [];
