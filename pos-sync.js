@@ -332,6 +332,8 @@ class WarkopSyncEngine {
       discount: Number(txData.discount) || 0
     };
 
+    this.decrementMenuStock(tx.items || []);
+
     const current = this.getTransactions();
     current.unshift(tx);
     localStorage.setItem(this.storageKeys.transactions, JSON.stringify(current));
@@ -421,7 +423,9 @@ class WarkopSyncEngine {
       price: Number(item.price) || 0,
       category: item.category || 'cold_drink',
       image: item.image && item.image.trim() ? item.image.trim() : defaultImg,
-      is_default: false
+      is_default: false,
+      stock: (item.stock === '' || item.stock == null || isNaN(Number(item.stock)))
+        ? null : Math.max(0, parseInt(item.stock, 10))
     };
 
     const list = this.getMenu();
@@ -562,6 +566,70 @@ class WarkopSyncEngine {
     if (cat === 'cold_drink' || cat === 'hot_drink' || cat === 'food') return 0;
     if (cat === 'snack') return price <= 1500 ? 0 : price - 1000;
     return price;
+  }
+
+  // --- STOK MENU (null = tanpa batas) ---
+  async updateMenuItemStock(id, stock) {
+    const list = this.getMenu();
+    const target = list.find(m => m.id === id);
+    if (!target) return { success: false, message: 'Menu tidak ditemukan.' };
+    const n = (stock === '' || stock == null || isNaN(Number(stock)))
+      ? null : Math.max(0, parseInt(stock, 10));
+    target.stock = n;
+    localStorage.setItem(this.storageKeys.menu, JSON.stringify(list));
+
+    if (this.channel) {
+      try { this.channel.postMessage({ type: 'MENU_UPDATED', payload: target }); } catch (e) {}
+    }
+
+    if (window.supabaseClient) {
+      try {
+        await window.supabaseClient.from('menu').update({ stock: n }).eq('id', id);
+      } catch (err) {
+        console.warn('Supabase update stock error:', err);
+      }
+    }
+
+    this.notifyListeners('dataChanged', this.getAllData());
+    return { success: true, stock: n };
+  }
+
+  decrementMenuStock(items) {
+    if (!Array.isArray(items) || items.length === 0) return;
+    const list = this.getMenu();
+    let changed = false;
+    const updates = [];
+    items.forEach(it => {
+      const m = list.find(x => x.name === it.name);
+      if (m && m.stock != null) {
+        m.stock = Math.max(0, (Number(m.stock) || 0) - (Number(it.qty) || 1));
+        changed = true;
+        updates.push({ id: m.id, stock: m.stock });
+      }
+    });
+    if (!changed) return;
+    localStorage.setItem(this.storageKeys.menu, JSON.stringify(list));
+
+    if (this.channel) {
+      try { this.channel.postMessage({ type: 'MENU_UPDATED', payload: { bulk: true } }); } catch (e) {}
+    }
+
+    if (window.supabaseClient) {
+      updates.forEach(u => {
+        window.supabaseClient.from('menu').update({ stock: u.stock }).eq('id', u.id)
+          .then(() => {}, () => {});
+      });
+    }
+
+    this.notifyListeners('dataChanged', this.getAllData());
+  }
+
+  getLowStock(threshold = 5) {
+    try {
+      return this.getMenu().filter(m => m.stock != null && Number(m.stock) <= threshold);
+    } catch (e) {
+      return [];
+    }
   }
 
   getAllData() {

@@ -190,6 +190,14 @@
         </span>
         <span class="text-[11px] text-on-surface-variant font-semibold" id="dash-staff-info">0 transaksi • Rp 0 digratiskan</span>
       </div>
+
+      <div class="col-span-2 hidden items-center justify-between gap-2 bg-amber-50 rounded-2xl p-3.5 border border-amber-200" id="low-stock-card">
+        <span class="text-xs font-bold text-amber-900 flex items-center gap-1.5 shrink-0">
+          <span class="material-symbols-outlined text-[18px]">inventory_2</span>
+          Stok menipis
+        </span>
+        <span class="text-[11px] text-amber-800 font-semibold text-right" id="dash-low-stock">—</span>
+      </div>
     </div>
 
     <!-- Bar Chart Omzet Per Jam -->
@@ -587,6 +595,18 @@
 
       const staffTx = summary.filteredTx.filter(t => t.staff);
       const staffDisc = staffTx.reduce((sum, t) => sum + (Number(t.discount) || 0), 0);
+      const low = warkopSync.getLowStock(5);
+      const lowCard = document.getElementById('low-stock-card');
+      if (lowCard) {
+        if (low.length > 0) {
+          document.getElementById('dash-low-stock').innerText = low.map(m => `${m.name} (${m.stock})`).join(' • ');
+          lowCard.classList.remove('hidden');
+          lowCard.classList.add('flex');
+        } else {
+          lowCard.classList.add('hidden');
+          lowCard.classList.remove('flex');
+        }
+      }
       document.getElementById('dash-staff-info').innerText = `${staffTx.length} transaksi • ${warkopSync.formatRupiah(staffDisc)} digratiskan`;
 
       renderRevenueChart();
