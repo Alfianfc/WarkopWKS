@@ -5,3 +5,4 @@ node_modules/
 warkop_data.json
 
 cap_*.json
+__pycache__/
