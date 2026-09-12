@@ -278,6 +278,7 @@
         <div class="bg-secondary h-full" style="width:25%"></div>
       </div>
       <div class="grid grid-cols-2 gap-2" id="category-legend-container"></div>
+      <div class="flex flex-col gap-1.5 mt-2.5" id="top-menu-list"></div>
     </div>
 
     <!-- Live Feed -->
@@ -633,6 +634,7 @@
       renderRevenueChart();
       renderHourlyChart(summary.filteredTx);
       renderCategoryComposition(summary);
+      renderTopMenu(summary);
       renderLiveSalesFeed(summary.filteredTx);
       renderLiveExpensesFeed(summary.filteredExpenses);
       renderOwnerExpenses(summary);
@@ -831,8 +833,8 @@
         <div class="bg-secondary h-full transition-all" style="width:${Math.max(2, pct(snackRev))}%" title="Makanan Ringan"></div>
       `;
 
-      const legend = (color, label, rev) => `
-        <div class="flex items-center gap-2 bg-surface-container-lowest p-2 rounded-xl border border-surface-container">
+      const legend = (color, label, rev, key) => `
+        <div onclick="selectTopCategory('${key}')" class="flex items-center gap-2 bg-surface-container-lowest p-2 rounded-xl border cursor-pointer transition-all active:scale-[0.99] ${topCat === key ? 'border-primary ring-1 ring-primary/40' : 'border-surface-container'}">
           <div class="w-3 h-3 rounded-full ${color} shrink-0"></div>
           <div class="flex flex-col">
             <span class="text-xs font-bold text-on-surface">${label}</span>
@@ -841,10 +843,10 @@
         </div>`;
 
       document.getElementById('category-legend-container').innerHTML =
-        legend('bg-sky-600', 'Minuman Dingin', coldRev) +
-        legend('bg-primary', 'Minuman Panas', hotRev) +
-        legend('bg-amber-700', 'Makanan', foodRev) +
-        legend('bg-secondary', 'Makanan Ringan', snackRev);
+        legend('bg-sky-600', 'Minuman Dingin', coldRev, 'cold_drink') +
+        legend('bg-primary', 'Minuman Panas', hotRev, 'hot_drink') +
+        legend('bg-amber-700', 'Makanan', foodRev, 'food') +
+        legend('bg-secondary', 'Makanan Ringan', snackRev, 'snack');
     }
 
     // --- TAB OWNER (KasirPOS | Pengeluaran | Riwayat | Laporan) ---
@@ -947,6 +949,49 @@
         el.onclick = () => showTxDetailModal(tx);
         list.appendChild(el);
       });
+    }
+
+    // --- MENU TERLARIS PER KATEGORI ---
+    let topCat = null;
+    const TOPCAT_NAMES = { cold_drink: 'Minuman Dingin', hot_drink: 'Minuman Panas', food: 'Makanan', snack: 'Makanan Ringan' };
+
+    function selectTopCategory(key) {
+      topCat = topCat === key ? null : key;
+      refreshDashboard();
+      if (topCat) {
+        document.getElementById('top-menu-list').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+
+    function renderTopMenu(summary) {
+      const box = document.getElementById('top-menu-list');
+      if (!box) return;
+      if (!topCat) {
+        box.innerHTML = `<div class="text-[11px] text-on-surface-variant text-center py-1">Ketuk kategori di atas untuk lihat menu terlaris.</div>`;
+        return;
+      }
+      const agg = {};
+      summary.filteredTx.forEach(tx => {
+        (tx.items || []).forEach(it => {
+          if ((it.category || 'cold_drink') !== topCat) return;
+          const k = it.name || '?';
+          if (!agg[k]) agg[k] = { qty: 0, rev: 0 };
+          agg[k].qty += Number(it.qty) || 1;
+          agg[k].rev += Number(it.subtotal != null ? it.subtotal : it.price * it.qty) || 0;
+        });
+      });
+      const rows = Object.entries(agg).sort((a, b) => b[1].qty - a[1].qty).slice(0, 5);
+      if (rows.length === 0) {
+        box.innerHTML = `<div class="text-[11px] text-on-surface-variant bg-surface-container-lowest border border-surface-container rounded-xl p-3 text-center">Belum ada penjualan di kategori ini.</div>`;
+        return;
+      }
+      box.innerHTML = `<div class="text-[11px] font-bold text-on-surface-variant px-1">Terlaris — ${TOPCAT_NAMES[topCat] || topCat}</div>` + rows.map(([name, v], i) => `
+        <div class="flex items-center gap-2.5 bg-surface-container-lowest p-2.5 rounded-xl border border-surface-container">
+          <span class="w-6 h-6 rounded-full ${i === 0 ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'} flex items-center justify-center text-[11px] font-extrabold shrink-0">${i + 1}</span>
+          <span class="text-xs font-bold text-on-surface flex-1 truncate">${name}</span>
+          <span class="text-[11px] text-on-surface-variant font-semibold shrink-0">${v.qty} terjual</span>
+          <span class="text-xs font-extrabold text-primary shrink-0">${warkopSync.formatRupiah(v.rev)}</span>
+        </div>`).join('');
     }
 
     // --- FEED SWITCHER ---
