@@ -191,6 +191,14 @@
         <span class="text-[11px] text-on-surface-variant font-semibold" id="dash-staff-info">0 transaksi • Rp 0 digratiskan</span>
       </div>
 
+      <div class="col-span-2 flex items-center justify-between gap-2 bg-surface-container-low rounded-2xl p-3.5 border border-surface-container shadow-sm">
+        <span class="text-xs font-bold text-on-surface flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[18px] text-amber-700">receipt_long</span>
+          Tagihan Bon
+        </span>
+        <span class="text-[11px] text-on-surface-variant font-semibold" id="dash-bon-info">0 bon • Rp 0</span>
+      </div>
+
       <div class="col-span-2 hidden items-center justify-between gap-2 bg-amber-50 rounded-2xl p-3.5 border border-amber-200" id="low-stock-card">
         <span class="text-xs font-bold text-amber-900 flex items-center gap-1.5 shrink-0">
           <span class="material-symbols-outlined text-[18px]">inventory_2</span>
@@ -607,6 +615,7 @@
           lowCard.classList.remove('flex');
         }
       }
+      document.getElementById('dash-bon-info').innerText = `${summary.bonCount} bon • ${warkopSync.formatRupiah(summary.bonTotal)}`;
       document.getElementById('dash-staff-info').innerText = `${staffTx.length} transaksi • ${warkopSync.formatRupiah(staffDisc)} digratiskan`;
 
       renderRevenueChart();
@@ -877,7 +886,7 @@
             <div class="flex flex-col truncate">
               <div class="flex items-center gap-1.5">
                 <span class="text-xs font-bold text-on-surface truncate">${tx.table}</span>
-                <span class="text-[10px] px-1.5 rounded bg-surface-container text-on-surface-variant font-medium shrink-0">${tx.paymentMethod}</span>${tx.staff ? '<span class="text-[10px] px-1.5 rounded bg-emerald-100 text-emerald-800 font-bold shrink-0">STAFF</span>' : ''}
+                <span class="text-[10px] px-1.5 rounded bg-surface-container text-on-surface-variant font-medium shrink-0">${tx.paymentMethod}</span>${tx.staff ? '<span class="text-[10px] px-1.5 rounded bg-emerald-100 text-emerald-800 font-bold shrink-0">STAFF</span>' : ''}${tx.status === 'BON' ? '<span class="text-[10px] px-1.5 rounded bg-amber-100 text-amber-800 font-bold shrink-0">BON</span>' : ''}
               </div>
               <span class="text-[11px] text-on-surface-variant truncate">${itemsSummary || 'Menu Kasir'}</span>
               <span class="text-[10px] text-on-surface-variant/70">${tx.cashier} • ${warkopSync.formatTime(tx.timestamp)}</span>
@@ -948,7 +957,7 @@
             <div class="flex flex-col truncate">
               <div class="flex items-center gap-1.5">
                 <span class="text-xs font-bold text-on-surface truncate">${tx.table}</span>
-                <span class="text-[10px] px-1.5 rounded bg-surface-container text-on-surface-variant font-medium shrink-0">${tx.paymentMethod}</span>${tx.staff ? '<span class="text-[10px] px-1.5 rounded bg-emerald-100 text-emerald-800 font-bold shrink-0">STAFF</span>' : ''}
+                <span class="text-[10px] px-1.5 rounded bg-surface-container text-on-surface-variant font-medium shrink-0">${tx.paymentMethod}</span>${tx.staff ? '<span class="text-[10px] px-1.5 rounded bg-emerald-100 text-emerald-800 font-bold shrink-0">STAFF</span>' : ''}${tx.status === 'BON' ? '<span class="text-[10px] px-1.5 rounded bg-amber-100 text-amber-800 font-bold shrink-0">BON</span>' : ''}
               </div>
               <span class="text-[11px] text-on-surface-variant truncate">${itemsSummary || 'Menu Kasir'}</span>
               <span class="text-[10px] text-on-surface-variant/70">${tx.cashier} • ${warkopSync.formatTime(tx.timestamp)}</span>

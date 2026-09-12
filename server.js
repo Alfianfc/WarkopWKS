@@ -91,6 +91,20 @@ app.delete('/api/transactions/:id', (req, res) => {
   res.json({ success: true, id });
 });
 
+app.put('/api/transactions/:id', (req, res) => {
+  const { id } = req.params;
+  const patch = req.body || {};
+  delete patch.id;
+  const tx = db.transactions.find(t => t.id === id);
+  if (!tx) {
+    return res.status(404).json({ error: 'Transaksi tidak ditemukan' });
+  }
+  Object.assign(tx, patch);
+  saveData(db);
+  io.emit('tx:updated', { id, patch });
+  res.json({ success: true, id });
+});
+
 app.delete('/api/expenses/:id', (req, res) => {
   const { id } = req.params;
   const before = db.expenses.length;
@@ -155,6 +169,14 @@ io.on('connection', (socket) => {
     db.transactions = db.transactions.filter(t => t.id !== id);
     saveData(db);
     socket.broadcast.emit('tx:deleted', { id });
+  });
+
+  // Update transaksi (pelunasan bon)
+  socket.on('tx:update', ({ id, patch }) => {
+    console.log(`[Update Transaksi] ${id}`);
+    db.transactions = db.transactions.map(t => t.id !== id ? t : { ...t, ...patch });
+    saveData(db);
+    socket.broadcast.emit('tx:updated', { id, patch });
   });
 
   // Hapus pengeluaran salah input (kasir & owner)

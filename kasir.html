@@ -263,6 +263,11 @@
         </button>
       </div>
 
+      <div class="flex p-0.5 bg-surface-container rounded-lg border border-surface-container-high mb-1">
+        <button onclick="setHistoryFilter('all')" id="hisf-all" class="flex-1 py-1.5 rounded-md text-[11px] font-bold bg-primary text-white transition-all">Semua</button>
+        <button onclick="setHistoryFilter('bon')" id="hisf-bon" class="flex-1 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all">Bon</button>
+        <button onclick="setHistoryFilter('paid')" id="hisf-paid" class="flex-1 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all">Lunas</button>
+      </div>
       <div class="flex flex-col gap-2" id="history-list">
         <!-- Rendered dynamically -->
       </div>
@@ -316,11 +321,15 @@
       <div class="flex gap-2">
         <button onclick="setPaymentMethod('Tunai')" id="pay-method-cash" class="flex-1 py-2.5 px-3 rounded-xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs flex items-center justify-center gap-1.5 transition-all">
           <span class="material-symbols-outlined text-[18px]">payments</span>
-          <span>Tunai (Cash)</span>
+          <span>Tunai</span>
         </button>
         <button onclick="setPaymentMethod('QRIS')" id="pay-method-qris" class="flex-1 py-2.5 px-3 rounded-xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs flex items-center justify-center gap-1.5 transition-all">
           <span class="material-symbols-outlined text-[18px]">qr_code_scanner</span>
-          <span>QRIS Digital</span>
+          <span>QRIS</span>
+        </button>
+        <button onclick="setPaymentMethod('Bon')" id="pay-method-bon" class="flex-1 py-2.5 px-3 rounded-xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs flex items-center justify-center gap-1.5 transition-all">
+          <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+          <span>Bon</span>
         </button>
       </div>
 
@@ -358,6 +367,17 @@
           <input type="checkbox" id="qris-verified-check" class="w-4 h-4 accent-emerald-600 shrink-0">
           <span>Sudah cek mutasi — dana QRIS benar masuk</span>
         </label>
+      </div>
+
+      <!-- Bon / Bayar Nanti Box -->
+      <div id="bon-payment-box" class="hidden flex-col gap-3">
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">Nama Pelanggan (opsional)</label>
+          <input type="text" id="bon-customer-input" placeholder="cth: Budi" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-xl px-3.5 text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <div class="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-xl text-[11px] font-semibold leading-relaxed">
+          Struk tersimpan sebagai <strong>BON (belum bayar)</strong> dan tidak masuk omzet. Lunasi belakangan dari tab Riwayat.
+        </div>
       </div>
 
       <button onclick="confirmPayment()" class="w-full h-12 bg-primary text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-[0.98] transition-transform shadow-lg shadow-primary/20 mt-1">
@@ -602,6 +622,43 @@
           Tutup
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- 6. Modal Lunasi Bon -->
+  <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="settle-modal">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center pb-2 border-b border-surface-container">
+        <div>
+          <h3 class="text-base font-bold text-on-surface">Lunasi Bon</h3>
+          <p class="text-xs text-on-surface-variant" id="settle-info">-</p>
+        </div>
+        <button onclick="closeSettleModal()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+      <div class="bg-surface-container-low p-4 rounded-xl flex flex-col items-center justify-center border border-surface-container">
+        <span class="text-xs text-on-surface-variant font-medium">Sisa Tagihan</span>
+        <span class="text-2xl font-extrabold text-primary mt-0.5" id="settle-total-display">Rp 0</span>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="setSettleMethod('Tunai')" id="settle-method-cash" class="flex-1 py-2.5 rounded-xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs">Tunai</button>
+        <button onclick="setSettleMethod('QRIS')" id="settle-method-qris" class="flex-1 py-2.5 rounded-xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs">QRIS</button>
+      </div>
+      <div id="settle-cash-box" class="flex flex-col gap-3">
+        <div>
+          <label class="text-xs font-semibold text-on-surface-variant block mb-1">Uang Diterima (Rp)</label>
+          <input type="number" id="settle-cash-input" oninput="settleCalcChange()" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-xl px-3.5 text-base font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary" placeholder="0">
+        </div>
+        <div class="bg-surface-container p-3 rounded-xl flex justify-between items-center">
+          <span class="text-xs font-semibold text-on-surface-variant">Kembalian:</span>
+          <span class="text-base font-extrabold text-emerald-700" id="settle-change-display">Rp 0</span>
+        </div>
+      </div>
+      <button onclick="confirmSettle()" class="w-full h-12 bg-emerald-700 text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-[0.98] transition-transform shadow-md mt-1">
+        <span class="material-symbols-outlined text-[20px]">check_circle</span>
+        <span>Tandai Lunas</span>
+      </button>
     </div>
   </div>
 
@@ -983,22 +1040,24 @@
       selectedPaymentMethod = method;
       const btnCash = document.getElementById('pay-method-cash');
       const btnQris = document.getElementById('pay-method-qris');
+      const btnBon = document.getElementById('pay-method-bon');
       const cashBox = document.getElementById('cash-payment-box');
       const qrisBox = document.getElementById('qris-payment-box');
+      const bonBox = document.getElementById('bon-payment-box');
 
-      if (method === 'Tunai') {
-        btnCash.className = 'flex-1 py-2.5 px-3 rounded-xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs flex items-center justify-center gap-1.5 transition-all';
-        btnQris.className = 'flex-1 py-2.5 px-3 rounded-xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs flex items-center justify-center gap-1.5 transition-all';
-        cashBox.classList.remove('hidden');
-        qrisBox.classList.add('hidden');
-        qrisBox.classList.remove('flex');
-      } else {
-        btnQris.className = 'flex-1 py-2.5 px-3 rounded-xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs flex items-center justify-center gap-1.5 transition-all';
-        btnCash.className = 'flex-1 py-2.5 px-3 rounded-xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs flex items-center justify-center gap-1.5 transition-all';
-        cashBox.classList.add('hidden');
-        qrisBox.classList.remove('hidden');
-        qrisBox.classList.add('flex');
-      }
+      const activeCls = 'flex-1 py-2.5 px-3 rounded-xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs flex items-center justify-center gap-1.5 transition-all';
+      const idleCls = 'flex-1 py-2.5 px-3 rounded-xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs flex items-center justify-center gap-1.5 transition-all';
+      const bonActiveCls = 'flex-1 py-2.5 px-3 rounded-xl border-2 border-amber-600 bg-amber-50 text-amber-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all';
+
+      btnCash.className = method === 'Tunai' ? activeCls : idleCls;
+      btnQris.className = method === 'QRIS' ? activeCls : idleCls;
+      btnBon.className = method === 'Bon' ? bonActiveCls : idleCls;
+
+      cashBox.classList.toggle('hidden', method !== 'Tunai');
+      qrisBox.classList.toggle('hidden', method !== 'QRIS');
+      qrisBox.classList.toggle('flex', method === 'QRIS');
+      bonBox.classList.toggle('hidden', method !== 'Bon');
+      bonBox.classList.toggle('flex', method === 'Bon');
     }
 
     function calculateChange() {
@@ -1018,6 +1077,38 @@
       const cashReceived = selectedPaymentMethod === 'Tunai' 
         ? (Number(document.getElementById('cash-received-input').value) || total)
         : total;
+
+      if (selectedPaymentMethod === 'Bon') {
+        const payUserBon = warkopAuth.getCurrentUser();
+        const bonItems = cart.map(i => {
+          const u = cartUnit(i);
+          return { name: i.name, price: u, qty: i.qty, subtotal: u * i.qty, category: i.category, originalPrice: Number(i.price) || 0 };
+        });
+        const obSub = cart.reduce((sum, i) => sum + (Number(i.price) || 0) * i.qty, 0);
+        const customer = (document.getElementById('bon-customer-input').value || '').trim();
+        const savedBon = await warkopSync.addTransaction({
+          cashier: (payUserBon && payUserBon.name) || 'Kasir',
+          table: table,
+          paymentMethod: 'Bon',
+          items: bonItems,
+          subtotal: subtotal,
+          tax: tax,
+          total: total,
+          paid: 0,
+          change: 0,
+          status: 'BON',
+          customer: customer,
+          staff: staffMode,
+          discount: staffMode ? Math.max(0, obSub - total) : 0
+        });
+        document.getElementById('bon-customer-input').value = '';
+        closeCheckoutModal();
+        clearCart();
+        if (staffMode) toggleStaffMode();
+        showReceiptModal(savedBon);
+        updateFinancialStats();
+        return;
+      }
 
       if (selectedPaymentMethod === 'Tunai' && cashReceived < total) {
         alert('Nominal uang yang diterima kurang dari total tagihan!');
@@ -1071,7 +1162,7 @@
       document.getElementById('receipt-id').innerText = tx.id;
       document.getElementById('receipt-table').innerText = (tx.staff ? '[STAFF] ' : '') + tx.table;
       document.getElementById('receipt-cashier').innerText = `Kasir: ${tx.cashier}`;
-      document.getElementById('receipt-paymethod').innerText = `Metode: ${tx.paymentMethod}`;
+      document.getElementById('receipt-paymethod').innerText = `Metode: ${tx.paymentMethod}` + (tx.status === 'BON' ? ' (BELUM BAYAR)' : '');
       document.getElementById('receipt-date-time').innerText = `${warkopSync.formatDateIndo(new Date(tx.timestamp))} • ${warkopSync.formatTime(tx.timestamp)}`;
 
       const itemsContainer = document.getElementById('receipt-items-list');
@@ -1192,7 +1283,9 @@
       const container = document.getElementById('history-list');
       if (!container) return;
       const hf = kasirShiftFilter();
-      const txList = warkopSync.getTransactions().filter(t => hf === 'all' || warkopSync.recordShift(t) === hf);
+      const txList = warkopSync.getTransactions()
+        .filter(t => hf === 'all' || warkopSync.recordShift(t) === hf)
+        .filter(t => historyFilter === 'all' || (historyFilter === 'bon' ? t.status === 'BON' : t.status !== 'BON'));
 
       if (txList.length === 0) {
         container.innerHTML = `
@@ -1222,6 +1315,7 @@
           </div>
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-primary">${warkopSync.formatRupiah(tx.total)}</span>
+            ${tx.status === 'BON' ? `<button onclick="openSettleModal('${tx.id}')" class="h-9 px-2.5 rounded-lg bg-amber-600 text-white flex items-center justify-center gap-1 text-[11px] font-bold active:scale-95" title="Lunasi bon"><span class="material-symbols-outlined text-[16px]">payments</span><span>Lunasi</span></button>` : ''}
             <button onclick="showReceiptModalById('${tx.id}')" class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary" title="Cetak Struk">
               <span class="material-symbols-outlined text-[16px]">print</span>
             </button>
@@ -1292,6 +1386,80 @@
         }
         renderMenuGrid();
       }
+    }
+
+    // --- FILTER RIWAYAT + LUNASI BON (kasir) ---
+    let historyFilter = 'all'; // 'all' | 'bon' | 'paid'
+    let settleTxId = null;
+    let settleMethod = 'Tunai';
+    let settleTotal = 0;
+
+    function setHistoryFilter(f) {
+      historyFilter = f;
+      const on = 'flex-1 py-1.5 rounded-md text-[11px] font-bold bg-primary text-white transition-all';
+      const off = 'flex-1 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all';
+      document.getElementById('hisf-all').className = f === 'all' ? on : off;
+      document.getElementById('hisf-bon').className = f === 'bon' ? on : off;
+      document.getElementById('hisf-paid').className = f === 'paid' ? on : off;
+      renderHistoryList();
+    }
+
+    function openSettleModal(id) {
+      const tx = warkopSync.getTransactions().find(t => t.id === id);
+      if (!tx) return;
+      settleTxId = id;
+      settleTotal = Number(tx.total) || 0;
+      const who = tx.customer ? `${tx.customer} • ` : '';
+      document.getElementById('settle-info').innerText = `${who}${tx.table} • ${warkopSync.formatTime(tx.timestamp)}`;
+      document.getElementById('settle-total-display').innerText = warkopSync.formatRupiah(settleTotal);
+      document.getElementById('settle-cash-input').value = settleTotal;
+      setSettleMethod('Tunai');
+      settleCalcChange();
+      document.getElementById('settle-modal').classList.remove('hidden');
+      document.getElementById('settle-modal').classList.add('flex');
+    }
+
+    function closeSettleModal() {
+      settleTxId = null;
+      document.getElementById('settle-modal').classList.remove('flex');
+      document.getElementById('settle-modal').classList.add('hidden');
+    }
+
+    function setSettleMethod(m) {
+      settleMethod = m;
+      const on = 'flex-1 py-2.5 rounded-xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs';
+      const off = 'flex-1 py-2.5 rounded-xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs';
+      document.getElementById('settle-method-cash').className = m === 'Tunai' ? on : off;
+      document.getElementById('settle-method-qris').className = m === 'QRIS' ? on : off;
+      document.getElementById('settle-cash-box').classList.toggle('hidden', m !== 'Tunai');
+    }
+
+    function settleCalcChange() {
+      const v = Number(document.getElementById('settle-cash-input').value) || 0;
+      document.getElementById('settle-change-display').innerText = warkopSync.formatRupiah(Math.max(0, v - settleTotal));
+    }
+
+    async function confirmSettle() {
+      if (!settleTxId) return;
+      const paid = settleMethod === 'Tunai'
+        ? (Number(document.getElementById('settle-cash-input').value) || 0)
+        : settleTotal;
+      if (settleMethod === 'Tunai' && paid < settleTotal) {
+        alert('Uang diterima kurang dari tagihan!');
+        return;
+      }
+      const res = await warkopSync.settleTransaction(settleTxId, {
+        paymentMethod: settleMethod,
+        paid: paid,
+        change: Math.max(0, paid - settleTotal)
+      });
+      if (res && !res.success) {
+        alert('Gagal melunasi.');
+        return;
+      }
+      closeSettleModal();
+      renderHistoryList();
+      updateFinancialStats();
     }
 
     // --- HAPUS PESANAN SALAH INPUT (kasir) ---

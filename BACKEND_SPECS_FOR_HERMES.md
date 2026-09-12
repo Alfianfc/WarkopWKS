@@ -64,6 +64,7 @@ interface Transaction {
   timestamp: string;       // ISO 8601 UTC
   shift: '1' | '2';        // Shift 1 = 06.00-15.00, Shift 2 = 15.00-24.00 (00.00-06.00 ikut hari bisnis sebelumnya)
   cashier: string;         // nama user login (mis. "Kasir Warkop")
+  customer: string;          // nama pelanggan bon (opsional)
   staff: boolean;            // true = jatah karyawan (harga staff)
   discount: number;          // selisih harga normal - harga staff (Rp)
   table: string;           // selalu "Takeaway" (pilihan meja dihapus)
@@ -80,7 +81,7 @@ interface Transaction {
   total: number;
   paid: number;
   change: number;
-  status: 'PAID' | 'CANCELLED';
+  status: 'PAID' | 'BON'; // BON = belum bayar, tidak masuk omzet
 }
 ```
 

@@ -45,6 +45,10 @@ class WarkopSyncEngine {
           } else if (type === 'NEW_EXPENSE') {
             this.notifyListeners('expenseAdded', payload);
             this.notifyListeners('dataChanged', this.getAllData());
+          } else if (type === 'UPDATE_TRANSACTION') {
+            const current = this.getTransactions().map(t => t.id !== payload.id ? t : { ...t, ...payload.patch });
+            localStorage.setItem(this.storageKeys.transactions, JSON.stringify(current));
+            this.notifyListeners('dataChanged', this.getAllData());
           } else if (type === 'DELETE_TRANSACTION') {
             const current = this.getTransactions().filter(t => t.id !== payload.id);
             localStorage.setItem(this.storageKeys.transactions, JSON.stringify(current));
@@ -126,6 +130,14 @@ class WarkopSyncEngine {
             this.notifyListeners('dataChanged', this.getAllData());
           }
         })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'transactions' }, (payload) => {
+          const upd = payload.new;
+          if (upd && upd.id) {
+            const current = this.getTransactions().map(t => t.id === upd.id ? { ...t, ...upd } : t);
+            localStorage.setItem(this.storageKeys.transactions, JSON.stringify(current));
+            this.notifyListeners('dataChanged', this.getAllData());
+          }
+        })
         .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'transactions' }, (payload) => {
           const deletedId = payload.old && payload.old.id;
           if (deletedId) {
@@ -176,6 +188,11 @@ class WarkopSyncEngine {
             this.notifyListeners('transactionAdded', tx);
             this.notifyListeners('dataChanged', this.getAllData());
           }
+        });
+        this.socket.on('tx:updated', ({ id, patch }) => {
+          const current = this.getTransactions().map(t => t.id !== id ? t : { ...t, ...patch });
+          localStorage.setItem(this.storageKeys.transactions, JSON.stringify(current));
+          this.notifyListeners('dataChanged', this.getAllData());
         });
         this.socket.on('tx:deleted', ({ id }) => {
           const current = this.getTransactions().filter(t => t.id !== id);
@@ -326,7 +343,8 @@ class WarkopSyncEngine {
       total: Number(txData.total) || 0,
       paid: Number(txData.paid) || 0,
       change: Number(txData.change) || 0,
-      status: 'PAID',
+      status: txData.status === 'BON' ? 'BON' : 'PAID',
+      customer: (txData.customer || '').trim(),
       shift: this.shiftOf(new Date()),
       staff: txData.staff === true,
       discount: Number(txData.discount) || 0
@@ -632,6 +650,48 @@ class WarkopSyncEngine {
     }
   }
 
+  async updateTransaction(id, patch) {
+    if (!id || !patch) return { success: false, message: 'Data tidak valid.' };
+    const current = this.getTransactions().map(t => t.id !== id ? t : { ...t, ...patch });
+    localStorage.setItem(this.storageKeys.transactions, JSON.stringify(current));
+
+    if (this.channel) {
+      try { this.channel.postMessage({ type: 'UPDATE_TRANSACTION', payload: { id, patch } }); } catch (e) {}
+    }
+
+    if (window.supabaseClient) {
+      try {
+        await window.supabaseClient.from('transactions').update(patch).eq('id', id);
+      } catch (err) {
+        console.warn('Supabase update tx notice:', err);
+      }
+    }
+
+    if (this.socket && this.socket.connected) {
+      try { this.socket.emit('tx:update', { id, patch }); } catch (e) {}
+    } else {
+      try {
+        await fetch(`/api/transactions/${encodeURIComponent(id)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(patch)
+        });
+      } catch (e) {}
+    }
+
+    this.notifyListeners('dataChanged', this.getAllData());
+    return { success: true };
+  }
+
+  async settleTransaction(id, pay) {
+    return this.updateTransaction(id, {
+      status: 'PAID',
+      paymentMethod: (pay && pay.paymentMethod) || 'Tunai',
+      paid: Number((pay && pay.paid)) || 0,
+      change: Number((pay && pay.change)) || 0
+    });
+  }
+
   getAllData() {
     return {
       transactions: this.getTransactions(),
@@ -712,7 +772,14 @@ class WarkopSyncEngine {
       other: 0
     };
 
+    let bonTotal = 0;
+    let bonCount = 0;
     filteredTx.forEach((tx) => {
+      if (tx.status === 'BON') {
+        bonCount += 1;
+        bonTotal += (Number(tx.total) || 0);
+        return;
+      }
       totalRevenue += (Number(tx.total) || 0);
       if (Array.isArray(tx.items)) {
         tx.items.forEach((it) => {
@@ -741,6 +808,8 @@ class WarkopSyncEngine {
       netProfit,
       profitMargin,
       totalOrders: filteredTx.length,
+      bonCount,
+      bonTotal,
       totalItemsSold,
       filteredTx,
       filteredExpenses,
@@ -779,6 +848,9 @@ class WarkopSyncEngine {
     msg += `📉 *Belanja / Pengeluaran:* ${this.formatRupiah(summary.totalExpenses)}\n`;
     msg += `💵 *KAS BERSIH:* ${this.formatRupiah(summary.netProfit)}\n`;
     msg += `🧾 *Total Transaksi:* ${summary.totalOrders} struk (${summary.totalItemsSold} porsi)\n`;
+    if (summary.bonCount > 0) {
+      msg += `📝 *Bon belum bayar:* ${summary.bonCount} struk (${this.formatRupiah(summary.bonTotal)})\n`;
+    }
     msg += `━━━━━━━━━━━━━━━━━━━\n\n`;
 
     if (summary.filteredExpenses.length > 0) {
