@@ -130,7 +130,7 @@
   <!-- Main Content Area -->
   <main class="flex flex-col relative w-full px-4 pt-20 pb-28 min-h-screen md:max-w-md md:mx-auto md:bg-surface md:min-h-screen md:shadow-2xl md:shadow-stone-900/10 lg:max-w-5xl">
     
-    <!-- Ringkasan kasir (disembunyiin di akun owner kecuali tab POS) -->
+    <!-- Ringkasan kasir (tampil cuma di tab POS) -->
     <div id="kasir-summary-block" class="flex flex-col">
     <!-- Shift Stats Banner (Real-time Financial Summary) -->
     <div class="grid grid-cols-3 gap-2.5 mb-4">
@@ -1326,6 +1326,8 @@
       renderCart();
       setKasirShiftMode('shift');
       if (isOwnerView) setKasirShiftMode('day');
+      // Toggle shift kompak di Pengeluaran/Riwayat untuk semua role
+      document.querySelectorAll('.owner-shift-row').forEach(el => { el.classList.remove('hidden'); el.classList.add('flex'); });
 
       // Dengarkan perubahan real-time dari engine
       warkopSync.on('dataChanged', () => {
@@ -2252,9 +2254,9 @@ function sendWhatsAppSummary() {
         activeTabEl.classList.add('text-primary', 'font-bold');
       }
 
-      // Ringkasan kasir cuma tampil di tab POS untuk akun owner
+      // Ringkasan kasir cuma tampil di tab POS (semua role)
       const sumBlock = document.getElementById('kasir-summary-block');
-      if (sumBlock) sumBlock.classList.toggle('tab-hidden', isOwnerView && tabId !== 'pos');
+      if (sumBlock) sumBlock.classList.toggle('tab-hidden', tabId !== 'pos');
 
       if (tabId === 'pos') document.getElementById('view-pos').classList.remove('tab-hidden');
       if (tabId === 'expenses') {
