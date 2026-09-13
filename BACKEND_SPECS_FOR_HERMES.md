@@ -102,7 +102,7 @@ interface Expense {
 ```typescript
 interface User {
   username: string;
-  password: string; // Saat ini plaintext di local/sessionStorage, silakan ganti ke bcrypt hash
+  password: string; // TIDAK PERNAH di repo/anon: login via RPC pos_login, tabel users RLS-deny
   role: 'kasir' | 'bos';
   name: string;
 }

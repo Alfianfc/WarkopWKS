@@ -12,17 +12,19 @@ class WarkopAuth {
   }
 
   initDefaultAccounts() {
+    // Username boleh di-seed lokal; password TIDAK PERNAH disimpan di repo.
+    // Password terisi saat login sukses via RPC dan tersimpan per-perangkat.
     if (!localStorage.getItem(this.storageKey)) {
       const defaultAccounts = {
         kasir: {
-          username: 'alfian',
-          password: 'wks-3a61f6',
+          username: 'kasir',
+          password: '',
           role: 'kasir',
           name: 'Kasir Warkop'
         },
         bos: {
-          username: 'Bu Ulfa',
-          password: 'wks-dd61f6',
+          username: 'bos',
+          password: '',
           role: 'bos',
           name: 'Owner / Bos'
         }
@@ -34,16 +36,21 @@ class WarkopAuth {
   async syncFromSupabase() {
     if (!window.supabaseClient) return;
     try {
-      const { data, error } = await window.supabaseClient.from('users').select('*');
+      const { data, error } = await window.supabaseClient.rpc('pos_list_users');
       if (!error && Array.isArray(data) && data.length > 0) {
         const accounts = {};
         data.forEach(u => {
+          const prev = (accounts[u.role] || {});
           accounts[u.role] = {
             username: u.username,
-            password: u.password,
+            password: prev.password || '',
             role: u.role,
             name: u.name
           };
+        });
+        const cached = this.getAccounts();
+        Object.keys(accounts).forEach(k => {
+          if (cached[k] && cached[k].password) accounts[k].password = cached[k].password;
         });
         this.saveAccounts(accounts);
       }
@@ -72,11 +79,7 @@ class WarkopAuth {
     if (window.supabaseClient) {
       try {
         const { data, error } = await window.supabaseClient
-          .from('users')
-          .select('*')
-          .ilike('username', cleanUser)
-          .eq('password', cleanPass)
-          .limit(1);
+          .rpc('pos_login', { p_username: cleanUser, p_password: cleanPass });
 
         if (!error) {
           if (data && data.length > 0) {
@@ -89,6 +92,13 @@ class WarkopAuth {
             };
             sessionStorage.setItem(this.sessionKey, JSON.stringify(sessionData));
             localStorage.setItem(this.sessionKey, JSON.stringify(sessionData));
+            // Seed password ke cache lokal biar fallback offline jalan di perangkat ini
+            try {
+              const cached = this.getAccounts();
+              const key = (acc.role || '').toLowerCase() === 'bos' ? 'bos' : 'kasir';
+              cached[key] = { username: acc.username, password: cleanPass, role: acc.role, name: acc.name };
+              this.saveAccounts(cached);
+            } catch (e) {}
             return { success: true, user: sessionData };
           }
           return {
@@ -104,6 +114,7 @@ class WarkopAuth {
     const accounts = this.getAccounts();
     for (const key in accounts) {
       const acc = accounts[key];
+      if (!acc.password) continue; // akun belum pernah login sukses di perangkat ini
       if (acc.username.toLowerCase() === cleanUser && acc.password === cleanPass) {
         const sessionData = {
           username: acc.username,
@@ -172,12 +183,15 @@ class WarkopAuth {
     const cleanUser = newUsername.trim();
     const cleanPass = newPassword.trim();
 
-    if (window.supabaseClient) {
+    const cachedAcc = this.getAccounts();
+    const currentPass = (cachedAcc[targetRole] && cachedAcc[targetRole].password) || '';
+    if (window.supabaseClient && currentPass) {
       try {
-        await window.supabaseClient
-          .from('users')
-          .update({ username: cleanUser, password: cleanPass })
-          .eq('role', targetRole);
+        const { data, error } = await window.supabaseClient
+          .rpc('pos_set_credentials', { p_role: targetRole, p_current_password: currentPass, p_new_username: cleanUser, p_new_password: cleanPass });
+        if (error || !data) {
+          return { success: false, message: 'Gagal verifikasi sesi. Login ulang lalu coba lagi.' };
+        }
       } catch (e) {
         console.warn('Update user in Supabase failed:', e);
       }
