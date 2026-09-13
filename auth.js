@@ -5,8 +5,8 @@
 
 class WarkopAuth {
   constructor() {
-    this.storageKey = 'warkop_auth_accounts_v1';
-    this.sessionKey = 'warkop_current_session_v1';
+    this.storageKey = 'warkop_auth_accounts_v2'; // v2: reset pasca-rotasi password Sep 2026
+    this.sessionKey = 'warkop_current_session_v2'; // v2: paksa login ulang pasca-rotasi
     this.initDefaultAccounts();
     this.syncFromSupabase();
   }
