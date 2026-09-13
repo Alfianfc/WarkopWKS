@@ -129,6 +129,8 @@
   <!-- Main Content Area -->
   <main class="flex flex-col relative w-full px-4 pt-20 pb-28 min-h-screen md:max-w-md md:mx-auto md:bg-surface md:min-h-screen md:shadow-2xl md:shadow-stone-900/10 lg:max-w-5xl">
     
+    <!-- Ringkasan kasir (disembunyiin di akun owner kecuali tab POS) -->
+    <div id="kasir-summary-block" class="flex flex-col">
     <!-- Shift Stats Banner (Real-time Financial Summary) -->
     <div class="grid grid-cols-3 gap-2.5 mb-4">
       <div class="bg-surface-container-low p-3 rounded-2xl border border-surface-container flex flex-col justify-between">
@@ -202,6 +204,7 @@
         <span>Menu</span>
       </button>
     </div>
+    </div><!-- /kasir-summary-block -->
 
     <!-- SECTION 1: POS VIEW (CATALOG & CART) -->
     <div id="view-pos" class="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
@@ -2197,6 +2200,14 @@ function sendWhatsAppSummary() {
       if (activeTabEl) {
         activeTabEl.classList.remove('text-on-surface-variant');
         activeTabEl.classList.add('text-primary', 'font-bold');
+      }
+
+      // Ringkasan kasir cuma tampil di tab POS untuk akun owner
+      const sumBlock = document.getElementById('kasir-summary-block');
+      if (sumBlock) {
+        const hide = isOwnerView && tabId !== 'pos';
+        sumBlock.classList.toggle('hidden', hide);
+        sumBlock.classList.toggle('flex', !hide);
       }
 
       if (tabId === 'pos') document.getElementById('view-pos').classList.remove('hidden');
