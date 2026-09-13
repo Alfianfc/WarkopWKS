@@ -187,7 +187,7 @@
 
     <!-- Quick Action Bar: Catat Pengeluaran Modal & Tambah Menu -->
     <div class="flex items-center gap-2 mb-4">
-      <button onclick="openExpenseModal()" class="flex-1 h-11 bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-300/60 rounded-xl flex items-center justify-center gap-2 text-xs font-bold active:scale-[0.98] transition-all">
+      <button onclick="openExpenseModal()" id="quick-expense-btn" class="flex-1 h-11 bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-300/60 rounded-xl flex items-center justify-center gap-2 text-xs font-bold active:scale-[0.98] transition-all">
         <span class="material-symbols-outlined text-[18px] text-amber-700">receipt_long</span>
         <span>Catat Pengeluaran Modal</span>
       </button>
@@ -262,7 +262,7 @@
             <span class="text-primary font-extrabold text-lg" id="total-text">Rp 0</span>
           </div>
 
-          <button onclick="openCheckoutModal()" class="mt-2 w-full h-12 bg-primary text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-[0.98] transition-transform shadow-lg shadow-primary/20">
+          <button onclick="openCheckoutModal()" id="checkout-btn" class="mt-2 w-full h-12 bg-primary text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-[0.98] transition-transform shadow-lg shadow-primary/20">
             <span class="material-symbols-outlined text-[20px]">payments</span>
             <span>Lanjut Pembayaran</span>
           </button>
@@ -277,7 +277,7 @@
           <h2 class="text-base font-bold text-on-surface" id="expenses-title">Catatan Belanja &amp; Modal</h2>
           <p class="text-xs text-on-surface-variant">Pengeluaran kas warkop otomatis terpantau Bos</p>
         </div>
-        <button onclick="openExpenseModal()" class="h-9 px-3 bg-amber-600 text-white rounded-xl flex items-center gap-1 text-xs font-bold active:scale-95 shadow-sm">
+        <button onclick="openExpenseModal()" id="expense-add-btn" class="h-9 px-3 bg-amber-600 text-white rounded-xl flex items-center gap-1 text-xs font-bold active:scale-95 shadow-sm">
           <span class="material-symbols-outlined text-[16px]">add</span>
           <span>Catat Baru</span>
         </button>
@@ -785,6 +785,7 @@
     let currentReceiptData = null;
     let kasirShiftMode = 'shift'; // 'shift' = shift berjalan, 'day' = seharian
     let kasirDateFilter = 'today'; // 'today' | 'YYYY-MM-DD' (histori)
+    let isOwnerView = false; // true = login bos: kunci checkout+pengeluaran, menu tetap boleh
     let staffMode = false; // true = harga jatah karyawan
 
     function cartUnit(item) {
@@ -905,11 +906,25 @@
         document.getElementById('shift-cashier-label').innerText = `${user.name} • Shift Aktif`;
         // Owner yang buka halaman kasir dikasih jalan pulang ke Laporan
         if (user.role === 'bos') {
+          isOwnerView = true;
           const lap = document.getElementById('tab-laporan');
           if (lap) {
             lap.classList.remove('hidden');
             lap.classList.add('flex');
           }
+          // Owner: tambah menu boleh, tapi kunci semua yang pegang uang
+          ['quick-expense-btn', 'expense-add-btn'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+          });
+          const co = document.getElementById('checkout-btn');
+          if (co) {
+            co.disabled = true;
+            co.classList.add('opacity-40');
+            co.querySelector('span:last-child').innerText = 'Khusus Kasir';
+          }
+          const sl = document.getElementById('staff-toggle-label');
+          if (sl) sl.innerText = 'Mode Lihat Owner';
         }
       }
 
@@ -1385,6 +1400,7 @@
 
     // --- CHECKOUT & PEMBAYARAN ---
     function openCheckoutModal() {
+      if (isOwnerView) { uiToast('Mode owner: checkout hanya untuk akun kasir.'); return; }
       if (cart.length === 0) return;
       const subtotal = cartSubtotal();
       const tax = 0; // Warkop WKS tanpa pajak/service
@@ -1460,6 +1476,7 @@
     }
 
     async function confirmPayment() {
+      if (isOwnerView) { uiToast('Mode owner: checkout hanya untuk akun kasir.'); return; }
       const subtotal = cartSubtotal();
       const tax = 0; // Warkop WKS tanpa pajak/service
       const total = subtotal;
@@ -1582,6 +1599,7 @@
 
     // --- CATAT PENGELUARAN MODAL / OPERASIONAL ---
     function openExpenseModal() {
+      if (isOwnerView) { uiToast('Mode owner: catat pengeluaran hanya untuk akun kasir.'); return; }
       document.getElementById('expense-modal').classList.remove('hidden');
       document.getElementById('expense-modal').classList.add('flex');
     }
@@ -1597,6 +1615,7 @@
     }
 
     async function saveExpense() {
+      if (isOwnerView) { uiToast('Mode owner: catat pengeluaran hanya untuk akun kasir.'); return; }
       const selCat = document.getElementById('expense-category').value;
       const customCat = document.getElementById('expense-category-custom').value.trim();
       const category = selCat === '__custom' ? customCat : selCat;
@@ -1922,6 +1941,7 @@
     }
 
     function openSettleModal(id) {
+      if (isOwnerView) { uiToast('Mode owner: pelunasan bon hanya untuk akun kasir.'); return; }
       const tx = warkopSync.getTransactions().find(t => t.id === id);
       if (!tx) return;
       settleTxId = id;
@@ -1957,6 +1977,7 @@
     }
 
     async function confirmSettle() {
+      if (isOwnerView) { uiToast('Mode owner: pelunasan bon hanya untuk akun kasir.'); return; }
       if (!settleTxId) return;
       const paid = settleMethod === 'Tunai'
         ? (Number(document.getElementById('settle-cash-input').value) || 0)
