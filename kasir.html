@@ -376,28 +376,6 @@
           class="flex-[2] h-9 bg-surface-container-lowest border border-surface-container rounded-xl px-3 text-xs font-semibold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
       </div>
   
-      <!-- Ringkasan cepat gaya Kasir -->
-      <div class="grid grid-cols-3 gap-2.5 mt-2">
-        <div class="bg-surface-container-low p-3 rounded-2xl border border-surface-container flex flex-col justify-between">
-          <span class="text-[11px] font-medium text-on-surface-variant flex items-center gap-1">
-            <span class="material-symbols-outlined text-[14px] text-emerald-600">arrow_downward</span> Pemasukan
-          </span>
-          <span class="text-sm sm:text-base font-bold text-primary mt-1" id="bos-quick-revenue">Rp 0</span>
-        </div>
-        <div class="bg-surface-container-low p-3 rounded-2xl border border-surface-container flex flex-col justify-between">
-          <span class="text-[11px] font-medium text-on-surface-variant flex items-center gap-1">
-            <span class="material-symbols-outlined text-[14px] text-error">arrow_upward</span> Pengeluaran
-          </span>
-          <span class="text-sm sm:text-base font-bold text-on-surface mt-1" id="bos-quick-expenses">Rp 0</span>
-        </div>
-        <div class="bg-surface-container-low p-3 rounded-2xl border border-surface-container flex flex-col justify-between">
-          <span class="text-[11px] font-medium text-on-surface-variant flex items-center gap-1">
-            <span class="material-symbols-outlined text-[14px] text-emerald-700">account_balance_wallet</span> Kas Bersih
-          </span>
-          <span class="text-sm sm:text-base font-bold text-emerald-700 mt-1" id="bos-quick-net">Rp 0</span>
-        </div>
-      </div>
-  
       <!-- KPI Bento Grid -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mt-2">
         <div onclick="toggleOmzetBreakdown()" class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-sm relative overflow-hidden cursor-pointer active:scale-[0.99] transition-transform" title="Ketuk untuk rincian">
@@ -1669,10 +1647,6 @@ function refreshDashboard() {
         : 'text-xl sm:text-2xl font-black text-error tracking-tight';
 
       document.getElementById('dash-total-expenses').innerText = warkopSync.formatRupiah(summary.totalExpenses);
-
-      document.getElementById('bos-quick-revenue').innerText = warkopSync.formatRupiah(summary.totalRevenue);
-      document.getElementById('bos-quick-expenses').innerText = warkopSync.formatRupiah(summary.totalExpenses);
-      document.getElementById('bos-quick-net').innerText = warkopSync.formatRupiah(summary.netProfit);
       document.getElementById('dash-expense-count').innerText = `${summary.filteredExpenses.length} kali belanja modal`;
 
       document.getElementById('dash-total-items').innerText = `${summary.totalItemsSold} Porsi`;
