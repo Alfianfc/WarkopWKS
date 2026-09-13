@@ -283,6 +283,14 @@
         </button>
       </div>
 
+      <div class="flex gap-2">
+        <button onclick="resetKasirDate()" id="kasir-exp-datebtn-today"
+          class="flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all">
+          Hari ini
+        </button>
+        <input type="date" id="kasir-expense-date" onchange="setKasirDate(this.value)"
+          class="flex-[2] h-9 bg-surface-container-lowest border border-surface-container rounded-xl px-3 text-xs font-semibold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+      </div>
       <div class="flex flex-col gap-2" id="expenses-list">
         <!-- Rendered dynamically -->
       </div>
@@ -295,12 +303,20 @@
           <h2 class="text-base font-bold text-on-surface" id="history-title">Riwayat Transaksi</h2>
           <p class="text-xs text-on-surface-variant">Semua struk penjualan yang sudah dibayar</p>
         </div>
-        <button onclick="warkopSync.exportToCSV()" class="h-9 px-3 bg-surface-container text-on-surface border border-surface-container-high rounded-xl flex items-center gap-1 text-xs font-semibold active:scale-95">
+        <button onclick="warkopSync.exportToCSV(kasirDateFilter)" class="h-9 px-3 bg-surface-container text-on-surface border border-surface-container-high rounded-xl flex items-center gap-1 text-xs font-semibold active:scale-95">
           <span class="material-symbols-outlined text-[16px]">download</span>
           <span>Unduh Excel</span>
         </button>
       </div>
 
+      <div class="flex gap-2">
+        <button onclick="resetKasirDate()" id="kasir-datebtn-today"
+          class="flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all">
+          Hari ini
+        </button>
+        <input type="date" id="kasir-history-date" onchange="setKasirDate(this.value)"
+          class="flex-[2] h-9 bg-surface-container-lowest border border-surface-container rounded-xl px-3 text-xs font-semibold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+      </div>
       <div class="flex p-0.5 bg-surface-container rounded-lg border border-surface-container-high mb-1">
         <button onclick="setHistoryFilter('all')" id="hisf-all" class="flex-1 py-1.5 rounded-md text-[11px] font-bold bg-primary text-white transition-all">Semua</button>
         <button onclick="setHistoryFilter('bon')" id="hisf-bon" class="flex-1 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all">Bon</button>
@@ -768,6 +784,7 @@
     let selectedPaymentMethod = 'Tunai';
     let currentReceiptData = null;
     let kasirShiftMode = 'shift'; // 'shift' = shift berjalan, 'day' = seharian
+    let kasirDateFilter = 'today'; // 'today' | 'YYYY-MM-DD' (histori)
     let staffMode = false; // true = harga jatah karyawan
 
     function cartUnit(item) {
@@ -826,12 +843,53 @@
       return kasirShiftMode === 'shift' ? warkopSync.shiftOf(new Date()) : 'all';
     }
 
+    function kasirDayStr() {
+      return kasirDateFilter === 'today' ? warkopSync.businessDateStr(new Date()) : kasirDateFilter;
+    }
+
+    function kasirDateLabel() {
+      if (kasirDateFilter === 'today') return 'Hari Ini';
+      try { return warkopSync.formatDateIndo(new Date(kasirDateFilter + 'T12:00:00')); }
+      catch (e) { return kasirDateFilter; }
+    }
+
+    function setKasirDate(v) {
+      if (!v) return;
+      kasirDateFilter = v;
+      paintKasirDateBtn();
+      updateFinancialStats();
+      renderExpensesList();
+      renderHistoryList();
+    }
+
+    function resetKasirDate() {
+      kasirDateFilter = 'today';
+      const inp = document.getElementById('kasir-history-date');
+      if (inp) inp.value = '';
+      const inp2 = document.getElementById('kasir-expense-date');
+      if (inp2) inp2.value = '';
+      paintKasirDateBtn();
+      updateFinancialStats();
+      renderExpensesList();
+      renderHistoryList();
+    }
+
+    function paintKasirDateBtn() {
+      const on = 'flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all';
+      const off = 'flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
+      const e1 = document.getElementById('kasir-datebtn-today');
+      if (e1) e1.className = kasirDateFilter === 'today' ? on : off;
+      const e2 = document.getElementById('kasir-exp-datebtn-today');
+      if (e2) e2.className = kasirDateFilter === 'today' ? on : off;
+    }
+
     function setKasirShiftMode(mode) {
       kasirShiftMode = mode;
       const on = 'px-3 py-1.5 rounded-md text-[11px] font-bold bg-primary text-white transition-all';
       const off = 'px-3 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all';
       document.getElementById('shiftmode-shift').className = mode === 'shift' ? on : off;
       document.getElementById('shiftmode-day').className = mode === 'day' ? on : off;
+      paintKasirDateBtn();
       updateFinancialStats();
       renderExpensesList();
       renderHistoryList();
@@ -1099,13 +1157,14 @@
 
     // --- STATISTIK SHIFT FINANCIAL ---
     function updateFinancialStats() {
-      const summary = warkopSync.getSummary('today', kasirShiftFilter());
+      const summary = warkopSync.getSummary(kasirDateFilter, kasirShiftFilter());
       document.getElementById('stat-revenue').innerText = warkopSync.formatRupiah(summary.totalRevenue);
       document.getElementById('stat-expenses').innerText = warkopSync.formatRupiah(summary.totalExpenses);
       document.getElementById('stat-netprofit').innerText = warkopSync.formatRupiah(summary.netProfit);
-      const lbl = kasirShiftMode === 'shift'
+      const dlbl = kasirDateLabel();
+      const lbl = (kasirShiftMode === 'shift'
         ? warkopSync.shiftLabel(warkopSync.shiftOf(new Date()))
-        : 'Seharian ini';
+        : 'Seharian') + (kasirDateFilter === 'today' ? '' : ' • ' + dlbl);
       document.getElementById('kasir-shift-label').innerText = lbl;
       const ht = document.getElementById('history-title');
       if (ht) ht.innerText = kasirShiftMode === 'shift' ? ('Riwayat - ' + lbl) : 'Riwayat - Seharian';
@@ -1574,7 +1633,10 @@
       const container = document.getElementById('expenses-list');
       if (!container) return;
       const ef = kasirShiftFilter();
-      const expenses = warkopSync.getExpenses().filter(e => ef === 'all' || warkopSync.recordShift(e) === ef);
+      const dayStr = kasirDayStr();
+      const expenses = warkopSync.getExpenses()
+        .filter(e => warkopSync.recordMatchesDay(e, dayStr))
+        .filter(e => ef === 'all' || warkopSync.recordShift(e) === ef);
 
       if (expenses.length === 0) {
         container.innerHTML = `
@@ -1614,7 +1676,9 @@
       const container = document.getElementById('history-list');
       if (!container) return;
       const hf = kasirShiftFilter();
+      const hday = kasirDayStr();
       const txList = warkopSync.getTransactions()
+        .filter(t => warkopSync.recordMatchesDay(t, hday))
         .filter(t => hf === 'all' || warkopSync.recordShift(t) === hf)
         .filter(t => historyFilter === 'all' || (historyFilter === 'bon' ? t.status === 'BON' : t.status !== 'BON'));
 

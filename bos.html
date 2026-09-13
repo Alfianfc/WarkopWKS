@@ -166,7 +166,7 @@
         <div class="hidden flex-col gap-1.5 mt-2.5 pt-2.5 border-t border-surface-container" id="omzet-breakdown"></div>
       </div>
 
-      <div class="hidden items-center justify-between gap-2 mt-2 text-[11px] font-semibold text-on-surface-variant" id="rev-hist-note">
+      <div class="hidden items-center justify-between gap-2 mt-2 text-[11px] font-semibold text-on-surface-variant col-span-2 lg:col-span-4" id="rev-hist-note">
         <span>Mode histori — ringkasan, riwayat, WA &amp; Excel ikut tanggal di atas. Grafik tren tetap periode terakhir.</span>
         <button onclick="resetHistoryDate()" class="text-primary font-bold hover:underline shrink-0">Kembali hari ini</button>
       </div>
@@ -659,7 +659,7 @@
 
     function showToast(text) {
       const toast = document.createElement('div');
-      toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-on-surface text-surface px-4 py-2.5 rounded-full text-xs font-bold shadow-xl border border-white/20 flex items-center gap-2  whitespace-nowrap';
+      toast.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-on-surface text-surface px-4 py-2.5 rounded-2xl text-xs font-bold shadow-xl border border-white/20 flex items-center gap-2 max-w-[92vw] text-center';
       toast.innerHTML = `<span class="material-symbols-outlined text-primary text-[18px]">notifications_active</span><span></span>`;
       toast.querySelector('span:last-child').innerText = text;
       document.body.appendChild(toast);
@@ -891,7 +891,6 @@
         let key = day;
         if (revPeriod === 'week') {
           const d = new Date(tx.timestamp);
-          if (d.getHours() < 6) d.setDate(d.getDate() - 1);
           d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
           key = warkopSync.businessDateStr(d);
         } else if (revPeriod === 'month') {

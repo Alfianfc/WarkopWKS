@@ -62,7 +62,7 @@ Frontend (`pos-sync.js`) sudah siap mendengarkan dan mengirim event berikut:
 interface Transaction {
   id: string;              // contoh: "TRX-MTWEE6EV"
   timestamp: string;       // ISO 8601 UTC
-  shift: '1' | '2';        // Shift 1 = 06.00-15.00, Shift 2 = 15.00-24.00 (00.00-06.00 ikut hari bisnis sebelumnya)
+  shift: '1' | '2';        // Shift 1 = 06.00-15.00, Shift 2 = 15.00-24.00. Tutup hari 24.00, ikut tanggal kalender.
   cashier: string;         // nama user login (mis. "Kasir Warkop")
   customer: string;          // nama pelanggan bon (opsional)
   staff: boolean;            // true = jatah karyawan (harga staff)

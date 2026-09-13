@@ -805,7 +805,7 @@ class WarkopSyncEngine {
 
   // Arus kas shift: masuk tunai (lunas) - belanja. QRIS/Bon bukan kas fisik.
   shiftCashFlow(shift, dayStr) {
-    const summary = this.getSummary('today', shift);
+    const summary = this.getSummary(dayStr || 'today', shift);
     const cashIn = summary.filteredTx
       .filter(t => t.paymentMethod === 'Tunai')
       .reduce((a, t) => a + (Number(t.total) || 0), 0);
@@ -821,14 +821,11 @@ class WarkopSyncEngine {
     };
   }
 
-  // --- TANGGAL BISNIS & SHIFT (waktu lokal perangkat) ---
-  // Shift 1: 06.00–15.00, Shift 2: 15.00–24.00.
-  // Jam 00.00–06.00 (warkop tutup) dihitung masuk hari bisnis sebelumnya, shift 2.
+  // --- TANGGAL & SHIFT (waktu lokal perangkat, tutup hari 24.00) ---
+  // Shift 1: 06.00–15.00, Shift 2: 15.00–24.00. Semua ikut tanggal kalender hari itu.
   businessDateStr(d = new Date()) {
     const dt = d instanceof Date ? d : new Date(d);
-    const ref = new Date(dt);
-    if (ref.getHours() < 6) ref.setDate(ref.getDate() - 1);
-    return `${ref.getFullYear()}-${String(ref.getMonth() + 1).padStart(2, '0')}-${String(ref.getDate()).padStart(2, '0')}`;
+    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
   }
 
   shiftOf(d = new Date()) {

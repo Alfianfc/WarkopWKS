@@ -9,7 +9,7 @@ Website ini dilengkapi sistem **Login Username & Password (Kasir & Bos)**, diduk
 | **Shift 1 (Pagi)** | 06.00 – 15.00 | Serah terima ke shift 2 jam 15.00 |
 | **Shift 2 (Sore)** | 15.00 – 24.00 | Tutup warkop jam 24.00 |
 
-- Setiap transaksi & pengeluaran otomatis ditandai shift-nya (transaksi 00.00–06.00 ikut hari bisnis sebelumnya).
+- Setiap transaksi & pengeluaran otomatis ditandai shift-nya. Tutup hari jam 24.00 — semua ikut tanggal kalender hari itu.
 - Halaman **kasir** bisa toggle statistik **Shift ini / Seharian**; halaman **bos** bisa filter **Seharian / Shift 1 / Shift 2**.
 - Laporan "hari ini" memakai **tanggal lokal perangkat** (bukan UTC), jadi transaksi lewat tengah malam tidak lompat hari.
 
