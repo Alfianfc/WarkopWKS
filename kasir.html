@@ -15,6 +15,7 @@
     ::-webkit-scrollbar { display: none; }
     .ui-sheet-panel { transition: transform .22s ease-out; }
     .ui-dialog-card { transition: transform .15s ease-out, opacity .15s ease-out; }
+    .tab-hidden{display:none!important}
     @keyframes ui-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
     .ui-shake { animation: ui-shake .25s ease-in-out; }
     .ui-toast-in { transition: opacity .25s ease, transform .25s ease; }
@@ -280,7 +281,7 @@
     </div>
 
     <!-- SECTION 2: PENGELUARAN VIEW -->
-    <div id="view-expenses" class="hidden flex-col gap-3 lg:max-w-3xl lg:mx-auto w-full">
+    <div id="view-expenses" class="tab-hidden flex-col gap-3 lg:max-w-3xl lg:mx-auto w-full">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-base font-bold text-on-surface" id="expenses-title">Catatan Belanja &amp; Modal</h2>
@@ -306,7 +307,7 @@
     </div>
 
     <!-- SECTION 3: RIWAYAT VIEW -->
-    <div id="view-history" class="hidden flex-col gap-3 lg:max-w-3xl lg:mx-auto w-full">
+    <div id="view-history" class="tab-hidden flex-col gap-3 lg:max-w-3xl lg:mx-auto w-full">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-base font-bold text-on-surface" id="history-title">Riwayat Transaksi</h2>
@@ -336,7 +337,7 @@
       </div>
     </div>
   <!-- VIEW LAPORAN -->
-     <div id="view-laporan" class="hidden flex-col">
+     <div id="view-laporan" class="tab-hidden flex-col">
   
       <!-- Tanggal & Status -->
       <div class="flex items-center justify-between py-2">
@@ -2211,10 +2212,10 @@ function sendWhatsAppSummary() {
 
     // --- TAB SWITCHING ---
     function switchTab(tabId) {
-      document.getElementById('view-pos').classList.add('hidden');
-      document.getElementById('view-expenses').classList.add('hidden');
-      document.getElementById('view-history').classList.add('hidden');
-      document.getElementById('view-laporan').classList.add('hidden');
+      document.getElementById('view-pos').classList.add('tab-hidden');
+      document.getElementById('view-expenses').classList.add('tab-hidden');
+      document.getElementById('view-history').classList.add('tab-hidden');
+      document.getElementById('view-laporan').classList.add('tab-hidden');
 
       ['pos', 'expenses', 'history', 'laporan'].forEach(t => {
         const el = document.getElementById('tab-' + t);
@@ -2232,24 +2233,20 @@ function sendWhatsAppSummary() {
 
       // Ringkasan kasir cuma tampil di tab POS untuk akun owner
       const sumBlock = document.getElementById('kasir-summary-block');
-      if (sumBlock) {
-        const hide = isOwnerView && tabId !== 'pos';
-        sumBlock.classList.toggle('hidden', hide);
-        sumBlock.classList.toggle('flex', !hide);
-      }
+      if (sumBlock) sumBlock.classList.toggle('tab-hidden', isOwnerView && tabId !== 'pos');
 
-      if (tabId === 'pos') document.getElementById('view-pos').classList.remove('hidden');
+      if (tabId === 'pos') document.getElementById('view-pos').classList.remove('tab-hidden');
       if (tabId === 'expenses') {
-        document.getElementById('view-expenses').classList.remove('hidden');
+        document.getElementById('view-expenses').classList.remove('tab-hidden');
         renderExpensesList();
       }
       if (tabId === 'history') {
-        document.getElementById('view-history').classList.remove('hidden');
+        document.getElementById('view-history').classList.remove('tab-hidden');
         renderHistoryList();
       }
       if (tabId === 'laporan') {
         if (!isOwnerView) { switchTab('pos'); return; }
-        document.getElementById('view-laporan').classList.remove('hidden');
+        document.getElementById('view-laporan').classList.remove('tab-hidden');
         refreshDashboard();
       }
     }
