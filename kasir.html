@@ -82,6 +82,9 @@
 
   <!-- Warkop Realtime Data Engine -->
   <script src="pos-sync.js"></script>
+  <!-- Transisi antar-halaman + prefetch biar pindah Kasir<->Laporan nggak kerasa reload -->
+  <link rel="prefetch" href="/bos">
+  <style>@view-transition{navigation:auto}</style>
 </head>
 
 <body class="bg-surface md:bg-[#e3d3c8] font-sans text-on-surface flex flex-col antialiased selection:bg-primary selection:text-white">
