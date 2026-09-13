@@ -507,7 +507,7 @@
             Bulanan
           </button>
         </div>
-        <div class="pt-3 pb-1 px-1 bg-surface-container-lowest rounded-xl border border-surface-container" id="revenue-chart-container"></div>
+        <div class="pt-3 pb-1 px-1 bg-surface-container-lowest rounded-xl border border-surface-container relative" id="revenue-chart-container"></div>
         <div class="flex items-center justify-between mt-2 pt-2 border-t border-surface-container text-xs">
           <span class="text-on-surface-variant font-medium" id="rev-avg-label">—</span>
           <span class="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-bold" id="rev-best-label">—</span>
@@ -530,7 +530,7 @@
       </div>
   
       <!-- Live Feed -->
-      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-sm lg:max-w-3xl">
+      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-sm lg:max-w-3xl lg:mx-auto w-full">
         <div class="flex items-center justify-between pb-3 border-b border-surface-container">
           <div class="flex items-center gap-1.5">
             <span class="material-symbols-outlined text-primary text-[20px]">rss_feed</span>
@@ -1860,13 +1860,61 @@ function renderRevenueChart() {
         const area = PAD + ',' + (H - PAD) + ' ' + line + ' ' + (W - PAD) + ',' + (H - PAD);
         const fmtK = v => v >= 1000000 ? (v / 1000000).toFixed(1) + 'jt' : Math.round(v / 1000) + 'k';
         container.innerHTML = `
-          <svg viewBox="0 0 ${W} ${H}" class="w-full" style="height:${H}px">
+          <svg id="rev-chart-svg" viewBox="0 0 ${W} ${H}" class="w-full block" style="height:${H}px;touch-action:none;cursor:crosshair">
             ${[0.25, 0.5, 0.75].map(f => `<line x1="${PAD}" y1="${(H * f).toFixed(1)}" x2="${W - PAD}" y2="${(H * f).toFixed(1)}" stroke="#eadfd6" stroke-width="1" stroke-dasharray="3 4"/>`).join('')}
             <polygon points="${area}" fill="rgba(168,51,1,0.10)"/>
             <polyline points="${line}" fill="none" stroke="#a83301" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
             ${pts.map((p, i) => `<g><circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${vals[i] === peak && peak > 0 ? 5 : 3.5}" fill="${vals[i] === peak && peak > 0 ? '#a83301' : '#fff8f5'}" stroke="#a83301" stroke-width="2"/><title>${buckets[i][0]}: ${warkopSync.formatRupiah(vals[i])}</title>${vals[i] === peak && peak > 0 ? `<text x="${p[0].toFixed(1)}" y="${(p[1] - 10).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" fill="#a83301">${fmtK(vals[i])}</text>` : ''}</g>`).join('')}
+            <line id="rev-chart-cross" x1="0" y1="${PAD}" x2="0" y2="${H - PAD}" stroke="#a83301" stroke-width="1" stroke-dasharray="4 3" opacity="0.55" visibility="hidden"/>
+            <circle id="rev-chart-hl" r="7" fill="#a83301" stroke="#fff" stroke-width="2.5" visibility="hidden"/>
           </svg>
-          <div class="flex justify-between mt-1" style="padding:0 ${PAD}px">${buckets.map(([label], i) => `<span class="text-[9px] ${vals[i] === peak && peak > 0 ? 'text-primary font-bold' : 'text-on-surface-variant'}">${label}</span>`).join('')}</div>`;
+          <div class="flex justify-between mt-1" style="padding:0 ${PAD}px">${buckets.map(([label], i) => `<span class="text-[9px] ${vals[i] === peak && peak > 0 ? 'text-primary font-bold' : 'text-on-surface-variant'}">${label}</span>`).join('')}</div>
+          <div id="rev-chart-tip" class="hidden absolute z-10 bg-surface-container-lowest border border-surface-container rounded-xl px-2.5 py-1.5 shadow-lg text-center whitespace-nowrap pointer-events-none" style="transform:translate(-50%,-112%)"></div>`;
+        // --- Interaktif: geser/hover antar titik, tooltip nilai + selisih vs titik sebelumnya ---
+        const svg = container.querySelector('#rev-chart-svg');
+        const tip = container.querySelector('#rev-chart-tip');
+        const hl = container.querySelector('#rev-chart-hl');
+        const cross = container.querySelector('#rev-chart-cross');
+        const setRevVis = v => { hl.setAttribute('visibility', v ? 'visible' : 'hidden'); cross.setAttribute('visibility', v ? 'visible' : 'hidden'); };
+        function showRevTip(i) {
+          const v = vals[i], px = X(i), py = Y(v);
+          cross.setAttribute('x1', px.toFixed(1)); cross.setAttribute('x2', px.toFixed(1));
+          hl.setAttribute('cx', px.toFixed(1)); hl.setAttribute('cy', py.toFixed(1));
+          setRevVis(true);
+          let dHtml;
+          if (i === 0) {
+            dHtml = `<span class="text-[10px] font-semibold text-on-surface-variant">awal periode</span>`;
+          } else {
+            const d = v - vals[i - 1];
+            if (d === 0) {
+              dHtml = `<span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full text-on-surface-variant bg-surface-container">tetap</span>`;
+            } else {
+              const up = d > 0;
+              const pct = vals[i - 1] > 0 ? ` (${up ? '+' : '-'}${Math.abs(d / vals[i - 1] * 100).toFixed(0)}%)` : '';
+              dHtml = `<span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ${up ? 'text-emerald-700 bg-emerald-50' : 'text-error bg-error/10'}">${up ? '▲ +' : '▼ -'}${warkopSync.formatRupiah(Math.abs(d))}${pct}</span>`;
+            }
+          }
+          tip.innerHTML = `<div class="text-[10px] font-semibold text-on-surface-variant">${buckets[i][0]}</div><div class="text-sm font-extrabold text-on-surface">${warkopSync.formatRupiah(v)}</div><div class="mt-0.5">${dHtml}</div>`;
+          tip.classList.remove('hidden');
+          const r = svg.getBoundingClientRect(), cr = container.getBoundingClientRect();
+          const lx = Math.max(66, Math.min(cr.width - 66, (r.left - cr.left) + (px / W) * r.width));
+          tip.style.left = lx + 'px';
+          tip.style.top = Math.max(4, (r.top - cr.top) + (py / H) * r.height) + 'px';
+        }
+        function pickRev(e) {
+          const r = svg.getBoundingClientRect();
+          const sx = (e.clientX - r.left) * (W / r.width);
+          let bi = 0, bd = 1e12;
+          for (let j = 0; j < nn; j++) { const dd = Math.abs(X(j) - sx); if (dd < bd) { bd = dd; bi = j; } }
+          showRevTip(bi);
+        }
+        let revTipT = null;
+        svg.addEventListener('pointerdown', e => { try { svg.setPointerCapture(e.pointerId); } catch (err) {} pickRev(e); });
+        svg.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' || e.buttons) pickRev(e); });
+        const hideRev = () => { tip.classList.add('hidden'); setRevVis(false); };
+        svg.addEventListener('pointerup', () => { clearTimeout(revTipT); revTipT = setTimeout(hideRev, 2000); });
+        svg.addEventListener('pointercancel', hideRev);
+        svg.addEventListener('pointerleave', hideRev);
       })();
 
       const total = buckets.reduce((s, [, k]) => s + (sums[k] || 0), 0);
