@@ -89,12 +89,12 @@
   <!-- Header -->
   <header class="fixed top-0 inset-x-0 z-40 bg-surface/90 backdrop-blur-xl border-b border-surface-container pt-safe">
     <div class="h-16 px-4 flex items-center justify-between md:max-w-md md:mx-auto w-full lg:max-w-5xl">
-      <div class="flex items-center gap-2.5">
-        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
+      <div class="flex items-center gap-2">
+        <div class="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
           <span class="material-symbols-outlined text-[24px]">coffee</span>
         </div>
         <div>
-          <h1 class="text-base font-bold tracking-tight text-on-surface flex items-center gap-1.5">
+          <h1 class="text-base font-bold tracking-tight text-on-surface flex items-center gap-2">
             POS Kasir Warkop WKS
             <span class="relative flex h-2 w-2">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
@@ -109,7 +109,7 @@
 
       <div class="flex items-center gap-2">
         <!-- Cloud Sync Status Button -->
-        <button onclick="openCloudModal()" id="cloud-status-btn" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 active:scale-95 transition-transform" title="Status Sinkronisasi Real-time">
+        <button onclick="openCloudModal()" id="cloud-status-btn" class="flex items-center gap-2 px-2 py-2 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 active:scale-95 transition-transform" title="Status Sinkronisasi Real-time">
           <span class="material-symbols-outlined text-[16px]">sync</span>
           <span id="cloud-status-text">Live Sync</span>
         </button>
@@ -120,7 +120,7 @@
           <span class="material-symbols-outlined text-[18px]">key</span>
         </button>
         <!-- Logout Button -->
-        <button onclick="confirmLogout()" class="w-9 h-9 rounded-full bg-surface-container hover:bg-error/10 text-on-surface-variant hover:text-error flex items-center justify-center shadow-sm active:scale-95 transition-all" title="Keluar / Logout">
+        <button onclick="confirmLogout()" class="w-10 h-10 rounded-full bg-surface-container hover:bg-error/10 text-on-surface-variant hover:text-error flex items-center justify-center shadow-sm active:scale-95 transition-all" title="Keluar / Logout">
           <span class="material-symbols-outlined text-[19px]">logout</span>
         </button>
       </div>
@@ -133,22 +133,22 @@
     <!-- Ringkasan kasir (tampil cuma di tab POS) -->
     <div id="kasir-summary-block" class="flex flex-col">
     <!-- Shift Stats Banner (Real-time Financial Summary) -->
-    <div class="grid grid-cols-3 gap-2.5 mb-4">
-      <div class="bg-surface-container-low p-3 rounded-2xl border border-surface-container flex flex-col justify-between">
+    <div class="grid grid-cols-3 gap-2 mb-4">
+      <div class="bg-surface-container-low p-4 rounded-2xl border border-surface-container flex flex-col justify-between">
         <span class="text-[11px] font-medium text-on-surface-variant flex items-center gap-1">
           <span class="material-symbols-outlined text-[14px] text-emerald-600">arrow_downward</span> Pemasukan
         </span>
         <span class="text-sm sm:text-base font-bold text-primary mt-1" id="stat-revenue">Rp 0</span>
       </div>
       
-      <div class="bg-surface-container-low p-3 rounded-2xl border border-surface-container flex flex-col justify-between">
+      <div class="bg-surface-container-low p-4 rounded-2xl border border-surface-container flex flex-col justify-between">
         <span class="text-[11px] font-medium text-on-surface-variant flex items-center gap-1">
           <span class="material-symbols-outlined text-[14px] text-error">arrow_upward</span> Pengeluaran
         </span>
         <span class="text-sm sm:text-base font-bold text-on-surface mt-1" id="stat-expenses">Rp 0</span>
       </div>
 
-      <div class="bg-surface-container-low p-3 rounded-2xl border border-surface-container flex flex-col justify-between">
+      <div class="bg-surface-container-low p-4 rounded-2xl border border-surface-container flex flex-col justify-between">
         <span class="text-[11px] font-medium text-on-surface-variant flex items-center gap-1">
           <span class="material-symbols-outlined text-[14px] text-emerald-700">account_balance_wallet</span> Kas Bersih
         </span>
@@ -160,47 +160,47 @@
     <div class="flex items-center justify-between mb-4">
       <span class="text-[11px] font-bold text-on-surface-variant" id="kasir-shift-label">Shift berjalan</span>
       <div class="flex p-0.5 bg-surface-container rounded-lg border border-surface-container-high">
-        <button onclick="setKasirShiftMode('shift')" id="shiftmode-shift" class="px-3 py-1.5 rounded-md text-[11px] font-bold bg-primary text-white transition-all">Shift ini</button>
-        <button onclick="setKasirShiftMode('day')" id="shiftmode-day" class="px-3 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all">Seharian</button>
+        <button onclick="setKasirShiftMode('shift')" id="shiftmode-shift" class="px-4 py-2 rounded-lg text-[11px] font-bold bg-primary text-white transition-all">Shift ini</button>
+        <button onclick="setKasirShiftMode('day')" id="shiftmode-day" class="px-4 py-2 rounded-lg text-[11px] font-semibold text-on-surface-variant transition-all">Seharian</button>
       </div>
     </div>
 
     <!-- Kas Shift / Opname -->
-    <div class="bg-surface-container-low rounded-2xl p-3.5 border border-surface-container flex flex-col gap-2.5 mb-4 shadow-sm">
+    <div class="bg-surface-container-low rounded-2xl p-4 border border-surface-container flex flex-col gap-2 mb-4 shadow-sm">
       <div class="flex items-center justify-between">
-        <span class="text-xs font-bold text-on-surface flex items-center gap-1.5">
+        <span class="text-xs font-bold text-on-surface flex items-center gap-2">
           <span class="material-symbols-outlined text-[18px] text-primary">account_balance_wallet</span>
           Kas <span id="opname-shift-label">Shift</span>
         </span>
         <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant" id="opname-status">-</span>
       </div>
       <div class="grid grid-cols-3 gap-2 text-center">
-        <div class="bg-surface-container-lowest rounded-xl p-2 border border-surface-container">
+        <div class="bg-surface-container-lowest rounded-2xl p-2 border border-surface-container">
           <div class="text-[10px] text-on-surface-variant font-semibold">Modal awal</div>
           <div class="text-xs font-extrabold text-on-surface" id="opname-modal-awal">Rp 0</div>
         </div>
-        <div class="bg-surface-container-lowest rounded-xl p-2 border border-surface-container">
+        <div class="bg-surface-container-lowest rounded-2xl p-2 border border-surface-container">
           <div class="text-[10px] text-on-surface-variant font-semibold">Ekspektasi</div>
           <div class="text-xs font-extrabold text-primary" id="opname-expected">Rp 0</div>
         </div>
-        <div class="bg-surface-container-lowest rounded-xl p-2 border border-surface-container">
+        <div class="bg-surface-container-lowest rounded-2xl p-2 border border-surface-container">
           <div class="text-[10px] text-on-surface-variant font-semibold">Selisih</div>
           <div class="text-xs font-extrabold text-on-surface-variant" id="opname-diff">-</div>
         </div>
       </div>
       <div class="flex gap-2">
-        <button onclick="openOpnameModal('open')" class="flex-1 h-10 bg-surface-container hover:bg-surface-container-high text-on-surface border border-surface-container-high rounded-xl text-xs font-bold active:scale-95">Set Modal</button>
-        <button onclick="openOpnameModal('close')" id="opname-close-btn" class="flex-1 h-10 bg-primary text-white rounded-xl text-xs font-bold active:scale-95 shadow-sm">Tutup Shift</button>
+        <button onclick="openOpnameModal('open')" class="flex-1 h-10 bg-surface-container hover:bg-surface-container-high text-on-surface border border-surface-container-high rounded-2xl text-xs font-bold active:scale-95">Set Modal</button>
+        <button onclick="openOpnameModal('close')" id="opname-close-btn" class="flex-1 h-10 bg-primary text-white rounded-2xl text-xs font-bold active:scale-95 shadow-sm">Tutup Shift</button>
       </div>
     </div>
 
     <!-- Quick Action Bar: Catat Pengeluaran Modal & Tambah Menu -->
     <div class="flex items-center gap-2 mb-4">
-      <button onclick="openExpenseModal()" id="quick-expense-btn" class="flex-1 h-11 bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-300/60 rounded-xl flex items-center justify-center gap-2 text-xs font-bold active:scale-[0.98] transition-all">
+      <button onclick="openExpenseModal()" id="quick-expense-btn" class="flex-1 h-12 bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-300/60 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold active:scale-[0.98] transition-all">
         <span class="material-symbols-outlined text-[18px] text-amber-700">receipt_long</span>
         <span>Catat Pengeluaran Modal</span>
       </button>
-      <button onclick="openAddModal()" class="h-11 px-3 bg-surface-container-low hover:bg-surface-container border border-surface-container text-on-surface rounded-xl flex items-center justify-center gap-1.5 text-xs font-semibold active:scale-[0.98] transition-all">
+      <button onclick="openAddModal()" class="h-12 px-4 bg-surface-container-low hover:bg-surface-container border border-surface-container text-on-surface rounded-2xl flex items-center justify-center gap-2 text-xs font-semibold active:scale-[0.98] transition-all">
         <span class="material-symbols-outlined text-[18px] text-primary">add_circle</span>
         <span>Menu</span>
       </button>
@@ -208,7 +208,7 @@
     </div><!-- /kasir-summary-block -->
 
     <!-- SECTION 1: POS VIEW (CATALOG & CART) -->
-    <div id="view-pos" class="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
+    <div id="view-pos" class="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_384px] lg:items-start">
       <div class="flex flex-col gap-4 min-w-0">
       <!-- Category Filter Chips -->
       <div class="flex items-center gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-none">
@@ -220,13 +220,13 @@
       </div>
 
       <!-- Menu Grid Container -->
-      <div class="grid grid-cols-2 lg:grid-cols-3 gap-3" id="menu-grid">
+      <div class="grid grid-cols-2 lg:grid-cols-3 gap-4" id="menu-grid">
         <!-- Rendered dynamically via renderMenuGrid() -->
       </div>
 
       </div>
       <!-- Active Bill Section (Cart) -->
-      <div class="bg-surface-container-low rounded-2xl p-4 border border-surface-container flex flex-col gap-3.5 shadow-sm mt-2 lg:mt-0 lg:sticky lg:top-20">
+      <div class="bg-surface-container-low rounded-2xl p-4 border border-surface-container flex flex-col gap-4 shadow-sm mt-2 lg:mt-0 lg:sticky lg:top-20">
         <div class="flex justify-between items-center pb-2 border-b border-surface-container">
           <div class="flex items-center gap-2">
             <span class="material-symbols-outlined text-primary text-[20px]">shopping_cart</span>
@@ -238,13 +238,13 @@
 
 
         <!-- Toggle Karyawan (jatah staff) -->
-        <div class="flex items-center justify-between bg-surface-container rounded-xl px-3 py-2">
-          <span class="text-xs font-bold text-on-surface flex items-center gap-1.5">
+        <div class="flex items-center justify-between bg-surface-container rounded-2xl px-4 py-2">
+          <span class="text-xs font-bold text-on-surface flex items-center gap-2">
             <span class="material-symbols-outlined text-[18px] text-primary">badge</span>
             <span id="staff-toggle-label">Mode Karyawan OFF</span>
           </span>
-          <button onclick="toggleStaffMode()" id="staff-toggle" class="w-11 h-6 rounded-full bg-surface-container-high relative transition-all" title="Aktifkan harga karyawan">
-            <span id="staff-toggle-dot" class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-all"></span>
+          <button onclick="toggleStaffMode()" id="staff-toggle" class="w-12 h-6 rounded-full bg-surface-container-high relative transition-all" title="Aktifkan harga karyawan">
+            <span id="staff-toggle-dot" class="absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow transition-all"></span>
           </button>
         </div>
 
@@ -258,7 +258,7 @@
         </div>
 
         <!-- Bill Summary Calculation -->
-        <div class="hidden flex flex-col gap-2 pt-3 border-t border-surface-container" id="bill-summary">
+        <div class="hidden flex flex-col gap-2 pt-4 border-t border-surface-container" id="bill-summary">
           <div class="flex justify-between text-xs text-on-surface-variant">
             <span>Subtotal</span>
             <span id="subtotal-text" class="font-medium">Rp 0</span>
@@ -272,7 +272,7 @@
             <span class="text-primary font-extrabold text-lg" id="total-text">Rp 0</span>
           </div>
 
-          <button onclick="openCheckoutModal()" id="checkout-btn" class="mt-2 w-full h-12 bg-primary text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-[0.98] transition-transform shadow-lg shadow-primary/20">
+          <button onclick="openCheckoutModal()" id="checkout-btn" class="mt-2 w-full h-12 bg-primary text-white rounded-2xl flex items-center justify-center gap-2 text-sm font-bold active:scale-[0.98] transition-transform shadow-lg shadow-primary/20">
             <span class="material-symbols-outlined text-[20px]">payments</span>
             <span>Lanjut Pembayaran</span>
           </button>
@@ -281,13 +281,13 @@
     </div>
 
     <!-- SECTION 2: PENGELUARAN VIEW -->
-    <div id="view-expenses" class="tab-hidden flex-col gap-3 w-full">
+    <div id="view-expenses" class="tab-hidden flex-col gap-4 w-full">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-base font-bold text-on-surface" id="expenses-title">Catatan Belanja &amp; Modal</h2>
           <p class="text-xs text-on-surface-variant">Pengeluaran kas warkop otomatis terpantau Bos</p>
         </div>
-        <button onclick="openExpenseModal()" id="expense-add-btn" class="h-9 px-3 bg-amber-600 text-white rounded-xl flex items-center gap-1 text-xs font-bold active:scale-95 shadow-sm">
+        <button onclick="openExpenseModal()" id="expense-add-btn" class="h-10 px-4 bg-amber-600 text-white rounded-2xl flex items-center gap-1 text-xs font-bold active:scale-95 shadow-sm">
           <span class="material-symbols-outlined text-[16px]">add</span>
           <span>Catat Baru</span>
         </button>
@@ -295,15 +295,15 @@
 
       <div class="flex gap-2">
         <button onclick="resetKasirDate()" id="kasir-exp-datebtn-today"
-          class="flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all">
+          class="flex-1 py-2 px-2 rounded-2xl bg-primary text-white text-xs font-bold transition-all">
           Hari ini
         </button>
         <input type="date" id="kasir-expense-date" onchange="setKasirDate(this.value)"
-          class="flex-[2] h-9 bg-surface-container-lowest border border-surface-container rounded-xl px-3 text-xs font-semibold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+          class="flex-[2] h-10 bg-surface-container-lowest border border-surface-container rounded-2xl px-4 text-xs font-semibold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
       </div>
       <div class="owner-shift-row hidden gap-2">
-        <button onclick="setKasirShiftMode('shift')" id="os-shift-exp" class="flex-1 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all">Shift ini</button>
-        <button onclick="setKasirShiftMode('day')" id="os-day-exp" class="flex-1 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all">Seharian</button>
+        <button onclick="setKasirShiftMode('shift')" id="os-shift-exp" class="flex-1 py-2 rounded-lg text-[11px] font-semibold text-on-surface-variant transition-all">Shift ini</button>
+        <button onclick="setKasirShiftMode('day')" id="os-day-exp" class="flex-1 py-2 rounded-lg text-[11px] font-semibold text-on-surface-variant transition-all">Seharian</button>
       </div>
       <div class="flex flex-col gap-2" id="expenses-list">
         <!-- Rendered dynamically -->
@@ -311,13 +311,13 @@
     </div>
 
     <!-- SECTION 3: RIWAYAT VIEW -->
-    <div id="view-history" class="tab-hidden flex-col gap-3 w-full">
+    <div id="view-history" class="tab-hidden flex-col gap-4 w-full">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-base font-bold text-on-surface" id="history-title">Riwayat Transaksi</h2>
           <p class="text-xs text-on-surface-variant">Semua struk penjualan yang sudah dibayar</p>
         </div>
-        <button onclick="warkopSync.exportToCSV(kasirDateFilter)" class="h-9 px-3 bg-surface-container text-on-surface border border-surface-container-high rounded-xl flex items-center gap-1 text-xs font-semibold active:scale-95">
+        <button onclick="warkopSync.exportToCSV(kasirDateFilter)" class="h-10 px-4 bg-surface-container text-on-surface border border-surface-container-high rounded-2xl flex items-center gap-1 text-xs font-semibold active:scale-95">
           <span class="material-symbols-outlined text-[16px]">download</span>
           <span>Unduh Excel</span>
         </button>
@@ -325,20 +325,20 @@
 
       <div class="flex gap-2">
         <button onclick="resetKasirDate()" id="kasir-datebtn-today"
-          class="flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all">
+          class="flex-1 py-2 px-2 rounded-2xl bg-primary text-white text-xs font-bold transition-all">
           Hari ini
         </button>
         <input type="date" id="kasir-history-date" onchange="setKasirDate(this.value)"
-          class="flex-[2] h-9 bg-surface-container-lowest border border-surface-container rounded-xl px-3 text-xs font-semibold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+          class="flex-[2] h-10 bg-surface-container-lowest border border-surface-container rounded-2xl px-4 text-xs font-semibold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
       </div>
       <div class="owner-shift-row hidden gap-2">
-        <button onclick="setKasirShiftMode('shift')" id="os-shift-his" class="flex-1 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all">Shift ini</button>
-        <button onclick="setKasirShiftMode('day')" id="os-day-his" class="flex-1 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all">Seharian</button>
+        <button onclick="setKasirShiftMode('shift')" id="os-shift-his" class="flex-1 py-2 rounded-lg text-[11px] font-semibold text-on-surface-variant transition-all">Shift ini</button>
+        <button onclick="setKasirShiftMode('day')" id="os-day-his" class="flex-1 py-2 rounded-lg text-[11px] font-semibold text-on-surface-variant transition-all">Seharian</button>
       </div>
       <div class="flex p-0.5 bg-surface-container rounded-lg border border-surface-container-high mb-1">
-        <button onclick="setHistoryFilter('all')" id="hisf-all" class="flex-1 py-1.5 rounded-md text-[11px] font-bold bg-primary text-white transition-all">Semua</button>
-        <button onclick="setHistoryFilter('bon')" id="hisf-bon" class="flex-1 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all">Bon</button>
-        <button onclick="setHistoryFilter('paid')" id="hisf-paid" class="flex-1 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all">Lunas</button>
+        <button onclick="setHistoryFilter('all')" id="hisf-all" class="flex-1 py-2 rounded-lg text-[11px] font-bold bg-primary text-white transition-all">Semua</button>
+        <button onclick="setHistoryFilter('bon')" id="hisf-bon" class="flex-1 py-2 rounded-lg text-[11px] font-semibold text-on-surface-variant transition-all">Bon</button>
+        <button onclick="setHistoryFilter('paid')" id="hisf-paid" class="flex-1 py-2 rounded-lg text-[11px] font-semibold text-on-surface-variant transition-all">Lunas</button>
       </div>
       <div class="flex flex-col gap-2" id="history-list">
         <!-- Rendered dynamically -->
@@ -353,12 +353,12 @@
           <span class="text-xs font-semibold text-on-surface-variant" id="dashboard-date-label">Laporan Hari Ini</span>
           <h2 class="text-lg font-extrabold text-on-surface tracking-tight" id="dashboard-date-display">—</h2>
         </div>
-        <div class="flex items-center gap-1.5">
-          <div id="supabase-status-badge" class="flex items-center gap-0.5 px-1.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap shrink-0">
+        <div class="flex items-center gap-2">
+          <div id="supabase-status-badge" class="flex items-center gap-0.5 px-2 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap shrink-0">
             <span class="material-symbols-outlined text-[12px]">cloud_done</span>
             <span id="supabase-status-text">Supabase LIVE</span>
           </div>
-          <div id="kasir-status-badge" class="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container text-on-surface-variant border border-surface-container-high rounded-full">
+          <div id="kasir-status-badge" class="flex items-center gap-2 px-4 py-2 bg-surface-container text-on-surface-variant border border-surface-container-high rounded-full">
             <span class="w-2 h-2 rounded-full bg-stone-400"></span>
             <span class="text-xs font-bold" id="kasir-status-text">Memuat...</span>
             </div>
@@ -368,15 +368,15 @@
             <!-- Filter shift: Shift 1 (06-15) / Shift 2 (15-24) -->
       <div class="flex gap-2 mt-1">
         <button onclick="setShiftFilter('all')" id="shiftfilter-all"
-          class="flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all">
+          class="flex-1 py-2 px-2 rounded-2xl bg-primary text-white text-xs font-bold transition-all">
           Seharian
         </button>
         <button onclick="setShiftFilter('1')" id="shiftfilter-1"
-          class="flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all">
+          class="flex-1 py-2 px-2 rounded-2xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all">
           Shift 1 (06–15)
         </button>
         <button onclick="setShiftFilter('2')" id="shiftfilter-2"
-          class="flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all">
+          class="flex-1 py-2 px-2 rounded-2xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all">
           Shift 2 (15–24)
         </button>
       </div>
@@ -384,19 +384,19 @@
       <!-- Histori tanggal -->
       <div class="flex gap-2 mt-2">
         <button onclick="resetHistoryDate()" id="datebtn-today"
-          class="flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all">
+          class="flex-1 py-2 px-2 rounded-2xl bg-primary text-white text-xs font-bold transition-all">
           Hari ini
         </button>
         <input type="date" id="history-date" onchange="setHistoryDate(this.value)"
-          class="flex-[2] h-9 bg-surface-container-lowest border border-surface-container rounded-xl px-3 text-xs font-semibold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+          class="flex-[2] h-10 bg-surface-container-lowest border border-surface-container rounded-2xl px-4 text-xs font-semibold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
       </div>
   
       <!-- KPI Bento Grid -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mt-2">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-2">
         <div onclick="toggleOmzetBreakdown()" class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-sm relative overflow-hidden cursor-pointer active:scale-[0.99] transition-transform" title="Ketuk untuk rincian">
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs text-on-surface-variant font-bold">Omzet Bruto</span>
-            <span class="flex items-center text-[10px] text-emerald-700 font-extrabold bg-emerald-500/10 px-1.5 py-0.5 rounded-full">
+            <span class="flex items-center text-[10px] text-emerald-700 font-extrabold bg-emerald-500/10 px-2 py-0.5 rounded-full">
               <span class="material-symbols-outlined text-[13px]">trending_up</span>+Live
             </span>
           </div>
@@ -404,7 +404,7 @@
           <span class="text-[11px] text-on-surface-variant font-medium mt-1 flex items-center gap-1" id="dash-tx-count">
             <span class="material-symbols-outlined text-[13px]">receipt</span> 0 Transaksi
           </span>
-          <div class="hidden flex-col gap-1.5 mt-2.5 pt-2.5 border-t border-surface-container" id="omzet-breakdown"></div>
+          <div class="hidden flex-col gap-2 mt-2 pt-2.5 border-t border-surface-container" id="omzet-breakdown"></div>
         </div>
   
         <div class="hidden items-center justify-between gap-2 mt-2 text-[11px] font-semibold text-on-surface-variant col-span-2 lg:col-span-4" id="rev-hist-note">
@@ -415,7 +415,7 @@
         <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-sm relative overflow-hidden">
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs text-on-surface-variant font-bold">Kas Bersih</span>
-            <span class="flex items-center text-[10px] text-emerald-700 font-extrabold bg-emerald-500/10 px-1.5 py-0.5 rounded-full" id="dash-margin-badge">100%</span>
+            <span class="flex items-center text-[10px] text-emerald-700 font-extrabold bg-emerald-500/10 px-2 py-0.5 rounded-full" id="dash-margin-badge">100%</span>
           </div>
           <span class="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight" id="dash-net-profit">Rp 0</span>
           <span class="text-[11px] text-on-surface-variant font-medium mt-1 flex items-center gap-1">
@@ -441,37 +441,37 @@
           <span class="text-[11px] text-on-surface-variant font-medium mt-1" id="dash-avg-item">Rata-rata menu warkop</span>
         </div>
   
-        <div onclick="toggleStaffMenu()" class="col-span-2 flex flex-col gap-1.5 bg-emerald-500/5 rounded-2xl p-3.5 border border-emerald-200/60 cursor-pointer active:scale-[0.99] transition-transform" title="Ketuk untuk rincian">
+        <div onclick="toggleStaffMenu()" class="col-span-2 flex flex-col gap-2 bg-emerald-500/5 rounded-2xl p-4 border border-emerald-200/60 cursor-pointer active:scale-[0.99] transition-transform" title="Ketuk untuk rincian">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-on-surface flex items-center gap-1.5">
+            <span class="text-xs font-bold text-on-surface flex items-center gap-2">
               <span class="material-symbols-outlined text-[18px] text-emerald-700">badge</span>
               Konsumsi Karyawan
             </span>
             <span class="text-[11px] text-on-surface-variant font-semibold" id="dash-staff-info">0 transaksi • Rp 0 digratiskan</span>
           </div>
-          <div class="hidden flex-col gap-1.5" id="staff-menu-list"></div>
+          <div class="hidden flex-col gap-2" id="staff-menu-list"></div>
         </div>
   
-        <div class="col-span-2 flex items-center justify-between gap-2 bg-surface-container-low rounded-2xl p-3.5 border border-surface-container shadow-sm">
-          <span class="text-xs font-bold text-on-surface flex items-center gap-1.5">
+        <div class="col-span-2 flex items-center justify-between gap-2 bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-sm">
+          <span class="text-xs font-bold text-on-surface flex items-center gap-2">
             <span class="material-symbols-outlined text-[18px] text-amber-700">receipt_long</span>
             Tagihan Bon
           </span>
           <span class="text-[11px] text-on-surface-variant font-semibold" id="dash-bon-info">0 bon • Rp 0</span>
         </div>
   
-        <div class="col-span-2 flex flex-col gap-2 bg-surface-container-low rounded-2xl p-3.5 border border-surface-container shadow-sm">
-          <span class="text-xs font-bold text-on-surface flex items-center gap-1.5">
+        <div class="col-span-2 flex flex-col gap-2 bg-surface-container-low rounded-2xl p-4 border border-surface-container shadow-sm">
+          <span class="text-xs font-bold text-on-surface flex items-center gap-2">
             <span class="material-symbols-outlined text-[18px] text-primary">account_balance_wallet</span>
             Opname Kas
           </span>
-          <div class="flex flex-col gap-1.5" id="dash-opname-list">
+          <div class="flex flex-col gap-2" id="dash-opname-list">
             <span class="text-[11px] text-on-surface-variant">Memuat...</span>
           </div>
         </div>
   
-        <div class="col-span-2 hidden items-center justify-between gap-2 bg-amber-50 rounded-2xl p-3.5 border border-amber-200" id="low-stock-card">
-          <span class="text-xs font-bold text-amber-900 flex items-center gap-1.5 shrink-0">
+        <div class="col-span-2 hidden items-center justify-between gap-2 bg-amber-50 rounded-2xl p-4 border border-amber-200" id="low-stock-card">
+          <span class="text-xs font-bold text-amber-900 flex items-center gap-2 shrink-0">
             <span class="material-symbols-outlined text-[18px]">inventory_2</span>
             Stok menipis
           </span>
@@ -479,9 +479,9 @@
         </div>
       </div>
   
-      <div class="flex flex-col gap-3 lg:grid lg:grid-cols-2">
+      <div class="flex flex-col gap-4 lg:grid lg:grid-cols-2">
       <!-- Bar Chart Omzet Per Jam -->
-      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-sm">
+      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-4 border border-surface-container shadow-sm">
         <div class="flex items-center justify-between mb-2">
           <div>
             <h3 class="text-sm font-bold text-on-surface">Tren Omzet Per Jam</h3>
@@ -489,9 +489,9 @@
           </div>
           <span class="material-symbols-outlined text-[20px] text-on-surface-variant">query_builder</span>
         </div>
-        <div class="flex items-end justify-between gap-1.5 h-32 pt-4 pb-2 px-2 bg-surface-container-lowest rounded-xl border border-surface-container" id="hourly-chart-container"></div>
+        <div class="flex items-end justify-between gap-2 h-32 pt-4 pb-2 px-2 bg-surface-container-lowest rounded-2xl border border-surface-container" id="hourly-chart-container"></div>
         <div class="flex items-center justify-between mt-2 pt-2 border-t border-surface-container text-xs">
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-2">
             <span class="material-symbols-outlined text-primary text-[18px]">bolt</span>
             <span class="text-on-surface font-semibold">Jam Teramai: <strong class="text-primary font-bold" id="peak-hours-text">—</strong></span>
           </div>
@@ -500,7 +500,7 @@
       </div>
   
       <!-- Grafik Pendapatan -->
-      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-sm">
+      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-4 border border-surface-container shadow-sm">
         <div class="flex items-center justify-between mb-2">
           <div>
             <h3 class="text-sm font-bold text-on-surface">Grafik Pendapatan</h3>
@@ -510,19 +510,19 @@
         </div>
         <div class="flex gap-2 mb-2.5">
           <button onclick="setRevPeriod('day')" id="revp-day"
-            class="flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all">
+            class="flex-1 py-2 px-2 rounded-2xl bg-primary text-white text-xs font-bold transition-all">
             Harian
           </button>
           <button onclick="setRevPeriod('week')" id="revp-week"
-            class="flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all">
+            class="flex-1 py-2 px-2 rounded-2xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all">
             Mingguan
           </button>
           <button onclick="setRevPeriod('month')" id="revp-month"
-            class="flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all">
+            class="flex-1 py-2 px-2 rounded-2xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all">
             Bulanan
           </button>
         </div>
-        <div class="pt-3 pb-1 px-1 bg-surface-container-lowest rounded-xl border border-surface-container relative" id="revenue-chart-container"></div>
+        <div class="pt-4 pb-1 px-1 bg-surface-container-lowest rounded-2xl border border-surface-container relative" id="revenue-chart-container"></div>
         <div class="flex items-center justify-between mt-2 pt-2 border-t border-surface-container text-xs">
           <span class="text-on-surface-variant font-medium" id="rev-avg-label">—</span>
           <span class="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-bold" id="rev-best-label">—</span>
@@ -531,27 +531,27 @@
   
       </div>
       <!-- Komposisi Penjualan Kategori -->
-      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-sm">
+      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-4 border border-surface-container shadow-sm">
         <h3 class="text-sm font-bold text-on-surface mb-0.5">Komposisi Penjualan Kategori</h3>
-        <p class="text-[11px] text-on-surface-variant mb-3">Distribusi produk paling laris dipesan pengunjung</p>
-        <div class="flex w-full h-3 rounded-full overflow-hidden bg-surface-container gap-0.5 mb-3" id="category-stacked-bar">
+        <p class="text-[11px] text-on-surface-variant mb-4">Distribusi produk paling laris dipesan pengunjung</p>
+        <div class="flex w-full h-4 rounded-full overflow-hidden bg-surface-container gap-0.5 mb-4" id="category-stacked-bar">
           <div class="bg-sky-600 h-full" style="width:25%"></div>
           <div class="bg-primary h-full" style="width:25%"></div>
           <div class="bg-amber-700 h-full" style="width:25%"></div>
           <div class="bg-secondary h-full" style="width:25%"></div>
         </div>
         <div class="grid grid-cols-2 gap-2" id="category-legend-container"></div>
-        <div class="flex flex-col gap-1.5 mt-2.5" id="top-menu-list"></div>
+        <div class="flex flex-col gap-2 mt-2" id="top-menu-list"></div>
       </div>
   
       <!-- Live Feed -->
-      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-3 border border-surface-container shadow-sm w-full">
+      <div class="flex flex-col bg-surface-container-low rounded-2xl p-4 mt-4 border border-surface-container shadow-sm w-full">
         <div class="flex items-center justify-between pb-3 border-b border-surface-container">
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-2">
             <span class="material-symbols-outlined text-primary text-[20px]">rss_feed</span>
             <h3 class="text-sm font-bold text-on-surface">Live Feed Kasir</h3>
           </div>
-          <span class="text-[11px] text-primary bg-primary/10 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+          <span class="text-[11px] text-primary bg-primary/10 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
             <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
             Real-time
           </span>
@@ -559,11 +559,11 @@
   
         <div class="flex gap-2 my-2.5">
           <button onclick="switchFeedTab('sales')" id="feed-tab-sales"
-            class="flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all">
+            class="flex-1 py-2 px-2 rounded-2xl bg-primary text-white text-xs font-bold transition-all">
             Penjualan Masuk
           </button>
           <button onclick="switchFeedTab('expenses')" id="feed-tab-expenses"
-            class="flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all">
+            class="flex-1 py-2 px-2 rounded-2xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all">
             Belanja Kasir
           </button>
         </div>
@@ -573,17 +573,17 @@
   
         <!-- Lihat Semua -->
         <button id="btn-show-all-sales" onclick="showAllFeed('sales')"
-          class="hidden mt-3 w-full py-2 text-xs font-bold text-primary border border-primary/30 rounded-xl hover:bg-primary/5 active:scale-95 transition-all">
+          class="hidden mt-4 w-full py-2 text-xs font-bold text-primary border border-primary/30 rounded-2xl hover:bg-primary/5 active:scale-95 transition-all">
           Lihat Semua Transaksi Hari Ini
         </button>
         <button id="btn-show-all-expenses" onclick="showAllFeed('expenses')"
-          class="hidden mt-3 w-full py-2 text-xs font-bold text-amber-800 border border-amber-300 rounded-xl hover:bg-amber-50 active:scale-95 transition-all">
+          class="hidden mt-4 w-full py-2 text-xs font-bold text-amber-800 border border-amber-300 rounded-2xl hover:bg-amber-50 active:scale-95 transition-all">
           Lihat Semua Pengeluaran Hari Ini
         </button>
       </div>
   
       <!-- Aksi -->
-      <div class="flex flex-col gap-2.5 mt-4">
+      <div class="flex flex-col gap-2 mt-4">
         <button onclick="sendWhatsAppSummary()"
           class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-700/20 active:scale-[0.98] transition-transform">
           <span class="material-symbols-outlined text-[22px]">send</span>
@@ -624,7 +624,7 @@
 
   <!-- 1. Modal Pembayaran (Checkout) -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="checkout-modal">
-    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto ">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto ">
       <div class="flex justify-between items-center pb-2 border-b border-surface-container">
         <div>
           <h3 class="text-base font-bold text-on-surface">Proses Pembayaran</h3>
@@ -636,48 +636,48 @@
       </div>
 
       <!-- Total Tagihan Display -->
-      <div class="bg-surface-container-low p-4 rounded-xl flex flex-col items-center justify-center border border-surface-container">
+      <div class="bg-surface-container-low p-4 rounded-2xl flex flex-col items-center justify-center border border-surface-container">
         <span class="text-xs text-on-surface-variant font-medium">Total Yang Harus Dibayar</span>
         <span class="text-2xl font-extrabold text-primary mt-0.5" id="checkout-total-display">Rp 0</span>
       </div>
 
       <!-- Metode Pembayaran Tabs -->
       <div class="flex gap-2">
-        <button onclick="setPaymentMethod('Tunai')" id="pay-method-cash" class="flex-1 py-2.5 px-3 rounded-xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs flex items-center justify-center gap-1.5 transition-all">
+        <button onclick="setPaymentMethod('Tunai')" id="pay-method-cash" class="flex-1 py-2 px-4 rounded-2xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs flex items-center justify-center gap-2 transition-all">
           <span class="material-symbols-outlined text-[18px]">payments</span>
           <span>Tunai</span>
         </button>
-        <button onclick="setPaymentMethod('QRIS')" id="pay-method-qris" class="flex-1 py-2.5 px-3 rounded-xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs flex items-center justify-center gap-1.5 transition-all">
+        <button onclick="setPaymentMethod('QRIS')" id="pay-method-qris" class="flex-1 py-2 px-4 rounded-2xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs flex items-center justify-center gap-2 transition-all">
           <span class="material-symbols-outlined text-[18px]">qr_code_scanner</span>
           <span>QRIS</span>
         </button>
-        <button onclick="setPaymentMethod('Bon')" id="pay-method-bon" class="flex-1 py-2.5 px-3 rounded-xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs flex items-center justify-center gap-1.5 transition-all">
+        <button onclick="setPaymentMethod('Bon')" id="pay-method-bon" class="flex-1 py-2 px-4 rounded-2xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs flex items-center justify-center gap-2 transition-all">
           <span class="material-symbols-outlined text-[18px]">receipt_long</span>
           <span>Bon</span>
         </button>
       </div>
 
       <!-- Cash Payment Box -->
-      <div id="cash-payment-box" class="flex flex-col gap-3">
+      <div id="cash-payment-box" class="flex flex-col gap-4">
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Nominal Uang Diterima (Rp)</label>
-          <input type="number" id="cash-received-input" oninput="calculateChange()" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-xl px-3.5 text-base font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary" placeholder="0">
+          <input type="number" id="cash-received-input" oninput="calculateChange()" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-base font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary" placeholder="0">
         </div>
 
         <!-- Quick Amount Pills -->
-        <div class="grid grid-cols-4 gap-1.5" id="quick-cash-pills">
+        <div class="grid grid-cols-4 gap-2" id="quick-cash-pills">
           <!-- Rendered dynamically -->
         </div>
 
         <!-- Change Box -->
-        <div class="bg-surface-container p-3 rounded-xl flex justify-between items-center">
+        <div class="bg-surface-container p-4 rounded-2xl flex justify-between items-center">
           <span class="text-xs font-semibold text-on-surface-variant">Kembalian:</span>
           <span class="text-base font-extrabold text-emerald-700" id="change-display">Rp 0</span>
         </div>
       </div>
 
       <!-- QRIS Payment Box -->
-      <div id="qris-payment-box" class="hidden flex-col items-center justify-center p-3 bg-white rounded-xl border border-surface-container text-center gap-2">
+      <div id="qris-payment-box" class="hidden flex-col items-center justify-center p-4 bg-white rounded-2xl border border-surface-container text-center gap-2">
         <div class="p-2 border-2 border-dashed border-gray-300 rounded-lg">
           <!-- QR Code SVG Placeholder -->
           <svg class="w-36 h-36 mx-auto" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -687,24 +687,24 @@
         </div>
         <span class="text-xs font-bold text-gray-800">QRIS WARKOP WKS</span>
         <span class="text-[11px] text-gray-500">Mendukung BCA, Mandiri, GoPay, OVO, Dana, ShopeePay</span>
-        <label class="flex items-center gap-2 text-[11px] font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer text-left w-full">
+        <label class="flex items-center gap-2 text-[11px] font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 cursor-pointer text-left w-full">
           <input type="checkbox" id="qris-verified-check" class="w-4 h-4 accent-emerald-600 shrink-0">
           <span>Sudah cek mutasi — dana QRIS benar masuk</span>
         </label>
       </div>
 
       <!-- Bon / Bayar Nanti Box -->
-      <div id="bon-payment-box" class="hidden flex-col gap-3">
+      <div id="bon-payment-box" class="hidden flex-col gap-4">
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Nama Pelanggan (opsional)</label>
-          <input type="text" id="bon-customer-input" placeholder="cth: Budi" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-xl px-3.5 text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">
+          <input type="text" id="bon-customer-input" placeholder="cth: Budi" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">
         </div>
-        <div class="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-xl text-[11px] font-semibold leading-relaxed">
+        <div class="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-2xl text-[11px] font-semibold leading-relaxed">
           Struk tersimpan sebagai <strong>BON (belum bayar)</strong> dan tidak masuk omzet. Lunasi belakangan dari tab Riwayat.
         </div>
       </div>
 
-      <button onclick="confirmPayment()" class="w-full h-12 bg-primary text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-[0.98] transition-transform shadow-lg shadow-primary/20 mt-1">
+      <button onclick="confirmPayment()" class="w-full h-12 bg-primary text-white rounded-2xl flex items-center justify-center gap-2 text-sm font-bold active:scale-[0.98] transition-transform shadow-lg shadow-primary/20 mt-1">
         <span class="material-symbols-outlined text-[20px]">check_circle</span>
         <span>Selesaikan &amp; Kirim Real-Time</span>
       </button>
@@ -713,7 +713,7 @@
 
   <!-- 2. Modal Cetak Struk (Thermal Receipt) -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4" id="thermal-receipt-modal">
-    <div class="bg-white text-black w-full max-w-sm rounded-2xl p-5 flex flex-col gap-3 shadow-2xl  font-mono text-xs">
+    <div class="bg-white text-black w-full max-w-sm rounded-2xl p-6 flex flex-col gap-4 shadow-2xl  font-mono text-xs">
       <div class="text-center pb-2 border-b border-dashed border-gray-400">
         <h4 class="font-bold text-base uppercase tracking-wider font-sans">WARKOP WKS</h4>
         <p class="text-[10px] text-gray-600 font-sans">Struk resmi Warkop WKS</p>
@@ -729,7 +729,7 @@
         <span id="receipt-paymethod">Metode: Tunai</span>
       </div>
 
-      <div class="border-t border-b border-dashed border-gray-400 py-2 flex flex-col gap-1.5" id="receipt-items-list">
+      <div class="border-t border-b border-dashed border-gray-400 py-2 flex flex-col gap-2" id="receipt-items-list">
         <!-- Receipt items rendered dynamically -->
       </div>
 
@@ -757,11 +757,11 @@
       </div>
 
       <div class="flex gap-2 pt-2 no-print font-sans">
-        <button onclick="window.print()" class="flex-1 h-10 bg-gray-800 hover:bg-black text-white rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold active:scale-95 transition-transform">
+        <button onclick="window.print()" class="flex-1 h-10 bg-gray-800 hover:bg-black text-white rounded-2xl flex items-center justify-center gap-2 text-xs font-bold active:scale-95 transition-transform">
           <span class="material-symbols-outlined text-[16px]">print</span>
           <span>Cetak Struk</span>
         </button>
-        <button onclick="closeReceiptModal()" class="flex-1 h-10 bg-primary text-white rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold active:scale-95 transition-transform">
+        <button onclick="closeReceiptModal()" class="flex-1 h-10 bg-primary text-white rounded-2xl flex items-center justify-center gap-2 text-xs font-bold active:scale-95 transition-transform">
           <span class="material-symbols-outlined text-[16px]">done</span>
           <span>Pesanan Baru</span>
         </button>
@@ -771,10 +771,10 @@
 
   <!-- 3. Modal Catat Pengeluaran Kasir (Modal Belanja Bahan/Es/Gas) -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="expense-modal">
-    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl ">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 flex flex-col gap-4 shadow-2xl ">
       <div class="flex justify-between items-center pb-2 border-b border-surface-container">
         <div>
-          <h3 class="text-base font-bold text-on-surface flex items-center gap-1.5">
+          <h3 class="text-base font-bold text-on-surface flex items-center gap-2">
             <span class="material-symbols-outlined text-amber-700 text-[20px]">receipt_long</span>
             <span>Catat Pengeluaran Modal</span>
           </h3>
@@ -785,11 +785,11 @@
         </button>
       </div>
 
-      <div class="flex flex-col gap-3">
+      <div class="flex flex-col gap-4">
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Kategori Pengeluaran</label>
           <input type="hidden" id="expense-category" value="Es Batu">
-          <button type="button" onclick="openExpenseCatSheet()" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface font-semibold flex items-center justify-between gap-2 active:scale-[0.99] transition-transform">
+          <button type="button" onclick="openExpenseCatSheet()" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-xs text-on-surface font-semibold flex items-center justify-between gap-2 active:scale-[0.99] transition-transform">
             <span id="expense-category-label">Es Batu Kristal</span>
             <span class="material-symbols-outlined text-[18px] text-on-surface-variant shrink-0">expand_more</span>
           </button>
@@ -797,21 +797,21 @@
 
         <div id="expense-custom-wrap" class="hidden">
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Kategori Lainnya</label>
-          <input type="text" id="expense-category-custom" placeholder="Contoh: Sewa kompor, servis kipas..." class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+          <input type="text" id="expense-category-custom" placeholder="Contoh: Sewa kompor, servis kipas..." class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
         </div>
 
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Keterangan Pengeluaran</label>
-          <input type="text" id="expense-note" placeholder="Contoh: Beli es batu 2 bal + gas lpg" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+          <input type="text" id="expense-note" placeholder="Contoh: Beli es batu 2 bal + gas lpg" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
         </div>
 
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Nominal Biaya (Rp)</label>
-          <input type="number" id="expense-amount" placeholder="25000" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-sm font-bold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+          <input type="number" id="expense-amount" placeholder="25000" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-sm font-bold text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
         </div>
       </div>
 
-      <button onclick="saveExpense()" class="w-full h-12 bg-amber-700 text-white rounded-xl flex items-center justify-center gap-2 text-xs font-bold active:scale-[0.98] transition-transform shadow-md mt-1">
+      <button onclick="saveExpense()" class="w-full h-12 bg-amber-700 text-white rounded-2xl flex items-center justify-center gap-2 text-xs font-bold active:scale-[0.98] transition-transform shadow-md mt-1">
         <span class="material-symbols-outlined text-[18px]">save</span>
         <span>Simpan &amp; Kurangi Kas Bersih</span>
       </button>
@@ -820,7 +820,7 @@
 
   <!-- 4. Modal Tambah Menu Baru -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="add-menu-modal">
-    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl ">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 flex flex-col gap-4 shadow-2xl ">
       <div class="flex justify-between items-center pb-2 border-b border-surface-container">
         <h3 class="text-base font-bold text-on-surface">Tambah Menu Kasir Baru</h3>
         <button onclick="closeAddModal()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant">
@@ -828,38 +828,38 @@
         </button>
       </div>
 
-      <div class="flex flex-col gap-3">
+      <div class="flex flex-col gap-4">
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Nama Menu</label>
-          <input type="text" id="new-item-name" placeholder="Contoh: Es Kopi Jos" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+          <input type="text" id="new-item-name" placeholder="Contoh: Es Kopi Jos" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
         </div>
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Kategori</label>
           <input type="hidden" id="new-item-cat" value="cold_drink">
-          <button type="button" onclick="openMenuCatSheet()" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface font-semibold flex items-center justify-between gap-2 active:scale-[0.99] transition-transform">
+          <button type="button" onclick="openMenuCatSheet()" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-xs text-on-surface font-semibold flex items-center justify-between gap-2 active:scale-[0.99] transition-transform">
             <span id="new-item-cat-label">Minuman Dingin</span>
             <span class="material-symbols-outlined text-[18px] text-on-surface-variant shrink-0">expand_more</span>
           </button>
         </div>
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Harga Jual (Rp)</label>
-          <input type="number" id="new-item-price" placeholder="8000" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+          <input type="number" id="new-item-price" placeholder="8000" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
         </div>
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Stok Awal (khusus snack, kosongkan = tanpa batas)</label>
-          <input type="number" id="new-item-stock" placeholder="cth: 20" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+          <input type="number" id="new-item-stock" placeholder="cth: 20" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
         </div>
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">URL Foto (Opsional)</label>
-          <input type="text" id="new-item-image" placeholder="https://... (opsional)" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+          <input type="text" id="new-item-image" placeholder="https://... (opsional)" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
         </div>
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Atau Upload Gambar Langsung</label>
-          <input type="file" id="new-item-file" accept="image/*" class="w-full text-xs text-on-surface-variant file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-surface-container file:text-on-surface hover:file:bg-surface-container-high cursor-pointer">
+          <input type="file" id="new-item-file" accept="image/*" class="w-full text-xs text-on-surface-variant file:mr-4 file:py-2 file:px-4 file:rounded-2xl file:border-0 file:text-xs file:font-semibold file:bg-surface-container file:text-on-surface hover:file:bg-surface-container-high cursor-pointer">
         </div>
       </div>
 
-      <button onclick="addNewMenu()" class="w-full h-11 bg-primary text-white rounded-xl text-xs font-bold active:scale-[0.98] transition-transform shadow-md mt-1">
+      <button onclick="addNewMenu()" class="w-full h-12 bg-primary text-white rounded-2xl text-xs font-bold active:scale-[0.98] transition-transform shadow-md mt-1">
         Simpan Menu Baru
       </button>
     </div>
@@ -867,7 +867,7 @@
 
   <!-- Modal Ganti Foto Menu Manual -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="edit-image-modal">
-    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl ">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 flex flex-col gap-4 shadow-2xl ">
       <div class="flex justify-between items-center pb-2 border-b border-surface-container">
         <div>
           <h3 class="text-base font-bold text-on-surface">Ganti Foto Menu</h3>
@@ -883,18 +883,18 @@
       <!-- Preview Gambar -->
       <div class="w-full h-36 rounded-2xl bg-surface-container bg-cover bg-center overflow-hidden border border-surface-container shadow-inner" id="edit-image-preview"></div>
 
-      <div class="flex flex-col gap-3">
+      <div class="flex flex-col gap-4">
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Masukkan URL Gambar Baru</label>
-          <input type="text" id="edit-image-url-input" placeholder="https://..." oninput="previewEditImage(this.value)" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+          <input type="text" id="edit-image-url-input" placeholder="https://..." oninput="previewEditImage(this.value)" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
         </div>
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Atau Pilih File Gambar dari HP/Laptop</label>
-          <input type="file" id="edit-image-file-input" accept="image/*" onchange="handleEditFileChange(event)" class="w-full text-xs text-on-surface-variant file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-surface-container file:text-on-surface hover:file:bg-surface-container-high cursor-pointer">
+          <input type="file" id="edit-image-file-input" accept="image/*" onchange="handleEditFileChange(event)" class="w-full text-xs text-on-surface-variant file:mr-4 file:py-2 file:px-4 file:rounded-2xl file:border-0 file:text-xs file:font-semibold file:bg-surface-container file:text-on-surface hover:file:bg-surface-container-high cursor-pointer">
         </div>
       </div>
 
-      <button onclick="saveItemImage()" class="w-full h-11 bg-primary text-white rounded-xl text-xs font-bold active:scale-[0.98] transition-transform shadow-md mt-1">
+      <button onclick="saveItemImage()" class="w-full h-12 bg-primary text-white rounded-2xl text-xs font-bold active:scale-[0.98] transition-transform shadow-md mt-1">
         Simpan Perubahan Foto
       </button>
     </div>
@@ -902,7 +902,7 @@
 
   <!-- 5. Modal Status Koneksi Real-time -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="cloud-modal">
-    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl ">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 flex flex-col gap-4 shadow-2xl ">
       <div class="flex justify-between items-center pb-2 border-b border-surface-container">
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-primary text-[22px]">cloud_sync</span>
@@ -917,26 +917,26 @@
       </div>
 
       <div class="flex flex-col gap-2 text-xs" id="cloud-status-list">
-        <div class="flex items-center justify-between bg-surface-container-low p-3 rounded-xl border border-surface-container">
-          <span class="font-bold text-on-surface flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-primary">cloud</span> Supabase Realtime</span>
+        <div class="flex items-center justify-between bg-surface-container-low p-4 rounded-2xl border border-surface-container">
+          <span class="font-bold text-on-surface flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary">cloud</span> Supabase Realtime</span>
           <span id="cloud-st-supabase" class="font-bold">—</span>
         </div>
-        <div class="flex items-center justify-between bg-surface-container-low p-3 rounded-xl border border-surface-container">
-          <span class="font-bold text-on-surface flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-primary">sync</span> Server Lokal (Socket.io)</span>
+        <div class="flex items-center justify-between bg-surface-container-low p-4 rounded-2xl border border-surface-container">
+          <span class="font-bold text-on-surface flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary">sync</span> Server Lokal (Socket.io)</span>
           <span id="cloud-st-socket" class="font-bold">—</span>
         </div>
-        <div class="flex items-center justify-between bg-surface-container-low p-3 rounded-xl border border-surface-container">
-          <span class="font-bold text-on-surface flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-primary">devices</span> Mode Lokal</span>
+        <div class="flex items-center justify-between bg-surface-container-low p-4 rounded-2xl border border-surface-container">
+          <span class="font-bold text-on-surface flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary">devices</span> Mode Lokal</span>
           <span class="font-bold text-emerald-700">Aktif (antar-tab perangkat ini)</span>
         </div>
       </div>
       <p class="text-[11px] text-on-surface-variant leading-relaxed">Pantau dari HP beda jaringan butuh Supabase aktif. Kalau cuma satu WiFi warkop + <strong>npm start</strong>, mode lokal + server lokal sudah cukup.</p>
 
       <div class="flex gap-2">
-        <button onclick="refreshCloudStatus()" class="flex-1 h-11 bg-primary text-white rounded-xl text-xs font-bold active:scale-95 transition-transform shadow-md">
+        <button onclick="refreshCloudStatus()" class="flex-1 h-12 bg-primary text-white rounded-2xl text-xs font-bold active:scale-95 transition-transform shadow-md">
           Perbarui Status
         </button>
-        <button onclick="closeCloudModal()" class="px-4 h-11 bg-surface-container text-on-surface rounded-xl text-xs font-semibold active:scale-95">
+        <button onclick="closeCloudModal()" class="px-4 h-12 bg-surface-container text-on-surface rounded-2xl text-xs font-semibold active:scale-95">
           Tutup
         </button>
       </div>
@@ -945,7 +945,7 @@
 
   <!-- 6. Modal Lunasi Bon -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="settle-modal">
-    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center pb-2 border-b border-surface-container">
         <div>
           <h3 class="text-base font-bold text-on-surface">Lunasi Bon</h3>
@@ -955,25 +955,25 @@
           <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>
-      <div class="bg-surface-container-low p-4 rounded-xl flex flex-col items-center justify-center border border-surface-container">
+      <div class="bg-surface-container-low p-4 rounded-2xl flex flex-col items-center justify-center border border-surface-container">
         <span class="text-xs text-on-surface-variant font-medium">Sisa Tagihan</span>
         <span class="text-2xl font-extrabold text-primary mt-0.5" id="settle-total-display">Rp 0</span>
       </div>
       <div class="flex gap-2">
-        <button onclick="setSettleMethod('Tunai')" id="settle-method-cash" class="flex-1 py-2.5 rounded-xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs">Tunai</button>
-        <button onclick="setSettleMethod('QRIS')" id="settle-method-qris" class="flex-1 py-2.5 rounded-xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs">QRIS</button>
+        <button onclick="setSettleMethod('Tunai')" id="settle-method-cash" class="flex-1 py-2 rounded-2xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs">Tunai</button>
+        <button onclick="setSettleMethod('QRIS')" id="settle-method-qris" class="flex-1 py-2 rounded-2xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs">QRIS</button>
       </div>
-      <div id="settle-cash-box" class="flex flex-col gap-3">
+      <div id="settle-cash-box" class="flex flex-col gap-4">
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Uang Diterima (Rp)</label>
-          <input type="number" id="settle-cash-input" oninput="settleCalcChange()" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-xl px-3.5 text-base font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary" placeholder="0">
+          <input type="number" id="settle-cash-input" oninput="settleCalcChange()" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-base font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary" placeholder="0">
         </div>
-        <div class="bg-surface-container p-3 rounded-xl flex justify-between items-center">
+        <div class="bg-surface-container p-4 rounded-2xl flex justify-between items-center">
           <span class="text-xs font-semibold text-on-surface-variant">Kembalian:</span>
           <span class="text-base font-extrabold text-emerald-700" id="settle-change-display">Rp 0</span>
         </div>
       </div>
-      <button onclick="confirmSettle()" class="w-full h-12 bg-emerald-700 text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-[0.98] transition-transform shadow-md mt-1">
+      <button onclick="confirmSettle()" class="w-full h-12 bg-emerald-700 text-white rounded-2xl flex items-center justify-center gap-2 text-sm font-bold active:scale-[0.98] transition-transform shadow-md mt-1">
         <span class="material-symbols-outlined text-[20px]">check_circle</span>
         <span>Tandai Lunas</span>
       </button>
@@ -982,7 +982,7 @@
 
   <!-- 7. Modal Opname Kas -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="opname-modal">
-    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-3.5 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center pb-2 border-b border-surface-container">
         <div>
           <h3 class="text-base font-bold text-on-surface" id="opname-modal-title">Set Modal Awal</h3>
@@ -992,28 +992,28 @@
           <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>
-      <div id="opname-open-box" class="flex flex-col gap-3">
+      <div id="opname-open-box" class="flex flex-col gap-4">
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Modal kas awal shift ini (Rp)</label>
-          <input type="number" id="opname-modal-input" placeholder="cth: 100000" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-xl px-3.5 text-base font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">
+          <input type="number" id="opname-modal-input" placeholder="cth: 100000" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-base font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">
         </div>
       </div>
-      <div id="opname-close-box" class="hidden flex-col gap-3">
-        <div class="bg-surface-container-low p-3 rounded-xl border border-surface-container text-xs text-on-surface-variant leading-relaxed" id="opname-close-info">-</div>
+      <div id="opname-close-box" class="hidden flex-col gap-4">
+        <div class="bg-surface-container-low p-4 rounded-2xl border border-surface-container text-xs text-on-surface-variant leading-relaxed" id="opname-close-info">-</div>
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Hitung kas fisik di laci (Rp)</label>
-          <input type="number" id="opname-cash-input" oninput="opnameCalcDiff()" placeholder="cth: 250000" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-xl px-3.5 text-base font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">
+          <input type="number" id="opname-cash-input" oninput="opnameCalcDiff()" placeholder="cth: 250000" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-base font-bold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">
         </div>
-        <div class="bg-surface-container p-3 rounded-xl flex justify-between items-center">
+        <div class="bg-surface-container p-4 rounded-2xl flex justify-between items-center">
           <span class="text-xs font-semibold text-on-surface-variant">Selisih (fisik − sistem):</span>
           <span class="text-base font-extrabold" id="opname-diff-preview">Rp 0</span>
         </div>
         <div>
           <label class="text-xs font-semibold text-on-surface-variant block mb-1">Catatan (opsional)</label>
-          <input type="text" id="opname-note-input" placeholder="cth: kembalian nyangkut 2rb" class="w-full h-11 bg-surface-container-low border border-surface-container rounded-xl px-3 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
+          <input type="text" id="opname-note-input" placeholder="cth: kembalian nyangkut 2rb" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary">
         </div>
       </div>
-      <button onclick="saveOpname()" class="w-full h-12 bg-primary text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-[0.98] transition-transform shadow-md mt-1">
+      <button onclick="saveOpname()" class="w-full h-12 bg-primary text-white rounded-2xl flex items-center justify-center gap-2 text-sm font-bold active:scale-[0.98] transition-transform shadow-md mt-1">
         <span class="material-symbols-outlined text-[20px]">save</span>
         <span>Simpan</span>
       </button>
@@ -1024,33 +1024,33 @@
   <div id="ui-sheet" class="fixed inset-0 z-[60] hidden">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSheet()"></div>
     <div class="absolute bottom-0 inset-x-0 flex justify-center pointer-events-none">
-      <div id="ui-sheet-panel" class="ui-sheet-panel pointer-events-auto bg-surface w-full md:max-w-md rounded-t-3xl p-5 pb-safe max-h-[70vh] flex flex-col gap-1 overflow-hidden translate-y-full shadow-2xl">
+      <div id="ui-sheet-panel" class="ui-sheet-panel pointer-events-auto bg-surface w-full md:max-w-md rounded-t-3xl p-6 pb-safe max-h-[70vh] flex flex-col gap-1 overflow-hidden translate-y-full shadow-2xl">
         <div class="w-10 h-1 rounded-full bg-surface-container-high mx-auto mb-1.5 shrink-0"></div>
         <h3 class="text-sm font-bold text-on-surface px-1 mb-1" id="ui-sheet-title">Pilih</h3>
-        <div id="ui-sheet-list" class="overflow-y-auto flex flex-col gap-1.5 pb-2"></div>
+        <div id="ui-sheet-list" class="overflow-y-auto flex flex-col gap-2 pb-2"></div>
       </div>
     </div>
   </div>
 
   <div id="ui-dialog" class="fixed inset-0 z-[70] hidden items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeDialog(null, true)"></div>
-    <div id="ui-dialog-card" class="ui-dialog-card relative bg-surface w-full max-w-sm rounded-2xl p-5 flex flex-col gap-3 shadow-2xl scale-95 opacity-0">
+    <div id="ui-dialog-card" class="ui-dialog-card relative bg-surface w-full max-w-sm rounded-2xl p-6 flex flex-col gap-4 shadow-2xl scale-95 opacity-0">
       <h3 class="text-base font-bold text-on-surface" id="ui-dialog-title">Konfirmasi</h3>
       <p class="text-xs text-on-surface-variant leading-relaxed" id="ui-dialog-msg"></p>
       <div id="ui-dialog-field" class="hidden flex-col gap-1">
         <label class="text-xs font-semibold text-on-surface-variant" id="ui-dialog-label">Isi</label>
-        <input id="ui-dialog-input" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-xl px-3.5 text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">
+        <input id="ui-dialog-input" class="w-full h-12 bg-surface-container-low border border-surface-container rounded-2xl px-4 text-sm font-semibold text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">
       </div>
       <div class="flex gap-2 mt-1">
-        <button onclick="closeDialog(null, true)" id="ui-dialog-cancel" class="flex-1 h-11 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl text-xs font-bold active:scale-95 transition-all">Batal</button>
-        <button onclick="submitDialog()" id="ui-dialog-ok" class="flex-1 h-11 bg-primary text-white rounded-xl text-xs font-bold active:scale-95 transition-all shadow-md">Simpan</button>
+        <button onclick="closeDialog(null, true)" id="ui-dialog-cancel" class="flex-1 h-12 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-2xl text-xs font-bold active:scale-95 transition-all">Batal</button>
+        <button onclick="submitDialog()" id="ui-dialog-ok" class="flex-1 h-12 bg-primary text-white rounded-2xl text-xs font-bold active:scale-95 transition-all shadow-md">Simpan</button>
       </div>
     </div>
   </div>
 
 <!-- Modal Detail Transaksi -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4" id="tx-detail-modal">
-    <div class="bg-surface w-full max-w-sm rounded-2xl p-5 flex flex-col gap-3 shadow-2xl ">
+    <div class="bg-surface w-full max-w-sm rounded-2xl p-6 flex flex-col gap-4 shadow-2xl ">
       <div class="flex justify-between items-center pb-2 border-b border-surface-container">
         <div>
           <h4 class="text-sm font-bold text-on-surface" id="modal-tx-id">TRX-0000</h4>
@@ -1060,21 +1060,21 @@
           <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>
-      <div class="flex flex-col gap-1.5 divide-y divide-surface-container py-1" id="modal-tx-items"></div>
+      <div class="flex flex-col gap-2 divide-y divide-surface-container py-1" id="modal-tx-items"></div>
       <div class="flex justify-between items-center pt-2 border-t border-surface-container">
         <span class="text-xs font-bold text-on-surface">Total</span>
         <span class="text-base font-extrabold text-primary" id="modal-tx-total">Rp 0</span>
       </div>
-      <button onclick="deleteModalTransaction()" class="mt-1 w-full h-10 bg-error/10 text-error border border-error/30 rounded-xl text-xs font-bold active:scale-95 flex items-center justify-center gap-1.5">
+      <button onclick="deleteModalTransaction()" class="mt-1 w-full h-10 bg-error/10 text-error border border-error/30 rounded-2xl text-xs font-bold active:scale-95 flex items-center justify-center gap-2">
         <span class="material-symbols-outlined text-[16px]">delete</span> Hapus Pesanan Ini
       </button>
-      <button onclick="closeTxDetailModal()" class="w-full h-10 bg-primary text-white rounded-xl text-xs font-bold active:scale-95">Tutup</button>
+      <button onclick="closeTxDetailModal()" class="w-full h-10 bg-primary text-white rounded-2xl text-xs font-bold active:scale-95">Tutup</button>
     </div>
   </div>
 
   <!-- Modal Kelola Akun -->
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4" id="account-modal">
-    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-5 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto ">
+    <div class="bg-surface w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 flex flex-col gap-4 shadow-2xl max-h-[90vh] overflow-y-auto ">
       <div class="flex justify-between items-center pb-2 border-b border-surface-container">
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-primary text-[22px]">admin_panel_settings</span>
@@ -1089,45 +1089,45 @@
       </div>
 
       <!-- Akun Kasir -->
-      <div class="bg-surface-container-low p-3.5 rounded-2xl border border-surface-container flex flex-col gap-2.5">
+      <div class="bg-surface-container-low p-4 rounded-2xl border border-surface-container flex flex-col gap-2">
         <span class="text-xs font-bold text-primary flex items-center gap-1">
           <span class="material-symbols-outlined text-[16px]">point_of_sale</span> Akun Kasir Warkop
         </span>
         <div class="flex flex-col gap-1">
           <label class="text-[11px] font-semibold text-on-surface-variant">Username Kasir</label>
           <input type="text" id="acc-kasir-user" autocomplete="off"
-            class="w-full h-10 bg-surface-container-lowest border border-surface-container-high rounded-xl px-3 text-xs font-semibold text-on-surface">
+            class="w-full h-10 bg-surface-container-lowest border border-surface-container-high rounded-2xl px-4 text-xs font-semibold text-on-surface">
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-[11px] font-semibold text-on-surface-variant">Password Baru Kasir</label>
           <input type="password" id="acc-kasir-pass" autocomplete="new-password"
-            class="w-full h-10 bg-surface-container-lowest border border-surface-container-high rounded-xl px-3 text-xs font-semibold text-on-surface"
+            class="w-full h-10 bg-surface-container-lowest border border-surface-container-high rounded-2xl px-4 text-xs font-semibold text-on-surface"
             placeholder="Kosongkan jika tidak diubah">
         </div>
         <button onclick="saveAccountCredentials('kasir')"
-          class="w-full h-9 bg-surface-container hover:bg-surface-container-high text-on-surface border border-surface-container-high rounded-xl text-xs font-bold active:scale-95 transition-all">
+          class="w-full h-10 bg-surface-container hover:bg-surface-container-high text-on-surface border border-surface-container-high rounded-2xl text-xs font-bold active:scale-95 transition-all">
           Simpan Akun Kasir
         </button>
       </div>
 
       <!-- Akun Bos -->
-      <div class="bg-surface-container-low p-3.5 rounded-2xl border border-surface-container flex flex-col gap-2.5">
+      <div class="bg-surface-container-low p-4 rounded-2xl border border-surface-container flex flex-col gap-2">
         <span class="text-xs font-bold text-amber-800 flex items-center gap-1">
           <span class="material-symbols-outlined text-[16px]">lock</span> Akun Bos (Owner)
         </span>
         <div class="flex flex-col gap-1">
           <label class="text-[11px] font-semibold text-on-surface-variant">Username Bos</label>
           <input type="text" id="acc-bos-user" autocomplete="off"
-            class="w-full h-10 bg-surface-container-lowest border border-surface-container-high rounded-xl px-3 text-xs font-semibold text-on-surface">
+            class="w-full h-10 bg-surface-container-lowest border border-surface-container-high rounded-2xl px-4 text-xs font-semibold text-on-surface">
         </div>
         <div class="flex flex-col gap-1">
           <label class="text-[11px] font-semibold text-on-surface-variant">Password Baru Bos</label>
           <input type="password" id="acc-bos-pass" autocomplete="new-password"
-            class="w-full h-10 bg-surface-container-lowest border border-surface-container-high rounded-xl px-3 text-xs font-semibold text-on-surface"
+            class="w-full h-10 bg-surface-container-lowest border border-surface-container-high rounded-2xl px-4 text-xs font-semibold text-on-surface"
             placeholder="Kosongkan jika tidak diubah">
         </div>
         <button onclick="saveAccountCredentials('bos')"
-          class="w-full h-9 bg-amber-700 hover:bg-amber-800 text-white rounded-xl text-xs font-bold active:scale-95 transition-all">
+          class="w-full h-10 bg-amber-700 hover:bg-amber-800 text-white rounded-2xl text-xs font-bold active:scale-95 transition-all">
           Simpan Akun Bos
         </button>
       </div>
@@ -1172,11 +1172,11 @@
       const btn = document.getElementById('staff-toggle');
       const dot = document.getElementById('staff-toggle-dot');
       btn.className = staffMode
-        ? 'w-11 h-6 rounded-full bg-emerald-600 relative transition-all'
-        : 'w-11 h-6 rounded-full bg-surface-container-high relative transition-all';
+        ? 'w-12 h-6 rounded-full bg-emerald-600 relative transition-all'
+        : 'w-12 h-6 rounded-full bg-surface-container-high relative transition-all';
       dot.className = staffMode
-        ? 'absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-all translate-x-5'
-        : 'absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-all';
+        ? 'absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow transition-all translate-x-5'
+        : 'absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow transition-all';
       document.getElementById('staff-toggle-label').innerText = staffMode ? 'Mode Karyawan ON' : 'Mode Karyawan OFF';
       renderCart();
     }
@@ -1232,8 +1232,8 @@
     }
 
     function paintKasirDateBtn() {
-      const on = 'flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all';
-      const off = 'flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
+      const on = 'flex-1 py-2 px-2 rounded-2xl bg-primary text-white text-xs font-bold transition-all';
+      const off = 'flex-1 py-2 px-2 rounded-2xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
       const e1 = document.getElementById('kasir-datebtn-today');
       if (e1) e1.className = kasirDateFilter === 'today' ? on : off;
       const e2 = document.getElementById('kasir-exp-datebtn-today');
@@ -1242,12 +1242,12 @@
 
     function setKasirShiftMode(mode) {
       kasirShiftMode = mode;
-      const on = 'px-3 py-1.5 rounded-md text-[11px] font-bold bg-primary text-white transition-all';
-      const off = 'px-3 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all';
+      const on = 'px-4 py-2 rounded-lg text-[11px] font-bold bg-primary text-white transition-all';
+      const off = 'px-4 py-2 rounded-lg text-[11px] font-semibold text-on-surface-variant transition-all';
       document.getElementById('shiftmode-shift').className = mode === 'shift' ? on : off;
       document.getElementById('shiftmode-day').className = mode === 'day' ? on : off;
-      const onOs = 'flex-1 py-1.5 rounded-md text-[11px] font-bold bg-primary text-white transition-all';
-      const offOs = 'flex-1 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all';
+      const onOs = 'flex-1 py-2 rounded-lg text-[11px] font-bold bg-primary text-white transition-all';
+      const offOs = 'flex-1 py-2 rounded-lg text-[11px] font-semibold text-on-surface-variant transition-all';
       ['-exp', '-his'].forEach(s => {
         const a = document.getElementById('os-shift' + s), b = document.getElementById('os-day' + s);
         if (a) a.className = mode === 'shift' ? onOs : offOs;
@@ -1354,10 +1354,10 @@
       const text = document.getElementById('cloud-status-text');
       if (warkopSync.isSupabaseReady || warkopSync.isSocketReady) {
         text.innerText = 'Cloud LIVE';
-        btn.className = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 active:scale-95 transition-transform';
+        btn.className = 'flex items-center gap-2 px-2 py-2 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 active:scale-95 transition-transform';
       } else {
         text.innerText = 'Local Sync';
-        btn.className = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 active:scale-95 transition-transform';
+        btn.className = 'flex items-center gap-2 px-2 py-2 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 active:scale-95 transition-transform';
       }
     }
 
@@ -1387,7 +1387,7 @@
         const active = opt.value === selected;
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'w-full flex items-center justify-between gap-2 p-3.5 rounded-2xl border text-left active:scale-[0.99] transition-all ' +
+        btn.className = 'w-full flex items-center justify-between gap-2 p-4 rounded-2xl border text-left active:scale-[0.99] transition-all ' +
           (active ? 'border-primary bg-primary/5' : 'border-surface-container bg-surface-container-lowest');
         btn.innerHTML = `
           <span class="flex flex-col min-w-0">
@@ -1457,7 +1457,7 @@
         field.classList.toggle('flex', __dlgHasInput);
         const okBtn = document.getElementById('ui-dialog-ok');
         okBtn.innerText = okText || 'Simpan';
-        okBtn.className = 'flex-1 h-11 text-white rounded-xl text-xs font-bold active:scale-95 transition-all shadow-md ' +
+        okBtn.className = 'flex-1 h-12 text-white rounded-2xl text-xs font-bold active:scale-95 transition-all shadow-md ' +
           (danger ? 'bg-error' : 'bg-primary');
         if (__dlgHasInput) {
           const inp = document.getElementById('ui-dialog-input');
@@ -1523,7 +1523,7 @@
 
     function uiToast(msg) {
       const t = document.createElement('div');
-      t.className = 'ui-toast-in fixed bottom-24 left-1/2 -translate-x-1/2 z-[80] bg-on-surface text-surface pl-4 pr-4 py-2.5 rounded-full text-xs font-bold shadow-xl border border-white/20 flex items-center gap-2 whitespace-nowrap max-w-[92vw] overflow-hidden opacity-0 translate-y-2';
+      t.className = 'ui-toast-in fixed bottom-24 left-1/2 -translate-x-1/2 z-[80] bg-on-surface text-surface pl-4 pr-4 py-2 rounded-full text-xs font-bold shadow-xl border border-white/20 flex items-center gap-2 whitespace-nowrap max-w-[92vw] overflow-hidden opacity-0 translate-y-2';
       t.innerHTML = `<span class="material-symbols-outlined text-primary text-[18px] shrink-0">info</span><span class="truncate"></span>`;
       t.querySelector('span:last-child').innerText = msg;
       document.body.appendChild(t);
@@ -1572,16 +1572,16 @@ function resetHistoryDate() {
     }
 
 function paintDateBtn() {
-      const on = 'flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all';
-      const off = 'flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
+      const on = 'flex-1 py-2 px-2 rounded-2xl bg-primary text-white text-xs font-bold transition-all';
+      const off = 'flex-1 py-2 px-2 rounded-2xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
       const el = document.getElementById('datebtn-today');
       if (el) el.className = activeDateFilter === 'today' ? on : off;
     }
 
 function setShiftFilter(f) {
       activeShiftFilter = f;
-      const on = 'flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all';
-      const off = 'flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
+      const on = 'flex-1 py-2 px-2 rounded-2xl bg-primary text-white text-xs font-bold transition-all';
+      const off = 'flex-1 py-2 px-2 rounded-2xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
       document.getElementById('shiftfilter-all').className = f === 'all' ? on : off;
       document.getElementById('shiftfilter-1').className = f === '1' ? on : off;
       document.getElementById('shiftfilter-2').className = f === '2' ? on : off;
@@ -1596,17 +1596,17 @@ function setShiftFilter(f) {
       if (!kasirBadge || !kasirText) return;
 
       if (warkopSync.isSupabaseReady) {
-        if (badge) badge.className = 'flex items-center gap-0.5 px-1.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap shrink-0';
+        if (badge) badge.className = 'flex items-center gap-0.5 px-2 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap shrink-0';
         if (text) text.innerText = 'Supabase LIVE';
 
-        kasirBadge.className = 'flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full';
+        kasirBadge.className = 'flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full';
         kasirBadge.querySelector('span').className = 'w-2 h-2 rounded-full bg-emerald-600 animate-pulse';
         kasirText.innerText = 'Sistem Aktif';
       } else {
-        if (badge) badge.className = 'flex items-center gap-0.5 px-1.5 py-1 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap shrink-0';
+        if (badge) badge.className = 'flex items-center gap-0.5 px-2 py-1 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap shrink-0';
         if (text) text.innerText = 'Mode Lokal';
 
-        kasirBadge.className = 'flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-full';
+        kasirBadge.className = 'flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-800 border border-amber-200 rounded-full';
         kasirBadge.querySelector('span').className = 'w-2 h-2 rounded-full bg-amber-500';
         kasirText.innerText = 'Mode Offline';
       }
@@ -1736,11 +1736,11 @@ function renderStaffMenu(summary, staffTx) {
       });
       const rows = Object.entries(agg).sort((a, b) => b[1].qty - a[1].qty).slice(0, 8);
       if (rows.length === 0) {
-        box.innerHTML = `<div class="text-[11px] text-on-surface-variant bg-surface-container-lowest border border-surface-container rounded-xl p-3 text-center">Belum ada konsumsi karyawan.</div>`;
+        box.innerHTML = `<div class="text-[11px] text-on-surface-variant bg-surface-container-lowest border border-surface-container rounded-2xl p-4 text-center">Belum ada konsumsi karyawan.</div>`;
         return;
       }
       box.innerHTML = rows.map(([name, v]) => `
-        <div class="flex items-center gap-2.5 bg-surface-container-lowest p-2.5 rounded-xl border border-surface-container">
+        <div class="flex items-center gap-2 bg-surface-container-lowest p-2 rounded-2xl border border-surface-container">
           <span class="text-xs font-bold text-on-surface flex-1 truncate">${escHtml(name)}</span>
           <span class="text-[11px] text-on-surface-variant font-semibold shrink-0">${v.qty}x diambil</span>
           <span class="text-xs font-extrabold text-emerald-700 shrink-0">${warkopSync.formatRupiah(v.rev)}</span>
@@ -1771,7 +1771,7 @@ function renderOmzetBreakdown(summary) {
       });
       const row = (label, icon, d) => `
         <div class="flex items-center justify-between text-[11px]">
-          <span class="flex items-center gap-1.5 text-on-surface-variant font-semibold"><span class="material-symbols-outlined text-[15px]">${icon}</span>${label} (${d.n})</span>
+          <span class="flex items-center gap-2 text-on-surface-variant font-semibold"><span class="material-symbols-outlined text-[15px]">${icon}</span>${label} (${d.n})</span>
           <span class="font-extrabold text-on-surface">${warkopSync.formatRupiah(d.v)}</span>
         </div>`;
       box.innerHTML = row('Tunai', 'payments', agg.Tunai)
@@ -1797,10 +1797,10 @@ function renderOpnameRecap() {
           const diff = Number(r.diff) || 0;
           right = `<span class="text-[11px] font-extrabold ${diff >= 0 ? 'text-emerald-700' : 'text-error'}">${diff >= 0 ? '+' : ''}${warkopSync.formatRupiah(diff)}</span>`;
         } else {
-          right = `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant">Berjalan</span>`;
+          right = `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-surface-container text-on-surface-variant">Berjalan</span>`;
         }
         const row = document.createElement('div');
-        row.className = 'flex items-center justify-between bg-surface-container-lowest px-3 py-2 rounded-xl border border-surface-container';
+        row.className = 'flex items-center justify-between bg-surface-container-lowest px-4 py-2 rounded-2xl border border-surface-container';
         row.innerHTML = `
           <div class="flex flex-col">
             <span class="text-[11px] font-bold text-on-surface">${label}</span>
@@ -1813,8 +1813,8 @@ function renderOpnameRecap() {
 
 function setRevPeriod(p) {
       revPeriod = p;
-      const on = 'flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all';
-      const off = 'flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
+      const on = 'flex-1 py-2 px-2 rounded-2xl bg-primary text-white text-xs font-bold transition-all';
+      const off = 'flex-1 py-2 px-2 rounded-2xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
       document.getElementById('revp-day').className = p === 'day' ? on : off;
       document.getElementById('revp-week').className = p === 'week' ? on : off;
       document.getElementById('revp-month').className = p === 'month' ? on : off;
@@ -1879,7 +1879,7 @@ function renderRevenueChart() {
 
       (function () {
         const W = Math.max(container.clientWidth || 0, 280);
-        const H = 150, PAD = 16;
+        const H = 144, PAD = 16;
         const vals = buckets.map(([, kk]) => sums[kk] || 0);
         const nn = buckets.length;
         const X = i => nn === 1 ? W / 2 : PAD + (i * (W - PAD * 2)) / (nn - 1);
@@ -1899,7 +1899,7 @@ function renderRevenueChart() {
             <circle id="rev-chart-hl" r="7" fill="#a83301" stroke="#fff" stroke-width="2.5" visibility="hidden"/>
           </svg>
           <div class="flex justify-between mt-1" style="padding:0 ${PAD}px">${buckets.map(([label], i) => `<span class="text-[9px] ${vals[i] === peak && peak > 0 ? 'text-primary font-bold' : 'text-on-surface-variant'}">${label}</span>`).join('')}</div>
-          <div id="rev-chart-tip" class="hidden absolute z-10 bg-surface-container-lowest border border-surface-container rounded-xl px-2.5 py-1.5 shadow-lg text-center whitespace-nowrap pointer-events-none" style="transform:translate(-50%,-112%)"></div>`;
+          <div id="rev-chart-tip" class="hidden absolute z-10 bg-surface-container-lowest border border-surface-container rounded-2xl px-2 py-2 shadow-lg text-center whitespace-nowrap pointer-events-none" style="transform:translate(-50%,-112%)"></div>`;
         // --- Interaktif: geser/hover antar titik, tooltip nilai + selisih vs titik sebelumnya ---
         const svg = container.querySelector('#rev-chart-svg');
         const tip = container.querySelector('#rev-chart-tip');
@@ -1917,11 +1917,11 @@ function renderRevenueChart() {
           } else {
             const d = v - vals[i - 1];
             if (d === 0) {
-              dHtml = `<span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full text-on-surface-variant bg-surface-container">tetap</span>`;
+              dHtml = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full text-on-surface-variant bg-surface-container">tetap</span>`;
             } else {
               const up = d > 0;
               const pct = vals[i - 1] > 0 ? ` (${up ? '+' : '-'}${Math.abs(d / vals[i - 1] * 100).toFixed(0)}%)` : '';
-              dHtml = `<span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full ${up ? 'text-emerald-700 bg-emerald-50' : 'text-error bg-error/10'}">${up ? '▲ +' : '▼ -'}${warkopSync.formatRupiah(Math.abs(d))}${pct}</span>`;
+              dHtml = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full ${up ? 'text-emerald-700 bg-emerald-50' : 'text-error bg-error/10'}">${up ? '▲ +' : '▼ -'}${warkopSync.formatRupiah(Math.abs(d))}${pct}</span>`;
             }
           }
           tip.innerHTML = `<div class="text-[10px] font-semibold text-on-surface-variant">${buckets[i][0]}</div><div class="text-sm font-extrabold text-on-surface">${warkopSync.formatRupiah(v)}</div><div class="mt-0.5">${dHtml}</div>`;
@@ -2020,8 +2020,8 @@ function renderCategoryComposition(summary) {
       `;
 
       const legend = (color, label, rev, key) => `
-        <div onclick="selectTopCategory('${key}')" class="flex items-center gap-2 bg-surface-container-lowest p-2 rounded-xl border cursor-pointer transition-all active:scale-[0.99] ${topCat === key ? 'border-primary ring-1 ring-primary/40' : 'border-surface-container'}">
-          <div class="w-3 h-3 rounded-full ${color} shrink-0"></div>
+        <div onclick="selectTopCategory('${key}')" class="flex items-center gap-2 bg-surface-container-lowest p-2 rounded-2xl border cursor-pointer transition-all active:scale-[0.99] ${topCat === key ? 'border-primary ring-1 ring-primary/40' : 'border-surface-container'}">
+          <div class="w-3 h-4 rounded-full ${color} shrink-0"></div>
           <div class="flex flex-col">
             <span class="text-xs font-bold text-on-surface">${label}</span>
             <span class="text-[11px] text-on-surface-variant font-semibold">${pct(rev)}% (${warkopSync.formatRupiah(rev)})</span>
@@ -2062,11 +2062,11 @@ function renderTopMenu(summary) {
       });
       const rows = Object.entries(agg).sort((a, b) => b[1].qty - a[1].qty).slice(0, 5);
       if (rows.length === 0) {
-        box.innerHTML = `<div class="text-[11px] text-on-surface-variant bg-surface-container-lowest border border-surface-container rounded-xl p-3 text-center">Belum ada penjualan di kategori ini.</div>`;
+        box.innerHTML = `<div class="text-[11px] text-on-surface-variant bg-surface-container-lowest border border-surface-container rounded-2xl p-4 text-center">Belum ada penjualan di kategori ini.</div>`;
         return;
       }
       box.innerHTML = `<div class="text-[11px] font-bold text-on-surface-variant px-1">Terlaris — ${TOPCAT_NAMES[topCat] || topCat}</div>` + rows.map(([name, v], i) => `
-        <div class="flex items-center gap-2.5 bg-surface-container-lowest p-2.5 rounded-xl border border-surface-container">
+        <div class="flex items-center gap-2 bg-surface-container-lowest p-2 rounded-2xl border border-surface-container">
           <span class="w-6 h-6 rounded-full ${i === 0 ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'} flex items-center justify-center text-[11px] font-extrabold shrink-0">${i + 1}</span>
           <span class="text-xs font-bold text-on-surface flex-1 truncate">${escHtml(name)}</span>
           <span class="text-[11px] text-on-surface-variant font-semibold shrink-0">${v.qty} terjual</span>
@@ -2077,11 +2077,11 @@ function renderTopMenu(summary) {
 function switchFeedTab(tab) {
       const isSales = tab === 'sales';
       document.getElementById('feed-tab-sales').className = isSales
-        ? 'flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all'
-        : 'flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
+        ? 'flex-1 py-2 px-2 rounded-2xl bg-primary text-white text-xs font-bold transition-all'
+        : 'flex-1 py-2 px-2 rounded-2xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
       document.getElementById('feed-tab-expenses').className = !isSales
-        ? 'flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-white text-xs font-bold transition-all'
-        : 'flex-1 py-1.5 px-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
+        ? 'flex-1 py-2 px-2 rounded-2xl bg-primary text-white text-xs font-bold transition-all'
+        : 'flex-1 py-2 px-2 rounded-2xl bg-surface-container text-on-surface-variant text-xs font-semibold hover:text-on-surface transition-all';
       document.getElementById('live-sales-feed').classList.toggle('hidden', !isSales);
       document.getElementById('live-expenses-feed').classList.toggle('hidden', isSales);
       document.getElementById('btn-show-all-sales').classList.toggle('hidden', !isSales);
@@ -2105,7 +2105,7 @@ function showAllFeed(type) {
 function renderLiveSalesFeed(transactions) {
       const feed = document.getElementById('live-sales-feed');
       if (transactions.length === 0) {
-        feed.innerHTML = `<div class="bg-surface-container-lowest p-6 rounded-xl text-center text-xs text-on-surface-variant border border-surface-container">Menunggu pesanan pertama masuk dari kasir...</div>`;
+        feed.innerHTML = `<div class="bg-surface-container-lowest p-6 rounded-2xl text-center text-xs text-on-surface-variant border border-surface-container">Menunggu pesanan pertama masuk dari kasir...</div>`;
         document.getElementById('btn-show-all-sales').classList.add('hidden');
         return;
       }
@@ -2116,18 +2116,18 @@ function renderLiveSalesFeed(transactions) {
 
       shown.forEach(tx => {
         const itemEl = document.createElement('div');
-        itemEl.className = 'flex items-center justify-between bg-surface-container-lowest p-3 rounded-xl border border-surface-container hover:border-primary/30 transition-all cursor-pointer shadow-sm active:scale-[0.99]';
+        itemEl.className = 'flex items-center justify-between bg-surface-container-lowest p-4 rounded-2xl border border-surface-container hover:border-primary/30 transition-all cursor-pointer shadow-sm active:scale-[0.99]';
         const itemsSummary = (tx.items || []).map(i => `${escHtml(i.name)} (${i.qty}x)`).join(', ');
         const isQris = tx.paymentMethod && tx.paymentMethod.toUpperCase().includes('QRIS');
         itemEl.innerHTML = `
-          <div class="flex items-center gap-2.5 flex-1 pr-2 min-w-0">
-            <div class="w-9 h-9 rounded-full ${isQris ? 'bg-sky-500/10 text-sky-700' : 'bg-primary/10 text-primary'} flex items-center justify-center shrink-0">
+          <div class="flex items-center gap-2 flex-1 pr-2 min-w-0">
+            <div class="w-10 h-10 rounded-full ${isQris ? 'bg-sky-500/10 text-sky-700' : 'bg-primary/10 text-primary'} flex items-center justify-center shrink-0">
               <span class="material-symbols-outlined text-[18px]">${isQris ? 'qr_code_2' : 'payments'}</span>
             </div>
             <div class="flex flex-col truncate">
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-2">
                 <span class="text-xs font-bold text-on-surface truncate">${escHtml(tx.table)}</span>
-                <span class="text-[10px] px-1.5 rounded bg-surface-container text-on-surface-variant font-medium shrink-0">${escHtml(tx.paymentMethod)}</span>${tx.staff ? '<span class="text-[10px] px-1.5 rounded bg-emerald-100 text-emerald-800 font-bold shrink-0">STAFF</span>' : ''}${tx.status === 'BON' ? '<span class="text-[10px] px-1.5 rounded bg-amber-100 text-amber-800 font-bold shrink-0">BON</span>' : ''}
+                <span class="text-[10px] px-2 rounded bg-surface-container text-on-surface-variant font-medium shrink-0">${escHtml(tx.paymentMethod)}</span>${tx.staff ? '<span class="text-[10px] px-2 rounded bg-emerald-100 text-emerald-800 font-bold shrink-0">STAFF</span>' : ''}${tx.status === 'BON' ? '<span class="text-[10px] px-2 rounded bg-amber-100 text-amber-800 font-bold shrink-0">BON</span>' : ''}
               </div>
               <span class="text-[11px] text-on-surface-variant truncate">${itemsSummary || 'Menu Kasir'}</span>
               <span class="text-[10px] text-on-surface-variant/70">${escHtml(tx.cashier)} • ${warkopSync.formatTime(tx.timestamp)}</span>
@@ -2135,7 +2135,7 @@ function renderLiveSalesFeed(transactions) {
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <span class="text-xs font-extrabold text-primary">${warkopSync.formatRupiah(tx.total)}</span>
-            <button onclick="event.stopPropagation(); deleteTransactionById('${tx.id}')" class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus pesanan salah input">
+            <button onclick="event.stopPropagation(); deleteTransactionById('${tx.id}')" class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus pesanan salah input">
               <span class="material-symbols-outlined text-[16px]">delete</span>
             </button>
           </div>
@@ -2158,7 +2158,7 @@ function renderLiveSalesFeed(transactions) {
 function renderLiveExpensesFeed(expenses) {
       const feed = document.getElementById('live-expenses-feed');
       if (expenses.length === 0) {
-        feed.innerHTML = `<div class="bg-surface-container-lowest p-6 rounded-xl text-center text-xs text-on-surface-variant border border-surface-container">Belum ada catatan belanja modal.</div>`;
+        feed.innerHTML = `<div class="bg-surface-container-lowest p-6 rounded-2xl text-center text-xs text-on-surface-variant border border-surface-container">Belum ada catatan belanja modal.</div>`;
         document.getElementById('btn-show-all-expenses').classList.add('hidden');
         return;
       }
@@ -2169,10 +2169,10 @@ function renderLiveExpensesFeed(expenses) {
 
       shown.forEach(exp => {
         const itemEl = document.createElement('div');
-        itemEl.className = 'flex items-center justify-between bg-surface-container-lowest p-3 rounded-xl border border-surface-container shadow-sm';
+        itemEl.className = 'flex items-center justify-between bg-surface-container-lowest p-4 rounded-2xl border border-surface-container shadow-sm';
         itemEl.innerHTML = `
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-full bg-amber-500/10 text-amber-800 flex items-center justify-center shrink-0">
+          <div class="flex items-center gap-2">
+            <div class="w-10 h-10 rounded-full bg-amber-500/10 text-amber-800 flex items-center justify-center shrink-0">
               <span class="material-symbols-outlined text-[18px]">receipt</span>
             </div>
             <div class="flex flex-col">
@@ -2182,7 +2182,7 @@ function renderLiveExpensesFeed(expenses) {
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <span class="text-xs font-bold text-error">-${warkopSync.formatRupiah(exp.amount)}</span>
-            <button onclick="deleteExpenseById('${exp.id}')" class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus catatan salah input">
+            <button onclick="deleteExpenseById('${exp.id}')" class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus catatan salah input">
               <span class="material-symbols-outlined text-[16px]">delete</span>
             </button>
           </div>
@@ -2309,10 +2309,10 @@ function sendWhatsAppSummary() {
 
       filtered.forEach(item => {
         const card = document.createElement('div');
-        card.className = 'bg-surface-container-low rounded-2xl p-2.5 flex flex-col justify-between gap-2 border border-surface-container hover:border-primary/30 transition-all shadow-sm group relative';
+        card.className = 'bg-surface-container-low rounded-2xl p-2 flex flex-col justify-between gap-2 border border-surface-container hover:border-primary/30 transition-all shadow-sm group relative';
         
         const deleteBtnHtml = !item.is_default
-          ? `<button onclick="deleteMenuItem('${item.id}')" class="absolute top-2 right-2 w-7 h-7 bg-surface/90 backdrop-blur-sm rounded-full flex items-center justify-center text-error opacity-80 group-hover:opacity-100 transition-opacity z-10 shadow-sm" title="Hapus menu tambahan">
+          ? `<button onclick="deleteMenuItem('${item.id}')" class="absolute top-2 right-2 w-8 h-8 bg-surface/90 backdrop-blur-sm rounded-full flex items-center justify-center text-error opacity-80 group-hover:opacity-100 transition-opacity z-10 shadow-sm" title="Hapus menu tambahan">
               <span class="material-symbols-outlined text-[15px]">delete</span>
              </button>`
           : '';
@@ -2322,16 +2322,16 @@ function sendWhatsAppSummary() {
 
         card.innerHTML = `
           ${deleteBtnHtml}
-          <button onclick="openChangeImageModal('${item.id}', '${safeName}', '${safeImg}')" class="absolute top-2 left-2 w-7 h-7 bg-surface/90 backdrop-blur-sm rounded-full flex items-center justify-center text-on-surface opacity-80 group-hover:opacity-100 hover:text-primary transition-all z-10 shadow-sm" title="Ganti Foto">
+          <button onclick="openChangeImageModal('${item.id}', '${safeName}', '${safeImg}')" class="absolute top-2 left-2 w-8 h-8 bg-surface/90 backdrop-blur-sm rounded-full flex items-center justify-center text-on-surface opacity-80 group-hover:opacity-100 hover:text-primary transition-all z-10 shadow-sm" title="Ganti Foto">
             <span class="material-symbols-outlined text-[15px]">photo_camera</span>
           </button>
-          <div class="w-full h-24 rounded-xl bg-cover bg-center overflow-hidden cursor-pointer" style="background-image: url('${item.image}')" onclick="openChangeImageModal('${item.id}', '${safeName}', '${safeImg}')"></div>
+          <div class="w-full h-24 rounded-2xl bg-cover bg-center overflow-hidden cursor-pointer" style="background-image: url('${item.image}')" onclick="openChangeImageModal('${item.id}', '${safeName}', '${safeImg}')"></div>
           <div class="flex flex-col">
             <span class="text-xs font-bold text-on-surface truncate" title="${escHtml(item.name)}">${escHtml(item.name)}</span>
             <button onclick="setPricePrompt('${item.id}')" class="self-start text-xs font-semibold text-primary underline decoration-dotted underline-offset-2 active:scale-95" title="Ketuk untuk ubah harga">${warkopSync.formatRupiah(item.price)}</button>
-            ${item.category === 'snack' ? `<button onclick="event.stopPropagation(); setStockPrompt('${item.id}')" class="mt-1 self-start text-[10px] font-bold px-1.5 py-0.5 rounded ${item.stock == null ? 'bg-surface-container text-on-surface-variant' : item.stock <= 0 ? 'bg-error/10 text-error' : item.stock <= 5 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-700'}" title="Ketuk untuk atur stok">${item.stock == null ? 'Stok: --' : item.stock <= 0 ? 'Stok habis' : 'Sisa ' + item.stock}</button>` : ''}
+            ${item.category === 'snack' ? `<button onclick="event.stopPropagation(); setStockPrompt('${item.id}')" class="mt-1 self-start text-[10px] font-bold px-2 py-0.5 rounded ${item.stock == null ? 'bg-surface-container text-on-surface-variant' : item.stock <= 0 ? 'bg-error/10 text-error' : item.stock <= 5 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-700'}" title="Ketuk untuk atur stok">${item.stock == null ? 'Stok: --' : item.stock <= 0 ? 'Stok habis' : 'Sisa ' + item.stock}</button>` : ''}
           </div>
-          <button onclick="addToCart('${safeName}', ${item.price}, '${item.category}')" class="w-full h-9 bg-primary text-white rounded-xl flex items-center justify-center gap-1 text-xs font-bold active:scale-95 transition-transform shadow-sm">
+          <button onclick="addToCart('${safeName}', ${item.price}, '${item.category}')" class="w-full h-10 bg-primary text-white rounded-2xl flex items-center justify-center gap-1 text-xs font-bold active:scale-95 transition-transform shadow-sm">
             <span class="material-symbols-outlined text-[16px]">add</span>
             <span>Pesan</span>
           </button>
@@ -2443,19 +2443,19 @@ function sendWhatsAppSummary() {
       cart.forEach((item, idx) => {
         subtotal += cartUnit(item) * item.qty;
         html += `
-          <div class="flex items-center justify-between py-2.5">
+          <div class="flex items-center justify-between py-2">
             <div class="flex flex-col flex-1 pr-2">
               <span class="text-xs font-bold text-on-surface">${escHtml(item.name)}</span>
               <span class="text-[11px] text-on-surface-variant font-medium">${cartLineHtml(item)}</span>
             </div>
-            <button onclick="editCartPrice(${idx})" class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary shrink-0" title="Ubah harga">
+            <button onclick="editCartPrice(${idx})" class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary shrink-0" title="Ubah harga">
               <span class="material-symbols-outlined text-[15px]">edit</span>
             </button>
-            <div class="flex items-center gap-1.5 bg-surface-container rounded-xl p-1">
+            <div class="flex items-center gap-2 bg-surface-container rounded-2xl p-1">
               <button onclick="updateCartQty('${escQuote(item.name)}', -1)" class="w-6 h-6 bg-surface rounded-lg flex items-center justify-center text-on-surface active:scale-90 transition-transform">
                 <span class="material-symbols-outlined text-[13px]">remove</span>
               </button>
-              <span class="text-xs font-bold w-5 text-center">${item.qty}</span>
+              <span class="text-xs font-bold w-6 text-center">${item.qty}</span>
               <button onclick="updateCartQty('${escQuote(item.name)}', 1)" class="w-6 h-6 bg-surface rounded-lg flex items-center justify-center text-on-surface active:scale-90 transition-transform">
                 <span class="material-symbols-outlined text-[13px]">add</span>
               </button>
@@ -2523,7 +2523,7 @@ function sendWhatsAppSummary() {
       uniqueAmounts.forEach(amt => {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'py-1.5 px-2 bg-surface-container hover:bg-surface-container-high rounded-lg text-[11px] font-bold text-on-surface';
+        btn.className = 'py-2 px-2 bg-surface-container hover:bg-surface-container-high rounded-lg text-[11px] font-bold text-on-surface';
         btn.innerText = amt === total ? 'Uang Pas' : (amt / 1000) + 'k';
         btn.onclick = () => {
           document.getElementById('cash-received-input').value = amt;
@@ -2555,9 +2555,9 @@ function sendWhatsAppSummary() {
       const qrisBox = document.getElementById('qris-payment-box');
       const bonBox = document.getElementById('bon-payment-box');
 
-      const activeCls = 'flex-1 py-2.5 px-3 rounded-xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs flex items-center justify-center gap-1.5 transition-all';
-      const idleCls = 'flex-1 py-2.5 px-3 rounded-xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs flex items-center justify-center gap-1.5 transition-all';
-      const bonActiveCls = 'flex-1 py-2.5 px-3 rounded-xl border-2 border-amber-600 bg-amber-50 text-amber-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all';
+      const activeCls = 'flex-1 py-2 px-4 rounded-2xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs flex items-center justify-center gap-2 transition-all';
+      const idleCls = 'flex-1 py-2 px-4 rounded-2xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs flex items-center justify-center gap-2 transition-all';
+      const bonActiveCls = 'flex-1 py-2 px-4 rounded-2xl border-2 border-amber-600 bg-amber-50 text-amber-800 font-bold text-xs flex items-center justify-center gap-2 transition-all';
 
       btnCash.className = method === 'Tunai' ? activeCls : idleCls;
       btnQris.className = method === 'QRIS' ? activeCls : idleCls;
@@ -2772,10 +2772,10 @@ function sendWhatsAppSummary() {
       container.innerHTML = '';
       expenses.forEach(exp => {
         const item = document.createElement('div');
-        item.className = 'bg-surface-container-low p-3 rounded-xl border border-surface-container flex items-center justify-between shadow-sm';
+        item.className = 'bg-surface-container-low p-4 rounded-2xl border border-surface-container flex items-center justify-between shadow-sm';
         item.innerHTML = `
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-amber-500/10 text-amber-800 flex items-center justify-center font-bold">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-amber-500/10 text-amber-800 flex items-center justify-center font-bold">
               <span class="material-symbols-outlined text-[18px]">receipt</span>
             </div>
             <div class="flex flex-col">
@@ -2785,7 +2785,7 @@ function sendWhatsAppSummary() {
           </div>
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-error">-${warkopSync.formatRupiah(exp.amount)}</span>
-            <button onclick="deleteExpenseById('${exp.id}')" class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus catatan salah input">
+            <button onclick="deleteExpenseById('${exp.id}')" class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus catatan salah input">
               <span class="material-symbols-outlined text-[16px]">delete</span>
             </button>
           </div>
@@ -2816,28 +2816,28 @@ function sendWhatsAppSummary() {
       container.innerHTML = '';
       txList.forEach(tx => {
         const item = document.createElement('div');
-        item.className = 'bg-surface-container-low p-3 rounded-xl border border-surface-container flex items-center justify-between shadow-sm';
+        item.className = 'bg-surface-container-low p-4 rounded-2xl border border-surface-container flex items-center justify-between shadow-sm';
         const itemCount = (tx.items || []).reduce((s, i) => s + i.qty, 0);
         item.innerHTML = `
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-700 flex items-center justify-center">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-700 flex items-center justify-center">
               <span class="material-symbols-outlined text-[18px]">receipt_long</span>
             </div>
             <div class="flex flex-col">
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-2">
                 <span class="text-xs font-bold text-on-surface">${escHtml(tx.table)}</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-semibold">${escHtml(tx.paymentMethod)}</span>${tx.staff ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">STAFF</span>' : ''}
+                <span class="text-[10px] px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-semibold">${escHtml(tx.paymentMethod)}</span>${tx.staff ? '<span class="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">STAFF</span>' : ''}
               </div>
               <span class="text-[11px] text-on-surface-variant">${itemCount} item • ${warkopSync.formatTime(tx.timestamp)}</span>
             </div>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-primary">${warkopSync.formatRupiah(tx.total)}</span>
-            ${tx.status === 'BON' ? `<button onclick="openSettleModal('${tx.id}')" class="h-9 px-2.5 rounded-lg bg-amber-600 text-white flex items-center justify-center gap-1 text-[11px] font-bold active:scale-95" title="Lunasi bon"><span class="material-symbols-outlined text-[16px]">payments</span><span>Lunasi</span></button>` : ''}
-            <button onclick="showReceiptModalById('${tx.id}')" class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary" title="Cetak Struk">
+            ${tx.status === 'BON' ? `<button onclick="openSettleModal('${tx.id}')" class="h-10 px-2 rounded-lg bg-amber-600 text-white flex items-center justify-center gap-1 text-[11px] font-bold active:scale-95" title="Lunasi bon"><span class="material-symbols-outlined text-[16px]">payments</span><span>Lunasi</span></button>` : ''}
+            <button onclick="showReceiptModalById('${tx.id}')" class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary" title="Cetak Struk">
               <span class="material-symbols-outlined text-[16px]">print</span>
             </button>
-            <button onclick="deleteTransactionById('${tx.id}')" class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus pesanan salah input">
+            <button onclick="deleteTransactionById('${tx.id}')" class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error hover:bg-error/10" title="Hapus pesanan salah input">
               <span class="material-symbols-outlined text-[16px]">delete</span>
             </button>
           </div>
@@ -3036,8 +3036,8 @@ function sendWhatsAppSummary() {
 
     function setHistoryFilter(f) {
       historyFilter = f;
-      const on = 'flex-1 py-1.5 rounded-md text-[11px] font-bold bg-primary text-white transition-all';
-      const off = 'flex-1 py-1.5 rounded-md text-[11px] font-semibold text-on-surface-variant transition-all';
+      const on = 'flex-1 py-2 rounded-lg text-[11px] font-bold bg-primary text-white transition-all';
+      const off = 'flex-1 py-2 rounded-lg text-[11px] font-semibold text-on-surface-variant transition-all';
       document.getElementById('hisf-all').className = f === 'all' ? on : off;
       document.getElementById('hisf-bon').className = f === 'bon' ? on : off;
       document.getElementById('hisf-paid').className = f === 'paid' ? on : off;
@@ -3068,8 +3068,8 @@ function sendWhatsAppSummary() {
 
     function setSettleMethod(m) {
       settleMethod = m;
-      const on = 'flex-1 py-2.5 rounded-xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs';
-      const off = 'flex-1 py-2.5 rounded-xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs';
+      const on = 'flex-1 py-2 rounded-2xl border-2 border-primary bg-primary/10 text-primary font-bold text-xs';
+      const off = 'flex-1 py-2 rounded-2xl border border-surface-container bg-surface-container-low text-on-surface-variant font-semibold text-xs';
       document.getElementById('settle-method-cash').className = m === 'Tunai' ? on : off;
       document.getElementById('settle-method-qris').className = m === 'QRIS' ? on : off;
       document.getElementById('settle-cash-box').classList.toggle('hidden', m !== 'Tunai');
