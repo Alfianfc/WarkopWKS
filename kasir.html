@@ -1933,23 +1933,29 @@ function renderRevenueChart() {
         const hl = container.querySelector('#rev-chart-hl');
         const cross = container.querySelector('#rev-chart-cross');
         const setRevVis = v => { hl.setAttribute('visibility', v ? 'visible' : 'hidden'); cross.setAttribute('visibility', v ? 'visible' : 'hidden'); };
+        function revDelta(v, prev) {
+          if (prev === null || prev === undefined) return { d: null, dir: 'first', pct: null };
+          const d = v - prev;
+          if (d === 0) return { d: 0, dir: 'flat', pct: 0 };
+          const pct = prev > 0 ? Math.round(Math.abs(d) / prev * 100) : null;
+          return { d, dir: d > 0 ? 'up' : 'down', pct };
+        }
+
         function showRevTip(i) {
           const v = vals[i], px = X(i), py = Y(v);
           cross.setAttribute('x1', px.toFixed(1)); cross.setAttribute('x2', px.toFixed(1));
           hl.setAttribute('cx', px.toFixed(1)); hl.setAttribute('cy', py.toFixed(1));
           setRevVis(true);
           let dHtml;
-          if (i === 0) {
+          const r = revDelta(v, i === 0 ? null : vals[i - 1]);
+          if (r.dir === 'first') {
             dHtml = `<span class="text-[10px] font-semibold text-on-surface-variant">awal periode</span>`;
+          } else if (r.dir === 'flat') {
+            dHtml = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full text-on-surface-variant bg-surface-container">tetap</span>`;
           } else {
-            const d = v - vals[i - 1];
-            if (d === 0) {
-              dHtml = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full text-on-surface-variant bg-surface-container">tetap</span>`;
-            } else {
-              const up = d > 0;
-              const pct = vals[i - 1] > 0 ? ` (${up ? '+' : '-'}${Math.abs(d / vals[i - 1] * 100).toFixed(0)}%)` : '';
-              dHtml = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full ${up ? 'text-emerald-700 bg-emerald-50' : 'text-error bg-error/10'}">${up ? '▲ +' : '▼ -'}${warkopSync.formatRupiah(Math.abs(d))}${pct}</span>`;
-            }
+            const up = r.dir === 'up';
+            const pct = r.pct !== null ? ` (${up ? '+' : '-'}${r.pct}%)` : '';
+            dHtml = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full ${up ? 'text-emerald-700 bg-emerald-50' : 'text-error bg-error/10'}">${up ? '▲ +' : '▼ -'}${warkopSync.formatRupiah(Math.abs(r.d))}${pct}</span>`;
           }
           tip.innerHTML = `<div class="text-[10px] font-semibold text-on-surface-variant">${buckets[i][0]}</div><div class="text-sm font-extrabold text-on-surface">${warkopSync.formatRupiah(v)}</div><div class="mt-0.5">${dHtml}</div>`;
           tip.classList.remove('hidden');
