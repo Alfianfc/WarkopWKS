@@ -1917,7 +1917,7 @@ function renderRevenueChart() {
         const area = PAD + ',' + (H - PAD) + ' ' + line + ' ' + (W - PAD) + ',' + (H - PAD);
         const fmtK = v => v >= 1000000 ? (v / 1000000).toFixed(1) + 'jt' : Math.round(v / 1000) + 'k';
         container.innerHTML = `
-          <svg id="rev-chart-svg" viewBox="0 0 ${W} ${H}" class="w-full block" style="height:${H}px;touch-action:none;cursor:crosshair">
+          <svg id="rev-chart-svg" viewBox="0 0 ${W} ${H}" class="w-full block" tabindex="0" role="img" aria-label="Grafik Pendapatan" style="height:${H}px;touch-action:none;cursor:crosshair">
             ${[0.25, 0.5, 0.75].map(f => `<line x1="${PAD}" y1="${(H * f).toFixed(1)}" x2="${W - PAD}" y2="${(H * f).toFixed(1)}" stroke="#eadfd6" stroke-width="1" stroke-dasharray="3 4"/>`).join('')}
             <polygon points="${area}" fill="rgba(168,51,1,0.10)"/>
             <polyline points="${line}" fill="none" stroke="#a83301" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
@@ -1926,7 +1926,7 @@ function renderRevenueChart() {
             <circle id="rev-chart-hl" r="7" fill="#a83301" stroke="#fff" stroke-width="2.5" visibility="hidden"/>
           </svg>
           <div class="flex justify-between mt-1" style="padding:0 ${PAD}px">${buckets.map(([label], i) => `<span class="text-[9px] ${vals[i] === peak && peak > 0 ? 'text-primary font-bold' : 'text-on-surface-variant'}">${label}</span>`).join('')}</div>
-          <div id="rev-chart-tip" class="hidden absolute z-10 bg-surface-container-lowest border border-surface-container rounded-2xl px-2 py-2 shadow-lg text-center whitespace-nowrap pointer-events-none" style="transform:translate(-50%,-112%)"></div>`;
+          <div id="rev-chart-tip" class="hidden absolute z-10 bg-surface-container-lowest border border-surface-container rounded-2xl px-2 py-2 shadow-lg text-center whitespace-nowrap pointer-events-none" aria-live="polite" style="transform:translate(-50%,-112%)"></div>`;
         // --- Interaktif: geser/hover antar titik, tooltip nilai + selisih vs titik sebelumnya ---
         const svg = container.querySelector('#rev-chart-svg');
         const tip = container.querySelector('#rev-chart-tip');
@@ -1976,6 +1976,15 @@ function renderRevenueChart() {
         const hideRev = () => { tip.classList.add('hidden'); setRevVis(false); };
         svg.addEventListener('pointerleave', hideRev);
         svg.addEventListener('pointercancel', hideRev);
+        let revFocus = 0;
+        svg.addEventListener('keydown', e => {
+          if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+          e.preventDefault();
+          revFocus = Math.max(0, Math.min(nn - 1, revFocus + (e.key === 'ArrowRight' ? 1 : -1)));
+          showRevTip(revFocus);
+        });
+        svg.addEventListener('focus', () => showRevTip(revFocus));
+        svg.addEventListener('blur', hideRev);
       })();
 
       const total = buckets.reduce((s, [, k]) => s + (sums[k] || 0), 0);
