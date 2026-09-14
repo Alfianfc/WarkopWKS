@@ -1947,15 +1947,15 @@ function renderRevenueChart() {
           hl.setAttribute('cx', px.toFixed(1)); hl.setAttribute('cy', py.toFixed(1));
           setRevVis(true);
           let dHtml;
-          const r = revDelta(v, i === 0 ? null : vals[i - 1]);
-          if (r.dir === 'first') {
+          const delta = revDelta(v, i === 0 ? null : vals[i - 1]);
+          if (delta.dir === 'first') {
             dHtml = `<span class="text-[10px] font-semibold text-on-surface-variant">awal periode</span>`;
-          } else if (r.dir === 'flat') {
+          } else if (delta.dir === 'flat') {
             dHtml = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full text-on-surface-variant bg-surface-container">tetap</span>`;
           } else {
-            const up = r.dir === 'up';
-            const pct = r.pct !== null ? ` (${up ? '+' : '-'}${r.pct}%)` : '';
-            dHtml = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full ${up ? 'text-emerald-700 bg-emerald-50' : 'text-error bg-error/10'}">${up ? '▲ +' : '▼ -'}${warkopSync.formatRupiah(Math.abs(r.d))}${pct}</span>`;
+            const up = delta.dir === 'up';
+            const pct = delta.pct !== null ? ` (${up ? '+' : '-'}${r.pct}%)` : '';
+            dHtml = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full ${up ? 'text-emerald-700 bg-emerald-50' : 'text-error bg-error/10'}">${up ? '▲ +' : '▼ -'}${warkopSync.formatRupiah(Math.abs(delta.d))}${pct}</span>`;
           }
           tip.innerHTML = `<div class="text-[10px] font-semibold text-on-surface-variant">${buckets[i][0]}</div><div class="text-sm font-extrabold text-on-surface">${warkopSync.formatRupiah(v)}</div><div class="mt-0.5">${dHtml}</div>`;
           tip.classList.remove('hidden');
