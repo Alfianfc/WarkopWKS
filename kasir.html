@@ -1971,13 +1971,11 @@ function renderRevenueChart() {
           for (let j = 0; j < nn; j++) { const dd = Math.abs(X(j) - sx); if (dd < bd) { bd = dd; bi = j; } }
           showRevTip(bi);
         }
-        let revTipT = null;
         svg.addEventListener('pointerdown', e => { try { svg.setPointerCapture(e.pointerId); } catch (err) {} pickRev(e); });
         svg.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' || e.buttons) pickRev(e); });
         const hideRev = () => { tip.classList.add('hidden'); setRevVis(false); };
-        svg.addEventListener('pointerup', () => { clearTimeout(revTipT); revTipT = setTimeout(hideRev, 2000); });
-        svg.addEventListener('pointercancel', hideRev);
         svg.addEventListener('pointerleave', hideRev);
+        svg.addEventListener('pointercancel', hideRev);
       })();
 
       const total = buckets.reduce((s, [, k]) => s + (sums[k] || 0), 0);
