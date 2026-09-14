@@ -108,6 +108,10 @@
       </div>
 
       <div class="flex items-center gap-2">
+        <span id="demo-badge" class="hidden items-center gap-1 px-2 py-1 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300 whitespace-nowrap" title="Mode demo: data simulasi, tidak menyentuh data asli">
+          <span class="material-symbols-outlined text-[12px]">science</span>
+          <span>DEMO</span>
+        </span>
         <!-- Cloud Sync Status Button -->
         <button onclick="openCloudModal()" id="cloud-status-btn" class="flex items-center gap-2 px-2 py-2 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 active:scale-95 transition-transform" title="Status Sinkronisasi Real-time">
           <span class="material-symbols-outlined text-[16px]">sync</span>
@@ -940,6 +944,10 @@
           Tutup
         </button>
       </div>
+      <button onclick="resetDemoData()" id="demo-reset-btn" class="hidden w-full h-11 bg-amber-100 hover:bg-amber-200 border border-amber-300 text-amber-800 rounded-2xl text-xs font-bold active:scale-95 transition-all items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-[18px]">restart_alt</span>
+        <span>Reset Data Demo</span>
+      </button>
     </div>
   </div>
 
@@ -1266,7 +1274,10 @@
 
       const user = warkopAuth.getCurrentUser();
       if (user) {
-        document.getElementById('shift-cashier-label').innerText = `${user.name} • Shift Aktif`;
+        const isDemoUser = warkopAuth.isDemo && warkopAuth.isDemo();
+        document.getElementById('shift-cashier-label').innerText = isDemoUser ? 'Demo Owner (Simulasi) • Data Fake' : `${user.name} • Shift Aktif`;
+        const dbadge = document.getElementById('demo-badge');
+        if (dbadge) { dbadge.classList.toggle('hidden', !isDemoUser); dbadge.classList.toggle('flex', !!isDemoUser); }
         // Owner yang buka halaman kasir dikasih jalan pulang ke Laporan
         if (user.role === 'bos') {
           isOwnerView = true;
@@ -1352,6 +1363,11 @@
     function updateCloudButtonState() {
       const btn = document.getElementById('cloud-status-btn');
       const text = document.getElementById('cloud-status-text');
+      if (warkopAuth.isDemo && warkopAuth.isDemo()) {
+        text.innerText = 'Demo Lokal';
+        btn.className = 'flex items-center gap-2 px-2 py-2 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300 active:scale-95 transition-transform';
+        return;
+      }
       if (warkopSync.isSupabaseReady || warkopSync.isSocketReady) {
         text.innerText = 'Cloud LIVE';
         btn.className = 'flex items-center gap-2 px-2 py-2 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 active:scale-95 transition-transform';
@@ -1596,6 +1612,15 @@ function setShiftFilter(f) {
       const kasirText = document.getElementById('kasir-status-text');
       if (!kasirBadge || !kasirText) return;
 
+      if (warkopAuth.isDemo && warkopAuth.isDemo()) {
+        if (badge) badge.className = 'flex items-center gap-0.5 px-2 py-1 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-300 whitespace-nowrap shrink-0';
+        if (text) text.innerText = 'Demo Lokal';
+        kasirBadge.className = 'flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-800 border border-amber-200 rounded-full';
+        kasirBadge.querySelector('span').className = 'w-2 h-2 rounded-full bg-amber-500';
+        kasirText.innerText = 'Data Simulasi';
+        return;
+      }
+
       if (warkopSync.isSupabaseReady) {
         if (badge) badge.className = 'flex items-center gap-0.5 px-2 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap shrink-0';
         if (text) text.innerText = 'Supabase LIVE';
@@ -1614,6 +1639,7 @@ function setShiftFilter(f) {
     }
 
 function openAccountModal() {
+      if (warkopAuth.isDemo && warkopAuth.isDemo()) { uiToast('Mode demo: ganti password dinonaktifkan.'); return; }
       const accounts = warkopAuth.getAccounts();
       if (accounts.kasir) {
         document.getElementById('acc-kasir-user').value = accounts.kasir.username;
@@ -3236,6 +3262,12 @@ function sendWhatsAppSummary() {
     // --- MODAL STATUS KONEKSI ---
     function openCloudModal() {
       refreshCloudStatus();
+      const drb = document.getElementById('demo-reset-btn');
+      if (drb) {
+        const isD = warkopAuth.isDemo && warkopAuth.isDemo();
+        drb.classList.toggle('hidden', !isD);
+        drb.classList.toggle('flex', !!isD);
+      }
       document.getElementById('cloud-modal').classList.remove('hidden');
       document.getElementById('cloud-modal').classList.add('flex');
     }
@@ -3248,9 +3280,20 @@ function sendWhatsAppSummary() {
     function refreshCloudStatus() {
       const ok = '<span class="text-emerald-700">Aktif</span>';
       const no = '<span class="text-on-surface-variant">Nonaktif</span>';
-      document.getElementById('cloud-st-supabase').innerHTML = warkopSync.isSupabaseReady ? ok : no;
-      document.getElementById('cloud-st-socket').innerHTML = warkopSync.isSocketReady ? ok : no;
+      const isD = warkopAuth.isDemo && warkopAuth.isDemo();
+      const demoLbl = '<span class="text-amber-700 font-bold">Demo (lokal)</span>';
+      document.getElementById('cloud-st-supabase').innerHTML = isD ? demoLbl : (warkopSync.isSupabaseReady ? ok : no);
+      document.getElementById('cloud-st-socket').innerHTML = isD ? demoLbl : (warkopSync.isSocketReady ? ok : no);
       updateCloudButtonState();
+    }
+
+    async function resetDemoData() {
+      if (!warkopAuth.isDemo || !warkopAuth.isDemo()) return;
+      const ok = await uiConfirm({ title: 'Reset Data Demo?', message: 'Data simulasi dikembalikan ke awal. Data asli TIDAK tersentuh.', okText: 'Reset', danger: true });
+      if (!ok) return;
+      warkopSync.resetDemoData();
+      uiToast('Data demo direset ke awal');
+      closeCloudModal();
     }
   </script>
 </body>

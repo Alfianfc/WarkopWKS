@@ -123,6 +123,19 @@
           <span>Masuk ke Sistem</span>
           <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
         </button>
+
+        <!-- Divider -->
+        <div class="relative flex py-1 items-center">
+          <div class="flex-grow border-t border-surface-container-high"></div>
+          <span class="flex-shrink mx-3 text-[11px] text-on-surface-variant font-medium">atau coba fitur</span>
+          <div class="flex-grow border-t border-surface-container-high"></div>
+        </div>
+
+        <!-- Tombol Demo Mode Owner -->
+        <button type="button" onclick="loginDemoOwner()" class="w-full h-11 bg-surface-container hover:bg-surface-container-high border border-surface-container-high text-on-surface rounded-xl text-xs font-bold active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm">
+          <span class="material-symbols-outlined text-amber-700 text-[18px]">visibility</span>
+          <span>Coba Akun Demo Owner (Simulasi)</span>
+        </button>
       </form>
     </div>
   </main>
@@ -185,6 +198,13 @@
 
     function hideError() {
       document.getElementById('login-error-alert').classList.add('hidden');
+    }
+
+    function loginDemoOwner() {
+      if (window.warkopAuth && typeof window.warkopAuth.loginDemo === 'function') {
+        window.warkopAuth.loginDemo();
+        window.location.href = '/kasir?tab=laporan';
+      }
     }
 
     async function handleLogin(event) {

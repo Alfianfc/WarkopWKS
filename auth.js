@@ -72,9 +72,31 @@ class WarkopAuth {
     localStorage.setItem(this.storageKey, JSON.stringify(accounts));
   }
 
+  isDemo() {
+    const u = this.getCurrentUser();
+    return !!(u && (u.isDemo || u.username === 'demo'));
+  }
+
+  loginDemo() {
+    const sessionData = {
+      username: 'demo',
+      role: 'bos',
+      name: 'Demo Owner (Simulasi)',
+      isDemo: true,
+      loginAt: new Date().toISOString()
+    };
+    sessionStorage.setItem(this.sessionKey, JSON.stringify(sessionData));
+    localStorage.setItem(this.sessionKey, JSON.stringify(sessionData));
+    return { success: true, user: sessionData };
+  }
+
   async login(username, password) {
     const cleanUser = (username || '').trim().toLowerCase();
     const cleanPass = (password || '').trim();
+
+    if (cleanUser === 'demo' && cleanPass === 'demo') {
+      return this.loginDemo();
+    }
 
     if (window.supabaseClient) {
       try {

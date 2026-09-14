@@ -5,12 +5,24 @@
 class WarkopSyncEngine {
   constructor() {
     this.channelName = 'warkop_realtime_channel';
-    this.storageKeys = {
-      transactions: 'warkop_transactions_v2',
-      expenses: 'warkop_expenses_v2',
-      menu: 'warkop_menu_v2',
-      settings: 'warkop_settings_v2'
-    };
+    this.isDemo = (window.warkopAuth && typeof window.warkopAuth.isDemo === 'function' && window.warkopAuth.isDemo());
+
+    if (this.isDemo) {
+      this.channelName = 'warkop_demo_channel';
+      this.storageKeys = {
+        transactions: 'warkop_demo_transactions_v2',
+        expenses: 'warkop_demo_expenses_v2',
+        menu: 'warkop_demo_menu_v2',
+        settings: 'warkop_demo_settings_v2'
+      };
+    } else {
+      this.storageKeys = {
+        transactions: 'warkop_transactions_v2',
+        expenses: 'warkop_expenses_v2',
+        menu: 'warkop_menu_v2',
+        settings: 'warkop_settings_v2'
+      };
+    }
 
     this.listeners = {
       dataChanged: [],
@@ -27,9 +39,35 @@ class WarkopSyncEngine {
 
     this.initBroadcastChannel();
     this.initLocalStorageListener();
-    try { this.initDefaultData(); } catch (e) { console.warn('init menu notice:', e); }
-    try { this.initSupabase(); } catch (e) { console.warn('init cloud notice:', e); }
-    try { this.initSocketIO(); } catch (e) { console.warn('init socket notice:', e); }
+
+    if (this.isDemo) {
+      this.isSupabaseReady = true;
+      this.isSocketReady = true;
+      try { this.initDefaultData(); } catch (e) {}
+      try { this.initDemoData(); } catch (e) { console.warn('init demo notice:', e); }
+    } else {
+      try { this.initDefaultData(); } catch (e) { console.warn('init menu notice:', e); }
+      try { this.initSupabase(); } catch (e) { console.warn('init cloud notice:', e); }
+      try { this.initSocketIO(); } catch (e) { console.warn('init socket notice:', e); }
+    }
+  }
+
+  canSyncRemote() {
+    return !this.isDemo && !!window.supabaseClient;
+  }
+
+  canSocket() {
+    return !this.isDemo && !!(this.socket && this.socket.connected);
+  }
+
+  resetDemoData() {
+    if (!this.isDemo) return;
+    localStorage.removeItem(this.storageKeys.transactions);
+    localStorage.removeItem(this.storageKeys.expenses);
+    localStorage.removeItem(this.cashStoreKey());
+    this.initDemoData(true);
+    this.notifyListeners('dataChanged', this.getAllData());
+    this.notifyListeners('cashChanged', this.getCashSessions());
   }
 
   // --- BroadcastChannel for multi-tab sync ---
@@ -101,8 +139,167 @@ class WarkopSyncEngine {
     return (this._memFallback || {})[key] || null;
   }
 
+  // --- Fake Demo Data Generator (Mode Owner Demo) ---
+  initDemoData(forceReset = false) {
+    if (!this.isDemo) return;
+    const existingTx = this.safeGet(this.storageKeys.transactions);
+    if (existingTx && !forceReset) {
+      try {
+        const parsed = JSON.parse(existingTx);
+        if (Array.isArray(parsed) && parsed.length > 0) return;
+      } catch (e) {}
+    }
+
+    const now = new Date();
+    const makeDate = (daysAgo, hour, min) => {
+      const d = new Date(now);
+      d.setDate(d.getDate() - daysAgo);
+      d.setHours(hour, min, 0, 0);
+      return d.toISOString();
+    };
+
+    const shiftOf = (iso) => {
+      const h = new Date(iso).getHours();
+      return (h >= 6 && h < 15) ? '1' : '2';
+    };
+
+    const txTemplate = [
+      // H-0 (Hari Ini)
+      { d: 0, h: 7, m: 30, table: 'Meja 02', cashier: 'Kasir Shift 1', pay: 'Tunai', items: [
+        { name: 'Es Teh', qty: 2, price: 5000, category: 'cold_drink', subtotal: 10000 },
+        { name: 'Gorengan', qty: 3, price: 2000, category: 'snack', subtotal: 6000 }
+      ]},
+      { d: 0, h: 8, m: 15, table: 'Meja 01', cashier: 'Kasir Shift 1', pay: 'QRIS', items: [
+        { name: 'Indomie + telur', qty: 1, price: 9000, category: 'food', subtotal: 9000 },
+        { name: 'Kopi tubruk', qty: 1, price: 5000, category: 'hot_drink', subtotal: 5000 }
+      ]},
+      { d: 0, h: 9, m: 45, table: 'Takeaway', cashier: 'Kasir Shift 1', pay: 'Tunai', items: [
+        { name: 'Air mineral Vit', qty: 2, price: 3000, category: 'inventory', subtotal: 6000 },
+        { name: 'Sukro', qty: 2, price: 1500, category: 'inventory', subtotal: 3000 }
+      ]},
+      { d: 0, h: 11, m: 20, table: 'Meja 03', cashier: 'Kasir Shift 1', pay: 'QRIS', items: [
+        { name: 'Kopisusu', qty: 2, price: 7000, category: 'hot_drink', subtotal: 14000 },
+        { name: 'Risol', qty: 4, price: 3000, category: 'snack', subtotal: 12000 }
+      ]},
+      { d: 0, h: 12, m: 40, table: 'Meja 04', cashier: 'Kasir Shift 1', pay: 'Tunai', items: [
+        { name: 'Indomie All varian', qty: 2, price: 6000, category: 'food', subtotal: 12000 },
+        { name: 'Es GoodDay All Varian', qty: 2, price: 8000, category: 'cold_drink', subtotal: 16000 },
+        { name: 'Ice batu Cristal', qty: 2, price: 1000, category: 'inventory', subtotal: 2000 }
+      ]},
+      { d: 0, h: 14, m: 10, table: 'Meja 02', cashier: 'Kasir Shift 1', pay: 'Tunai', items: [
+        { name: 'Teh panas', qty: 1, price: 4000, category: 'hot_drink', subtotal: 4000 },
+        { name: 'Malkis', qty: 2, price: 1500, category: 'inventory', subtotal: 3000 }
+      ]},
+      { d: 0, h: 15, m: 30, table: 'Meja 05', cashier: 'Kasir Shift 2', pay: 'QRIS', items: [
+        { name: 'Es Milo', qty: 2, price: 7000, category: 'cold_drink', subtotal: 14000 },
+        { name: 'Pisang goreng', qty: 3, price: 3000, category: 'snack', subtotal: 9000 }
+      ]},
+      { d: 0, h: 17, m: 15, table: 'Meja 01', cashier: 'Kasir Shift 2', pay: 'Tunai', items: [
+        { name: 'Joshua', qty: 1, price: 8000, category: 'cold_drink', subtotal: 8000 },
+        { name: 'Martabak', qty: 2, price: 3000, category: 'snack', subtotal: 6000 }
+      ]},
+      { d: 0, h: 18, m: 50, table: 'Meja 06', cashier: 'Kasir Shift 2', pay: 'QRIS', items: [
+        { name: 'Kopi Spesial mix', qty: 2, price: 6000, category: 'hot_drink', subtotal: 12000 },
+        { name: 'Tahu Sumedang', qty: 4, price: 3000, category: 'snack', subtotal: 12000 }
+      ]},
+      { d: 0, h: 20, m: 15, table: 'Meja 03', cashier: 'Kasir Shift 2', pay: 'Tunai', items: [
+        { name: 'Indomie + telur', qty: 3, price: 9000, category: 'food', subtotal: 27000 },
+        { name: 'Es Teh', qty: 3, price: 5000, category: 'cold_drink', subtotal: 15000 }
+      ]},
+      { d: 0, h: 21, m: 30, table: 'Meja 04', cashier: 'Kasir Shift 2', pay: 'Bon', customer: 'Bang Reza', status: 'BON', items: [
+        { name: 'Kopisusu', qty: 2, price: 7000, category: 'hot_drink', subtotal: 14000 },
+        { name: 'Gerry', qty: 2, price: 1500, category: 'inventory', subtotal: 3000 }
+      ]},
+      { d: 0, h: 22, m: 20, table: 'Kasir', cashier: 'Kasir Shift 2', pay: 'Tunai', staff: true, discount: 12500, items: [
+        { name: 'Kopi GulaAren', qty: 1, price: 5000, category: 'hot_drink', subtotal: 0, originalPrice: 5000 },
+        { name: 'Indomie All varian', qty: 1, price: 6000, category: 'food', subtotal: 0, originalPrice: 6000 },
+        { name: 'Gerry', qty: 1, price: 1500, category: 'inventory', subtotal: 0, originalPrice: 1500 }
+      ]},
+
+      // H-1 (Kemarin)
+      { d: 1, h: 8, m: 20, table: 'Meja 01', cashier: 'Kasir Shift 1', pay: 'Tunai', items: [{ name: 'Kopi tubruk', qty: 2, price: 5000, category: 'hot_drink', subtotal: 10000 }] },
+      { d: 1, h: 10, m: 15, table: 'Meja 02', cashier: 'Kasir Shift 1', pay: 'QRIS', items: [{ name: 'Es Teh', qty: 3, price: 5000, category: 'cold_drink', subtotal: 15000 }, { name: 'Risol', qty: 3, price: 3000, category: 'snack', subtotal: 9000 }] },
+      { d: 1, h: 12, m: 30, table: 'Meja 03', cashier: 'Kasir Shift 1', pay: 'Tunai', items: [{ name: 'Indomie + telur', qty: 2, price: 9000, category: 'food', subtotal: 18000 }, { name: 'Es Milo', qty: 2, price: 7000, category: 'cold_drink', subtotal: 14000 }] },
+      { d: 1, h: 16, m: 45, table: 'Meja 04', cashier: 'Kasir Shift 2', pay: 'QRIS', items: [{ name: 'Kopisusu', qty: 3, price: 7000, category: 'hot_drink', subtotal: 21000 }, { name: 'Gorengan', qty: 5, price: 2000, category: 'snack', subtotal: 10000 }] },
+      { d: 1, h: 19, m: 20, table: 'Meja 05', cashier: 'Kasir Shift 2', pay: 'Tunai', items: [{ name: 'Indomie All varian', qty: 3, price: 6000, category: 'food', subtotal: 18000 }, { name: 'Es Teh', qty: 3, price: 5000, category: 'cold_drink', subtotal: 15000 }] },
+      { d: 1, h: 21, m: 10, table: 'Meja 02', cashier: 'Kasir Shift 2', pay: 'QRIS', items: [{ name: 'Kopi jahe', qty: 2, price: 5000, category: 'hot_drink', subtotal: 10000 }, { name: 'Sukro', qty: 3, price: 1500, category: 'inventory', subtotal: 4500 }] },
+
+      // H-2
+      { d: 2, h: 9, m: 10, table: 'Meja 01', cashier: 'Kasir Shift 1', pay: 'Tunai', items: [{ name: 'Teh panas', qty: 2, price: 4000, category: 'hot_drink', subtotal: 8000 }] },
+      { d: 2, h: 13, m: 0, table: 'Meja 03', cashier: 'Kasir Shift 1', pay: 'QRIS', items: [{ name: 'Indomie + telur', qty: 2, price: 9000, category: 'food', subtotal: 18000 }, { name: 'Es GoodDay All Varian', qty: 2, price: 8000, category: 'cold_drink', subtotal: 16000 }] },
+      { d: 2, h: 17, m: 30, table: 'Meja 02', cashier: 'Kasir Shift 2', pay: 'Tunai', items: [{ name: 'Es Teh', qty: 4, price: 5000, category: 'cold_drink', subtotal: 20000 }, { name: 'Tahu Sumedang', qty: 4, price: 3000, category: 'snack', subtotal: 12000 }] },
+      { d: 2, h: 20, m: 45, table: 'Meja 06', cashier: 'Kasir Shift 2', pay: 'QRIS', items: [{ name: 'Kopisusu', qty: 4, price: 7000, category: 'hot_drink', subtotal: 28000 }, { name: 'Martabak', qty: 3, price: 3000, category: 'snack', subtotal: 9000 }] },
+
+      // H-3
+      { d: 3, h: 10, m: 0, table: 'Meja 02', cashier: 'Kasir Shift 1', pay: 'Tunai', items: [{ name: 'Kopi tubruk', qty: 3, price: 5000, category: 'hot_drink', subtotal: 15000 }] },
+      { d: 3, h: 14, m: 20, table: 'Meja 04', cashier: 'Kasir Shift 1', pay: 'QRIS', items: [{ name: 'Indomie All varian', qty: 3, price: 6000, category: 'food', subtotal: 18000 }, { name: 'Air mineral Vit', qty: 3, price: 3000, category: 'inventory', subtotal: 9000 }] },
+      { d: 3, h: 19, m: 15, table: 'Meja 01', cashier: 'Kasir Shift 2', pay: 'Tunai', items: [{ name: 'Kopisusu', qty: 3, price: 7000, category: 'hot_drink', subtotal: 21000 }, { name: 'Pisang goreng', qty: 4, price: 3000, category: 'snack', subtotal: 12000 }] },
+
+      // H-4
+      { d: 4, h: 11, m: 30, table: 'Meja 03', cashier: 'Kasir Shift 1', pay: 'Tunai', items: [{ name: 'Es Teh', qty: 4, price: 5000, category: 'cold_drink', subtotal: 20000 }, { name: 'Risol', qty: 3, price: 3000, category: 'snack', subtotal: 9000 }] },
+      { d: 4, h: 18, m: 40, table: 'Meja 02', cashier: 'Kasir Shift 2', pay: 'QRIS', items: [{ name: 'Indomie + telur', qty: 3, price: 9000, category: 'food', subtotal: 27000 }, { name: 'Es Milo', qty: 3, price: 7000, category: 'cold_drink', subtotal: 21000 }] },
+
+      // H-5
+      { d: 5, h: 12, m: 15, table: 'Meja 05', cashier: 'Kasir Shift 1', pay: 'QRIS', items: [{ name: 'Kopi Spesial mix', qty: 3, price: 6000, category: 'hot_drink', subtotal: 18000 }, { name: 'Gorengan', qty: 6, price: 2000, category: 'snack', subtotal: 12000 }] },
+      { d: 5, h: 20, m: 30, table: 'Meja 01', cashier: 'Kasir Shift 2', pay: 'Tunai', items: [{ name: 'Kopisusu', qty: 4, price: 7000, category: 'hot_drink', subtotal: 28000 }, { name: 'Indomie All varian', qty: 2, price: 6000, category: 'food', subtotal: 12000 }] },
+
+      // H-6
+      { d: 6, h: 10, m: 45, table: 'Meja 02', cashier: 'Kasir Shift 1', pay: 'Tunai', items: [{ name: 'Es Teh', qty: 3, price: 5000, category: 'cold_drink', subtotal: 15000 }, { name: 'Malkis', qty: 3, price: 1500, category: 'inventory', subtotal: 4500 }] },
+      { d: 6, h: 19, m: 50, table: 'Meja 04', cashier: 'Kasir Shift 2', pay: 'QRIS', items: [{ name: 'Indomie + telur', qty: 2, price: 9000, category: 'food', subtotal: 18000 }, { name: 'Es GoodDay All Varian', qty: 2, price: 8000, category: 'cold_drink', subtotal: 16000 }] }
+    ];
+
+    const transactions = txTemplate.map((t, idx) => {
+      const iso = makeDate(t.d, t.h, t.m);
+      const subtotal = t.items.reduce((s, i) => s + (Number(i.subtotal) || 0), 0);
+      const discount = t.discount || 0;
+      const total = Math.max(0, subtotal - discount);
+      return {
+        id: 'TRX-DEMO-' + String(1000 + idx),
+        timestamp: iso,
+        cashier: t.cashier,
+        table: t.table,
+        paymentMethod: t.pay,
+        customer: t.customer || '',
+        status: t.status || 'PAID',
+        staff: !!t.staff,
+        discount: discount,
+        subtotal: subtotal,
+        tax: 0,
+        total: total,
+        paid: t.status === 'BON' ? 0 : total,
+        change: 0,
+        shift: shiftOf(iso),
+        items: t.items
+      };
+    });
+
+    const expenses = [
+      { id: 'EXP-DEMO-1', timestamp: makeDate(0, 8, 10), cashier: 'Kasir Shift 1', category: 'Es Batu', note: 'Es Batu Kristal 2 Bal', amount: 16000, shift: '1' },
+      { id: 'EXP-DEMO-2', timestamp: makeDate(0, 14, 0), cashier: 'Kasir Shift 1', category: 'Gas Elpiji', note: 'Isi Gas Elpiji 3kg', amount: 22000, shift: '1' },
+      { id: 'EXP-DEMO-3', timestamp: makeDate(1, 9, 30), cashier: 'Kasir Shift 1', category: 'Air Galon', note: 'Air Galon isi ulang 3x', amount: 18000, shift: '1' },
+      { id: 'EXP-DEMO-4', timestamp: makeDate(2, 10, 0), cashier: 'Kasir Shift 1', category: 'Bahan Baku', note: 'Belanja Indomie 2 Dus + Telur', amount: 95000, shift: '1' },
+      { id: 'EXP-DEMO-5', timestamp: makeDate(4, 15, 30), cashier: 'Kasir Shift 2', category: 'Listrik', note: 'Token Listrik Warkop', amount: 50000, shift: '2' }
+    ];
+
+    const todayDateStr = this.businessDateStr(now);
+    const cashSessions = {};
+    cashSessions[`${todayDateStr}_1`] = {
+      id: `${todayDateStr}_1`,
+      business_date: todayDateStr,
+      shift: '1',
+      opened_by: 'Kasir Shift 1',
+      modal_awal: 100000,
+      open_at: makeDate(0, 6, 30)
+    };
+
+    localStorage.setItem(this.storageKeys.transactions, JSON.stringify(transactions));
+    localStorage.setItem(this.storageKeys.expenses, JSON.stringify(expenses));
+    localStorage.setItem(this.cashStoreKey(), JSON.stringify(cashSessions));
+  }
+
   // --- Supabase Realtime & Remote Database Sync ---
   async initSupabase() {
+    if (this.isDemo) return;
     if (!window.supabaseClient) {
       this.isSupabaseReady = false;
       return;
@@ -197,6 +394,7 @@ class WarkopSyncEngine {
 
   // --- Optional Socket.io Fallback ---
   initSocketIO() {
+    if (this.isDemo) return;
     if (typeof io !== 'undefined') {
       try {
         this.socket = io();
@@ -387,7 +585,7 @@ class WarkopSyncEngine {
       this.channel.postMessage({ type: 'NEW_TRANSACTION', payload: tx });
     }
 
-    if (window.supabaseClient) {
+    if (this.canSyncRemote()) {
       try {
         await window.supabaseClient.from('transactions').insert([tx]);
       } catch (err) {
@@ -395,7 +593,7 @@ class WarkopSyncEngine {
       }
     }
 
-    if (this.socket && this.socket.connected) {
+    if (this.canSocket()) {
       this.socket.emit('tx:create', tx);
     }
 
@@ -433,7 +631,7 @@ class WarkopSyncEngine {
       this.channel.postMessage({ type: 'NEW_EXPENSE', payload: exp });
     }
 
-    if (window.supabaseClient) {
+    if (this.canSyncRemote()) {
       try {
         await window.supabaseClient.from('expenses').insert([exp]);
       } catch (err) {
@@ -441,7 +639,7 @@ class WarkopSyncEngine {
       }
     }
 
-    if (this.socket && this.socket.connected) {
+    if (this.canSocket()) {
       this.socket.emit('exp:create', exp);
     }
 
@@ -481,7 +679,7 @@ class WarkopSyncEngine {
       this.channel.postMessage({ type: 'MENU_UPDATED', payload: newItem });
     }
 
-    if (window.supabaseClient) {
+    if (this.canSyncRemote()) {
       try {
         await window.supabaseClient.from('menu').insert([newItem]);
       } catch (err) {
@@ -505,7 +703,7 @@ class WarkopSyncEngine {
       this.channel.postMessage({ type: 'MENU_UPDATED', payload: target });
     }
 
-    if (window.supabaseClient) {
+    if (this.canSyncRemote()) {
       try {
         await window.supabaseClient.from('menu').update({ image: newImageUrl }).eq('id', id);
       } catch (err) {
@@ -536,7 +734,7 @@ class WarkopSyncEngine {
       this.channel.postMessage({ type: 'MENU_UPDATED', payload: { id, deleted: true } });
     }
 
-    if (window.supabaseClient) {
+    if (this.canSyncRemote()) {
       try {
         await window.supabaseClient.from('menu').delete().eq('id', id);
       } catch (err) {
@@ -557,7 +755,7 @@ class WarkopSyncEngine {
       try { this.channel.postMessage({ type: 'DELETE_TRANSACTION', payload: { id } }); } catch (e) {}
     }
 
-    if (window.supabaseClient) {
+    if (this.canSyncRemote()) {
       try {
         await window.supabaseClient.from('transactions').delete().eq('id', id);
       } catch (err) {
@@ -565,10 +763,12 @@ class WarkopSyncEngine {
       }
     }
 
-    if (this.socket && this.socket.connected) {
+    if (this.canSocket()) {
       try { this.socket.emit('tx:delete', { id }); } catch (e) {}
     }
-    try { await fetch(`/api/transactions/${encodeURIComponent(id)}`, { method: 'DELETE' }); } catch (e) {}
+    if (!this.isDemo) {
+      try { await fetch(`/api/transactions/${encodeURIComponent(id)}`, { method: 'DELETE' }); } catch (e) {}
+    }
 
     this.notifyListeners('transactionDeleted', { id });
     this.notifyListeners('dataChanged', this.getAllData());
@@ -584,7 +784,7 @@ class WarkopSyncEngine {
       try { this.channel.postMessage({ type: 'DELETE_EXPENSE', payload: { id } }); } catch (e) {}
     }
 
-    if (window.supabaseClient) {
+    if (this.canSyncRemote()) {
       try {
         await window.supabaseClient.from('expenses').delete().eq('id', id);
       } catch (err) {
@@ -592,10 +792,12 @@ class WarkopSyncEngine {
       }
     }
 
-    if (this.socket && this.socket.connected) {
+    if (this.canSocket()) {
       try { this.socket.emit('exp:delete', { id }); } catch (e) {}
     }
-    try { await fetch(`/api/expenses/${encodeURIComponent(id)}`, { method: 'DELETE' }); } catch (e) {}
+    if (!this.isDemo) {
+      try { await fetch(`/api/expenses/${encodeURIComponent(id)}`, { method: 'DELETE' }); } catch (e) {}
+    }
 
     this.notifyListeners('expenseDeleted', { id });
     this.notifyListeners('dataChanged', this.getAllData());
@@ -627,7 +829,7 @@ class WarkopSyncEngine {
       try { this.channel.postMessage({ type: 'MENU_UPDATED', payload: target }); } catch (e) {}
     }
 
-    if (window.supabaseClient) {
+    if (this.canSyncRemote()) {
       try {
         await window.supabaseClient.from('menu').update({ stock: n }).eq('id', id);
       } catch (err) {
@@ -652,7 +854,7 @@ class WarkopSyncEngine {
       try { this.channel.postMessage({ type: 'MENU_UPDATED', payload: target }); } catch (e) {}
     }
 
-    if (window.supabaseClient) {
+    if (this.canSyncRemote()) {
       try {
         await window.supabaseClient.from('menu').update({ price: n }).eq('id', id);
       } catch (err) {
@@ -684,7 +886,7 @@ class WarkopSyncEngine {
       try { this.channel.postMessage({ type: 'MENU_UPDATED', payload: { bulk: true } }); } catch (e) {}
     }
 
-    if (window.supabaseClient) {
+    if (this.canSyncRemote()) {
       updates.forEach(u => {
         window.supabaseClient.from('menu').update({ stock: u.stock }).eq('id', u.id)
           .then(() => {}, () => {});
@@ -711,7 +913,7 @@ class WarkopSyncEngine {
       try { this.channel.postMessage({ type: 'UPDATE_TRANSACTION', payload: { id, patch } }); } catch (e) {}
     }
 
-    if (window.supabaseClient) {
+    if (this.canSyncRemote()) {
       try {
         await window.supabaseClient.from('transactions').update(patch).eq('id', id);
       } catch (err) {
@@ -719,9 +921,9 @@ class WarkopSyncEngine {
       }
     }
 
-    if (this.socket && this.socket.connected) {
+    if (this.canSocket()) {
       try { this.socket.emit('tx:update', { id, patch }); } catch (e) {}
-    } else {
+    } else if (!this.isDemo) {
       try {
         await fetch(`/api/transactions/${encodeURIComponent(id)}`, {
           method: 'PUT',
@@ -746,7 +948,7 @@ class WarkopSyncEngine {
 
   // --- OPNAME KAS per tanggal bisnis + shift ---
   cashStoreKey() {
-    return 'warkop_cash_v1';
+    return this.isDemo ? 'warkop_demo_cash_v2' : 'warkop_cash_v1';
   }
 
   getCashSessions() {
@@ -763,6 +965,7 @@ class WarkopSyncEngine {
   }
 
   async refreshCashSessions() {
+    if (this.isDemo) return;
     if (!window.supabaseClient) return;
     try {
       const { data, error } = await window.supabaseClient
@@ -793,7 +996,7 @@ class WarkopSyncEngine {
       try { this.channel.postMessage({ type: 'CASH_UPDATED', payload: { id: rec.id } }); } catch (e) {}
     }
 
-    if (window.supabaseClient) {
+    if (this.canSyncRemote()) {
       try {
         await window.supabaseClient.from('cash_sessions').upsert([obj[rec.id]], { onConflict: 'id' });
       } catch (err) {
