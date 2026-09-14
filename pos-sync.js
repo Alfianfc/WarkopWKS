@@ -280,6 +280,13 @@ class WarkopSyncEngine {
 
     if (!existing || !Array.isArray(menuList) || menuList.length < 30) {
       const defaultMenu = [
+        // Inventory
+        { id: 'menu-inv-1', name: 'Ice batu Cristal', price: 1000, category: 'inventory', image: 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-d-13', name: 'Air mineral Vit', price: 3000, category: 'inventory', image: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-s-7', name: 'Gerry', price: 1500, category: 'inventory', image: 'https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-s-8', name: 'Malkis', price: 1500, category: 'inventory', image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=400&q=80', is_default: true },
+        { id: 'menu-s-9', name: 'Sukro', price: 1500, category: 'inventory', image: 'https://images.unsplash.com/photo-1599599810769-bcde5a160d32?auto=format&fit=crop&w=400&q=80', is_default: true },
+
         // Minuman Dingin
         { id: 'menu-d-1', name: 'Es Teh', price: 5000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=400&q=80', is_default: true },
         { id: 'menu-d-2', name: 'Es White Coffee', price: 6000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=400&q=80', is_default: true },
@@ -293,7 +300,6 @@ class WarkopSyncEngine {
         { id: 'menu-d-10', name: 'Kukubima + Susu', price: 8000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=400&q=80', is_default: true },
         { id: 'menu-d-11', name: 'Kukubima', price: 6000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=400&q=80', is_default: true },
         { id: 'menu-d-12', name: 'Extra jos', price: 6000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1536935338788-846bb9981813?auto=format&fit=crop&w=400&q=80', is_default: true },
-        { id: 'menu-d-13', name: 'Air mineral Vit', price: 3000, category: 'cold_drink', image: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=400&q=80', is_default: true },
 
         // Minuman Panas / Hangat
         { id: 'menu-h-1', name: 'Teh panas', price: 4000, category: 'hot_drink', image: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=400&q=80', is_default: true },
@@ -318,10 +324,7 @@ class WarkopSyncEngine {
         { id: 'menu-s-3', name: 'Martabak', price: 4000, category: 'snack', image: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=400&q=80', is_default: true },
         { id: 'menu-s-4', name: 'Tahu isi', price: 3000, category: 'snack', image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=400&q=80', is_default: true },
         { id: 'menu-s-5', name: 'Pisang goreng', price: 3000, category: 'snack', image: 'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?auto=format&fit=crop&w=400&q=80', is_default: true },
-        { id: 'menu-s-6', name: 'Sate Telur puyuh', price: 3000, category: 'snack', image: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=400&q=80', is_default: true },
-        { id: 'menu-s-7', name: 'Gerry', price: 1500, category: 'snack', image: 'https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?auto=format&fit=crop&w=400&q=80', is_default: true },
-        { id: 'menu-s-8', name: 'Malkis', price: 1500, category: 'snack', image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=400&q=80', is_default: true },
-        { id: 'menu-s-9', name: 'Sukro', price: 1500, category: 'snack', image: 'https://images.unsplash.com/photo-1599599810769-bcde5a160d32?auto=format&fit=crop&w=400&q=80', is_default: true }
+        { id: 'menu-s-6', name: 'Sate Telur puyuh', price: 3000, category: 'snack', image: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=400&q=80', is_default: true }
       ];
       localStorage.setItem(this.storageKeys.menu, JSON.stringify(defaultMenu));
     }
@@ -606,7 +609,7 @@ class WarkopSyncEngine {
     const price = Number(item.price) || 0;
     const cat = item.category || '';
     if (cat === 'cold_drink' || cat === 'hot_drink' || cat === 'food') return 0;
-    if (cat === 'snack') return price <= 1500 ? 0 : price - 1000;
+    if (cat === 'snack' || cat === 'inventory') return price <= 1500 ? 0 : price - 1000;
     return price;
   }
 
@@ -884,6 +887,7 @@ class WarkopSyncEngine {
     let totalRevenue = 0;
     let totalItemsSold = 0;
     const categoryTotals = {
+      inventory: 0,
       cold_drink: 0,
       hot_drink: 0,
       food: 0,

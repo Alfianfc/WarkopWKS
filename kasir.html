@@ -212,7 +212,7 @@
       <div class="flex flex-col gap-4 min-w-0">
       <!-- Category Filter Chips -->
       <div class="flex items-center gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-none">
-        <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-primary text-white shadow-sm transition-all" onclick="filterMenu('all', this)">Semua Menu</button>
+        <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold bg-primary text-white shadow-sm transition-all" onclick="filterMenu('inventory', this)">Inventory</button>
         <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="filterMenu('cold_drink', this)">Minuman Dingin</button>
         <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="filterMenu('hot_drink', this)">Minuman Panas</button>
         <button class="category-btn whitespace-nowrap px-4 py-2 rounded-full text-xs font-semibold bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all" onclick="filterMenu('food', this)">Makanan</button>
@@ -1373,6 +1373,7 @@
       { value: '__custom', label: 'Lainnya (ketik sendiri)...' }
     ];
     const MENU_CATS = [
+      { value: 'inventory', label: 'Inventory' },
       { value: 'cold_drink', label: 'Minuman Dingin' },
       { value: 'hot_drink', label: 'Minuman Panas / Hangat' },
       { value: 'food', label: 'Makanan' },
@@ -1548,7 +1549,7 @@
     let omzetOpen = false;
     let topCat = null;
     const MONTH_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-    const TOPCAT_NAMES = { cold_drink: 'Minuman Dingin', hot_drink: 'Minuman Panas', food: 'Makanan', snack: 'Makanan Ringan' };
+    const TOPCAT_NAMES = { inventory: 'Inventory', cold_drink: 'Minuman Dingin', hot_drink: 'Minuman Panas', food: 'Makanan', snack: 'Makanan Ringan' };
 
 function dateFilterLabel() {
       if (activeDateFilter === 'today') return 'Hari Ini';
@@ -2009,10 +2010,12 @@ function renderCategoryComposition(summary) {
       const hotRev = (cat.hot_drink || 0) + (cat.coffee || 0);
       const foodRev = cat.food || 0;
       const snackRev = cat.snack || 0;
+      const invRev = cat.inventory || 0;
 
       const pct = (v) => Math.round((v / total) * 100);
 
       document.getElementById('category-stacked-bar').innerHTML = `
+        <div class="bg-teal-600 h-full transition-all" style="width:${Math.max(2, pct(invRev))}%" title="Inventory"></div>
         <div class="bg-sky-600 h-full transition-all" style="width:${Math.max(2, pct(coldRev))}%" title="Minuman Dingin"></div>
         <div class="bg-primary h-full transition-all" style="width:${Math.max(2, pct(hotRev))}%" title="Minuman Panas"></div>
         <div class="bg-amber-700 h-full transition-all" style="width:${Math.max(2, pct(foodRev))}%" title="Makanan"></div>
@@ -2029,6 +2032,7 @@ function renderCategoryComposition(summary) {
         </div>`;
 
       document.getElementById('category-legend-container').innerHTML =
+        legend('bg-teal-600', 'Inventory', invRev, 'inventory') +
         legend('bg-sky-600', 'Minuman Dingin', coldRev, 'cold_drink') +
         legend('bg-primary', 'Minuman Panas', hotRev, 'hot_drink') +
         legend('bg-amber-700', 'Makanan', foodRev, 'food') +
@@ -2291,7 +2295,7 @@ function sendWhatsAppSummary() {
       if (et) et.innerText = kasirShiftMode === 'shift' ? ('Belanja - ' + lbl) : 'Belanja - Seharian';
     }
 
-    let currentFilterCategory = 'all';
+    let currentFilterCategory = 'inventory';
 
     // --- RENDER MENU GRID ---
     function renderMenuGrid(filterCategory = currentFilterCategory) {
@@ -2329,7 +2333,7 @@ function sendWhatsAppSummary() {
           <div class="flex flex-col">
             <span class="text-xs font-bold text-on-surface truncate" title="${escHtml(item.name)}">${escHtml(item.name)}</span>
             <button onclick="setPricePrompt('${item.id}')" class="self-start text-xs font-semibold text-primary underline decoration-dotted underline-offset-2 active:scale-95" title="Ketuk untuk ubah harga">${warkopSync.formatRupiah(item.price)}</button>
-            ${item.category === 'snack' ? `<button onclick="event.stopPropagation(); setStockPrompt('${item.id}')" class="mt-1 self-start text-[10px] font-bold px-2 py-0.5 rounded ${item.stock == null ? 'bg-surface-container text-on-surface-variant' : item.stock <= 0 ? 'bg-error/10 text-error' : item.stock <= 5 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-700'}" title="Ketuk untuk atur stok">${item.stock == null ? 'Stok: --' : item.stock <= 0 ? 'Stok habis' : 'Sisa ' + item.stock}</button>` : ''}
+            ${(item.category === 'snack' || item.category === 'inventory') ? `<button onclick="event.stopPropagation(); setStockPrompt('${item.id}')" class="mt-1 self-start text-[10px] font-bold px-2 py-0.5 rounded ${item.stock == null ? 'bg-surface-container text-on-surface-variant' : item.stock <= 0 ? 'bg-error/10 text-error' : item.stock <= 5 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-700'}" title="Ketuk untuk atur stok">${item.stock == null ? 'Stok: --' : item.stock <= 0 ? 'Stok habis' : 'Sisa ' + item.stock}</button>` : ''}
           </div>
           <button onclick="addToCart('${safeName}', ${item.price}, '${item.category}')" class="w-full h-10 bg-primary text-white rounded-2xl flex items-center justify-center gap-1 text-xs font-bold active:scale-95 transition-transform shadow-sm">
             <span class="material-symbols-outlined text-[16px]">add</span>
