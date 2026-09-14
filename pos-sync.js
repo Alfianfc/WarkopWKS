@@ -309,8 +309,8 @@ class WarkopSyncEngine {
     try {
       // 1. Initial Data Fetch from Supabase
       const [txRes, expRes, menuRes] = await Promise.all([
-        window.supabaseClient.from('transactions').select('*').order('timestamp', { ascending: false }).limit(100),
-        window.supabaseClient.from('expenses').select('*').order('timestamp', { ascending: false }).limit(100),
+        window.supabaseClient.from('transactions').select('*').order('timestamp', { ascending: false }),
+        window.supabaseClient.from('expenses').select('*').order('timestamp', { ascending: false }),
         window.supabaseClient.from('menu').select('*')
       ]);
 
