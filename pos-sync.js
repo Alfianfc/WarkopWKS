@@ -43,6 +43,8 @@ class WarkopSyncEngine {
     if (this.isDemo) {
       this.isSupabaseReady = true;
       this.isSocketReady = true;
+      const loader = document.getElementById('app-loading');
+      if (loader) loader.style.display = 'none';
       try { this.initDefaultData(); } catch (e) {}
       try { this.initDemoData(); } catch (e) { console.warn('init demo notice:', e); }
     } else {
@@ -326,6 +328,10 @@ class WarkopSyncEngine {
 
       this.isSupabaseReady = (!txRes.error && !expRes.error);
       this.notifyListeners('dataChanged', this.getAllData());
+      
+      // Hide loading overlay
+      const loader = document.getElementById('app-loading');
+      if (loader) loader.style.display = 'none';
 
       // 2. Realtime Subscriptions
       window.supabaseClient

@@ -86,6 +86,12 @@
 </head>
 
 <body class="bg-surface md:bg-[#e3d3c8] font-sans text-on-surface flex flex-col antialiased selection:bg-primary selection:text-white">
+    <!-- Loading Overlay -->
+    <div id="app-loading" class="fixed inset-0 bg-surface z-[9999] flex flex-col items-center justify-center gap-4">
+      <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-sm font-semibold text-on-surface">Memuat data...</p>
+    </div>
+
   <!-- Header -->
   <header class="fixed top-0 inset-x-0 z-40 bg-surface/90 backdrop-blur-xl border-b border-surface-container pt-safe">
     <div class="h-16 px-4 flex items-center justify-between md:max-w-2xl md:mx-auto w-full lg:max-w-5xl">
