@@ -86,7 +86,13 @@
 </head>
 
 <body class="bg-surface md:bg-[#e3d3c8] font-sans text-on-surface flex flex-col antialiased selection:bg-primary selection:text-white">
-        <!-- Toast Error Container -->
+            <!-- Offline Indicator Banner -->
+    <div id="offline-banner" class="hidden fixed top-16 left-1/2 -translate-x-1/2 z-[9998] bg-amber-600 text-white px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2 text-sm font-semibold">
+      <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+      <span>Mode Offline — data tidak tersimpan ke server</span>
+    </div>
+
+    <!-- Toast Error Container -->
     <div id="error-toast" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-[10000] bg-error text-on-error px-4 py-3 rounded-2xl shadow-lg flex items-center gap-3 max-w-md animate-fade-in">
       <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
       <span class="text-sm font-semibold" id="error-toast-msg">Terjadi kesalahan</span>
@@ -3347,5 +3353,28 @@ function sendWhatsAppSummary() {
       };
 
 </script>
+
+    <script>
+      // Offline detection
+      function updateOfflineStatus() {
+        const banner = document.getElementById('offline-banner');
+        if (!banner) return;
+        const isOffline = !navigator.onLine || (window.warkopSync && !window.warkopSync.isSupabaseReady);
+        banner.classList.toggle('hidden', !isOffline);
+      }
+      
+      window.addEventListener('online', updateOfflineStatus);
+      window.addEventListener('offline', updateOfflineStatus);
+      
+      // Check setiap 10 detik (untuk Supabase realtime disconnect)
+      setInterval(updateOfflineStatus, 10000);
+      
+      // Initial check setelah DOM ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', updateOfflineStatus);
+      } else {
+        updateOfflineStatus();
+      }
+    </script>
 </body>
 </html>
