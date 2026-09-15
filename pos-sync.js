@@ -327,11 +327,19 @@ class WarkopSyncEngine {
       }
 
       this.isSupabaseReady = (!txRes.error && !expRes.error);
-      this.notifyListeners('dataChanged', this.getAllData());
       
       // Hide loading overlay
       const loader = document.getElementById('app-loading');
       if (loader) loader.style.display = 'none';
+      
+      // Show error toast if fetch failed
+      if (txRes.error || expRes.error) {
+        if (window.showErrorToast) {
+          window.showErrorToast('Koneksi bermasalah, data mungkin tidak lengkap. Coba refresh halaman.');
+        }
+      }
+      
+      this.notifyListeners('dataChanged', this.getAllData());
 
       // 2. Realtime Subscriptions
       window.supabaseClient

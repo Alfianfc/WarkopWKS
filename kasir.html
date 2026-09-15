@@ -86,6 +86,12 @@
 </head>
 
 <body class="bg-surface md:bg-[#e3d3c8] font-sans text-on-surface flex flex-col antialiased selection:bg-primary selection:text-white">
+        <!-- Toast Error Container -->
+    <div id="error-toast" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-[10000] bg-error text-on-error px-4 py-3 rounded-2xl shadow-lg flex items-center gap-3 max-w-md animate-fade-in">
+      <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+      <span class="text-sm font-semibold" id="error-toast-msg">Terjadi kesalahan</span>
+    </div>
+
     <!-- Loading Overlay -->
     <div id="app-loading" class="fixed inset-0 bg-surface z-[9999] flex flex-col items-center justify-center gap-4">
       <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -3315,6 +3321,17 @@ function sendWhatsAppSummary() {
       uiToast('Data demo direset ke awal');
       closeCloudModal();
     }
-  </script>
+  
+      // Global error toast
+      window.showErrorToast = function(msg, duration = 5000) {
+        const toast = document.getElementById('error-toast');
+        const msgEl = document.getElementById('error-toast-msg');
+        if (!toast || !msgEl) return;
+        msgEl.textContent = msg;
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), duration);
+      };
+
+</script>
 </body>
 </html>
