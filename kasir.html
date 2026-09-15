@@ -1954,7 +1954,7 @@ function renderRevenueChart() {
             dHtml = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full text-on-surface-variant bg-surface-container">tetap</span>`;
           } else {
             const up = delta.dir === 'up';
-            const pct = delta.pct !== null ? ` (${up ? '+' : '-'}${r.pct}%)` : '';
+            const pct = delta.pct !== null ? ` (${up ? '+' : '-'}${delta.pct}%)` : '';
             dHtml = `<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full ${up ? 'text-emerald-700 bg-emerald-50' : 'text-error bg-error/10'}">${up ? '▲ +' : '▼ -'}${warkopSync.formatRupiah(Math.abs(delta.d))}${pct}</span>`;
           }
           tip.innerHTML = `<div class="text-[10px] font-semibold text-on-surface-variant">${buckets[i][0]}</div><div class="text-sm font-extrabold text-on-surface">${warkopSync.formatRupiah(v)}</div><div class="mt-0.5">${dHtml}</div>`;
